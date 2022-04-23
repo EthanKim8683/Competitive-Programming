@@ -6,7 +6,7 @@
 
 Include nodes of distance 1 to the path.
 
-### Solution: Tree Erosion {#tree-erosion}
+<h3 id="tree-erosion">Solution: Tree Erosion</h3>
 
 ```cpp
 #include <vector>
@@ -42,7 +42,7 @@ Replace nodes with their parents to simulate erosion of tree.
 
 Determine if there is a branchless path connecting all nodes.
 
-### Solution: Euler Tour {#euler-tour}
+<h3 id="euler-tour">Solution: Euler Tour</h3>
 
 ```cpp
 #include <vector>
@@ -87,7 +87,7 @@ Check if all nodes are ancestors of the end node.
 
 Find minimum spanning tree of a graph where all edges are of weight 1 or 0.
 
-### Solution: Inverted Search {#inverted-search}
+<h3 id="inverted-search">Solution: Inverted Search</h3>
 
 ```cpp
 #include <set>
@@ -136,7 +136,7 @@ Count the total subgraphs connected by only 0-weight edges and subtract 1 to get
 
 Find the least common ancestor of two nodes, marking the highest point of the path between them.
 
-### Solution: LCA with [Euler Tour](#euler-tour) and Binary Lifting {#binary-lifting}
+<h3 id="binary-lifting">Solution: LCA with <a href="#euler-tour">Euler Tour</a> and Binary Lifting</h3>
 
 ```cpp
 #include <vector>
@@ -195,7 +195,7 @@ int lca(int a, int b) {
 
 Find how many times an edge is visited.
 
-### Solution: Prefix Sums
+<h3 id="prefix-sums">Solution: Prefix Sums</h3>
 
 ```cpp
 #include <vector>
@@ -232,7 +232,7 @@ int dfs(int a, int parent) {
 
 Find the nearest opposite parity.
 
-### Solution: BFS {#bfs}
+<h3 id="bfs">Solution: BFS</h3>
 
 ```cpp
 #include <vector>

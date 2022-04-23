@@ -6,7 +6,7 @@
 
 Find the maximum subarray sum of an array.
 
-### Solution: Kadane's Algorithm {#kadanes-algorithm}
+<h3 id="kadanes-algorithm">Solution: Kadane's Algorithm</h3>
 
 ```cpp
 #define N 100000
