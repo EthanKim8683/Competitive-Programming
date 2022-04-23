@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "Build",
+			"command": "C:\\msys64\\mingw64\\bin\\g++.exe",
+			"args": [
+				"-lm",
+				"-O2",
+				"-Wno-unused-result",
+				"-DETHANKIM8683",
+				"-g",
+				"${file}",
+				"-o",
+				"${fileDirname}\\${fileBasenameNoExtension}.exe"
+			],
+			"group": "build"
+		},
+		{
+			"type": "shell",
+			"label": "Delete",
+			"command": "Remove-Item",
+			"args": [
+				"'${fileDirname}\\${fileBasenameNoExtension}.exe'"
+			],
+			"group": "none"
+		}
+	]
+}
