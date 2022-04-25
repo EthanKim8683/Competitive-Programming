@@ -1,45 +1,42 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+#define N 1000
+#define X 100000
 
 using namespace std;
 
-using U = unsigned;
 using I = int;
 
-U hs[1000];
-U ss[1000];
-U dp[100001];
-U js[100001];
+I h_arr[N];
+I s_arr[N];
+I dp[X + 1];
 
-int main(void) {
-#if defined(ETHANKIM8683)
+I main(void) {
+#ifdef ETHANKIM8683
   freopen("book.in", "r", stdin);
-#endif // defined(ETHANKIM8683)
+#endif
   cin.tie(0)->sync_with_stdio(0);
-  U n, x;
+  I n, x;
   cin >> n >> x;
-  for (U i = 0; i < n; i++)
-    cin >> hs[i];
-  for (U i = 0; i < n; i++)
-    cin >> ss[i];
-  U result = 0;
-  for (U i = 1; i <= x; i++) {
-    U i_dp = 0;
-    U i_js = 0;
-    for (U j = 0; j < n; j++) {
-      const I k = i - hs[j];
-      if (k >= 0 && j >= js[k]) {
-        const U k_dp = dp[k] + ss[j];
-        if (k_dp > i_dp) {
-          i_dp = k_dp;
-          i_js = j;
-        }
-      }
-    }
-    result = max(result, i_dp);
-    dp[i] = i_dp;
-    js[i] = i_js + 1;
+  for (I i = 0; i < n; i++)
+    cin >> h_arr[i];
+  for (I i = 0; i < n; i++)
+    cin >> s_arr[i];
+  fill_n(dp, x + 1, -1);
+  dp[0] = 0;
+  for (I i = 0; i < n; i++) {
+    const auto h = h_arr[i];
+    const auto s = s_arr[i];
+    for (I j = x; j--;)
+      if (dp[j] != -1 && j + h <= x)
+        dp[j + h] = max(dp[j + h], dp[j] + s);
   }
-  printf("%u\n", result);
+  I result = 0;
+  for (I i = 0; i <= x; i++)
+    result = max(result, dp[i]);
+  printf("%i\n", result);
   return 0;
 }

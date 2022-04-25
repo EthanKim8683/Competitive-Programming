@@ -26,3 +26,4 @@ Problem|Rating|Correct cases|Attempts
 711D|1900|AC|1
 1285D|1900|AC|1
 1543C|1900|AC|2
+321C|2100|AC|1
