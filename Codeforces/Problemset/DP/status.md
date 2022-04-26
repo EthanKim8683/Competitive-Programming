@@ -8,3 +8,6 @@ Problem|Rating|Correct cases|Attempts
 1470A|1300|AC|2
 1555C|1300|AC|1
 455A|1500|AC|3
+550C|1500|AC|1
+550A|1500|AC|1
+466C|1700|AC|2
