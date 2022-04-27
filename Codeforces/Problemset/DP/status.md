@@ -11,3 +11,4 @@ Problem|Rating|Correct cases|Attempts
 550C|1500|AC|1
 550A|1500|AC|1
 466C|1700|AC|2
+474D|1700|AC|2
