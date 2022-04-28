@@ -28,3 +28,5 @@ Problem|Rating|Correct cases|Attempts
 1543C|1900|AC|2
 321C|2100|AC|1
 1187E|2100|AC|2
+519E|2100|AC|3
+208E|2100|AC|1
