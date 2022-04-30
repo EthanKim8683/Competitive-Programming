@@ -5,7 +5,7 @@ Frog 1|Easy|AC|2
 Mortal Kombat Tower|Easy|AC|2
 Hoof Paper Scissors|Easy|AC|1
 Time is Mooney|Easy|AC|1
-Teamwork|Normal|DNF|0
+Teamwork|Normal|AC|1
 Snakes|Normal|DNF|0
 Phidias|Normal|DNF|0
 Moving to the Capital|Hard|DNF|0

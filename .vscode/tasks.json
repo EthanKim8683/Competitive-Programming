@@ -12,7 +12,7 @@
 				"-Wl,--stack,256000000",
 				"-DETHANKIM8683",
 				"-g",
-				"${file}",
+				"${fileDirname}\\${fileBasenameNoExtension}.cpp",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe"
 			],

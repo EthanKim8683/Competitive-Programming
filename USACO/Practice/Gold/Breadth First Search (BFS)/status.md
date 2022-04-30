@@ -2,3 +2,6 @@
 Problem|Rating|Correct cases|Attempts
 -|-|-|-
 Message Route|Easy|AC|1
+Labyrinth|Easy|AC|2
+Graph Girth|Easy|AC|2
+Lasers and Mirrors|Normal|AC|5

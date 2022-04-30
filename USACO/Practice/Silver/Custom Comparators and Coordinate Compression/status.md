@@ -1,10 +1,10 @@
 # Practice Problems Status
 Problem|Rating|Correct cases|Attempts
 -|-|-|-
-Wormhole Sort|Insane|10/10|3
+Wormhole Sort|Insane|AC|3
 Rectangular Pasture|Hard|DNF|0
 Static Range Queries|Hard|DNF|0
-Restaurant Customers|Easy|8/8|1
+Restaurant Customers|Easy|AC|1
 Lifeguards|Easy|DNF|0
 Rental Service|Normal|DNF|0
 Mountain View|Normal|DNF|0
