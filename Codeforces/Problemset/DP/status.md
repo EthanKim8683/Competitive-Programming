@@ -13,3 +13,4 @@ Problem|Rating|Correct cases|Attempts
 466C|1700|AC|2
 474D|1700|AC|2
 1459B|1300|AC|3
+1272D|1500|AC|2
