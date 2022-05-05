@@ -5,12 +5,14 @@
 using namespace std;
 
 using I = int;
+using Lli = long long int;
 
+const Lli MOD = 1e9 + 7;
 const I N = 100;
 const I X = 5000;
 
 I t_arr[N];
-vector<pair<I, vector<pair<I, I>>>> dp[N + 1];
+Lli dp[N + 1][N + 1][X + X + 1];
 
 I main(void) {
 #ifdef ETHANKIM8683
@@ -19,17 +21,36 @@ I main(void) {
   cin.tie(0)->sync_with_stdio(0);
   I n, x;
   cin >> n >> x;
-  for (I i = 0; i < n; i++)
+  for (I i = n; i--;)
     cin >> t_arr[i];
-  dp[0][0][0] = {t_arr[0], t_arr[0]};
+  sort(t_arr, t_arr + n);
+  dp[0][0][X] = 1;
   for (I i = 0; i < n; i++) {
-    printf("%i: %i\n", i, dp[i]);
-    for (I j = i; j < n; j++) {
-      if (t_arr[j] - t_arr[i] > x)
-        break;
-      dp[j + 1] += dp[i];
+    const auto t = t_arr[i];
+    for (I j = 0; j <= i; j++) {
+      for (I k = 0; k <= X + x; k++) {
+        const auto a = dp[i][j][k];
+        // open a group
+        if (j + 1 <= n && k - t >= 0) {
+          auto& b = dp[i + 1][j + 1][k - t];
+          b = (b + a) % MOD;
+        }
+        // close any group
+        if (j - 1 >= 0 && k + t <= X + x) {
+          auto& b = dp[i + 1][j - 1][k + t];
+          b = (b + j * a) % MOD;
+        }
+        auto& b = dp[i + 1][j][k];
+        // add to any group
+        b = (b + j * a) % MOD;
+        // open and close a group of one
+        b = (b + a) % MOD;
+      }
     }
   }
-  printf("%i\n", dp[n]);
+  Lli res = 0;
+  for (I i = X; i <= X + x; i++)
+    res = (res + dp[n][0][i]) % MOD;
+  printf("%lli\n", res);
   return 0;
 }

@@ -8,7 +8,7 @@ Coin Combinations II (Ordered)|Easy|AC|8
 Book Shop|Easy|AC|1
 Money Sums|Easy|AC|1
 Two Sets II|Easy|AC|1
-Coding Company|Hard|DNF|0
+Coding Company|Hard|AC|3
 Fruit Feast|Easy|AC|1
 Knapsack|Normal|DNF|0
 Talent Show|Hard|DNF|0
