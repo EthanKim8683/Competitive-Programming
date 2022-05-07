@@ -10,7 +10,7 @@ Money Sums|Easy|AC|1
 Two Sets II|Easy|AC|1
 Coding Company|Hard|AC|3
 Fruit Feast|Easy|AC|1
-Knapsack|Normal|DNF|0
+Knapsack|Normal|AC|1
 Talent Show|Hard|DNF|0
 Mooriokart|Very Hard|DNF|0
 Round Subset|Normal|DNF|0

@@ -29,22 +29,22 @@ I main(void) {
     const auto t = t_arr[i];
     for (I j = 0; j <= i; j++) {
       for (I k = 0; k <= X + x; k++) {
-        const auto a = dp[i][j][k];
+        const auto cur = dp[i][j][k];
         // open a group
         if (j + 1 <= n && k - t >= 0) {
-          auto& b = dp[i + 1][j + 1][k - t];
-          b = (b + a) % MOD;
+          auto& nxt = dp[i + 1][j + 1][k - t];
+          nxt = (nxt + cur) % MOD;
         }
         // close any group
         if (j - 1 >= 0 && k + t <= X + x) {
-          auto& b = dp[i + 1][j - 1][k + t];
-          b = (b + j * a) % MOD;
+          auto& nxt = dp[i + 1][j - 1][k + t];
+          nxt = (nxt + j * cur) % MOD;
         }
-        auto& b = dp[i + 1][j][k];
+        auto& nxt = dp[i + 1][j][k];
         // add to any group
-        b = (b + j * a) % MOD;
+        nxt = (nxt + j * cur) % MOD;
         // open and close a group of one
-        b = (b + a) % MOD;
+        nxt = (nxt + cur) % MOD;
       }
     }
   }
