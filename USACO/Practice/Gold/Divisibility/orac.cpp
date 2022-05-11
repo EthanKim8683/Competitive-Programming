@@ -12,7 +12,7 @@ const I A = 200000;
 I a_arr[N];
 I facs[A + 1][19];
 
-int main(void) {
+I main(void) {
 #ifdef ETHANKIM8683
   freopen("orac.in", "r", stdin);
 #endif

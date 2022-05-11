@@ -9,7 +9,7 @@
 				"-lm",
 				"-O2",
 				"-Wno-unused-result",
-				"-Wl,--stack,256000000",
+				"-Wl,--stack,512000000",
 				"-DETHANKIM8683",
 				"-g",
 				"${fileDirname}\\${fileBasenameNoExtension}.cpp",

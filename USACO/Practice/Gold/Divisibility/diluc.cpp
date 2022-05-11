@@ -14,7 +14,7 @@ const I N = 5e5;
 C s[N + 1];
 unordered_map<Lli, I> cnts;
 
-int main(void) {
+I main(void) {
 #ifdef ETHANKIM8683
   freopen("diluc.in", "r", stdin);
 #endif

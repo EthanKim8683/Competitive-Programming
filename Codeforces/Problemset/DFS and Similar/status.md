@@ -30,3 +30,4 @@ Problem|Rating|Correct cases|Attempts
 1187E|2100|AC|2
 519E|2100|AC|3
 208E|2100|AC|1
+343D|2100|AC|5

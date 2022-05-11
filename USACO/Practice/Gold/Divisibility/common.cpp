@@ -12,7 +12,7 @@ const I X = 1e6;
 I x_arr[N];
 B facs[X + 1];
 
-int main(void) {
+I main(void) {
 #ifdef ETHANKIM8683
   freopen("common.in", "r", stdin);
 #endif

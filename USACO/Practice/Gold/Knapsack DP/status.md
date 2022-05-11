@@ -13,7 +13,7 @@ Fruit Feast|Easy|AC|1
 Knapsack|Normal|AC|1
 Talent Show|Hard|DNF|0
 Mooriokart|Very Hard|DNF|0
-Round Subset|Normal|DNF|0
+Round Subset|Normal|DNF|5
 Cow Poetry|Normal|DNF|0
 Exercise|Normal|DNF|0
 2004 - Maximal|Normal|DNF|0

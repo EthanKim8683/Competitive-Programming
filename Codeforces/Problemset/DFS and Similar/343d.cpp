@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <vector>
-#include <map>
+#include <algorithm>
 
 using namespace std;
 
@@ -9,44 +9,55 @@ using I = int;
 using B = bool;
 
 const I N = 500000;
+const I SEG = 1 << 20;
 
 vector<I> adjs[N];
+I emp_segs[SEG];
+I fil_segs[SEG];
 I tim_begs[N];
 I tim_ends[N];
-B segs[N];
-I pars[N];
 I tim = 0;
+I n;
 
 void dfs(I a, I p = -1) {
   tim_begs[a] = tim++;
-  pars[a] = p;
   for (const auto b : adjs[a])
     if (b != p)
       dfs(b, a);
   tim_ends[a] = tim;
 }
 
-void fill(I a) {
-  B emp = false;
-  for (I i = tim_begs[a]; i < tim_ends[a]; i++) {
-    if (!segs[i]) {
-      emp = true;
-      segs[i] = true;
-    }
+void emp_upd(I i, I val) {
+  emp_segs[i += n] = val;
+  for (; i > 1; i >>= 1)
+    emp_segs[i >> 1] = max(emp_segs[i], emp_segs[i ^ 1]);
+}
+
+I emp_qry(I l, I r) {
+  I res = 0;
+  for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
+    if (l & 1)
+      res = max(res, emp_segs[l++]);
+    if (r & 1)
+      res = max(res, emp_segs[--r]);
   }
-  if (emp && pars[a] != -1)
-    segs[tim_begs[pars[a]]] = false;
+  return res;
 }
 
-void empty(I a) {
-  segs[tim_begs[a]] = false;
+void fil_upd(I l, I r, I val) {
+  for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
+    if (l & 1)
+      fil_segs[l++] = val;
+    if (r & 1)
+      fil_segs[--r] = val;
+  }
 }
 
-B check(I a) {
-  for (I i = tim_begs[a]; i < tim_ends[a]; i++)
-    if (!segs[i])
-      return false;
-  return true;
+I fil_qry(I i) {
+  I res = 0;
+  for (i += n; i > 0; i >>= 1)
+    res = max(res, fil_segs[i]);
+  return res;
 }
 
 I main(void) {
@@ -54,7 +65,6 @@ I main(void) {
   freopen("343d.in", "r", stdin);
 #endif
   cin.tie(0)->sync_with_stdio(0);
-  I n;
   cin >> n;
   for (I i = n; --i;) {
     I a, b;
@@ -67,16 +77,18 @@ I main(void) {
   dfs(0);
   I q;
   cin >> q;
-  while (q--) {
+  for (I i = 1; i <= q; i++) {
     I c, v;
     cin >> c >> v;
     v--;
+    const auto beg = tim_begs[v];
+    const auto end = tim_ends[v];
     if (c == 1)
-      fill(v);
+      fil_upd(beg, end, i);
     else if (c == 2)
-      empty(v);
+      emp_upd(beg, i);
     else if (c == 3)
-      printf("%i\n", check(v));
+      printf("%i\n", fil_qry(beg) > emp_qry(beg, end));
   }
   return 0;
 }

@@ -11,9 +11,9 @@ Include nodes of distance 1 to the path.
 ```cpp
 #include <vector>
 
-#define N 100000
-
 using namespace std;
+
+const int N = 100000;
 
 vector<int> adjs[N];
 int parents[N];
@@ -47,9 +47,9 @@ Determine if there is a branchless path connecting all nodes.
 ```cpp
 #include <vector>
 
-#define N 100000
-
 using namespace std;
+
+const int N = 100000;
 
 vector<int> adjs[N];
 int tour_begs[N];
@@ -93,9 +93,9 @@ Find minimum spanning tree of a graph where all edges are of weight 1 or 0.
 #include <set>
 #include <unordered_set>
 
-#define N 100000
-
 using namespace std;
+
+const int N = 100000;
 
 unordered_set<int> adjs[N];
 set<int> unvisited;
@@ -141,8 +141,10 @@ Find the least common ancestor of two nodes, marking the highest point of the pa
 ```cpp
 #include <vector>
 
-#define N 100000
-#define LOGN 17
+using namespace std;
+
+const int N = 100000;
+const int LOGN = 17;
 
 vector<int> adjs[N];
 int ancs[N][LOGN];
@@ -152,6 +154,7 @@ int timer = 0;
 
 // Initialize binary lifting: each node stores the 1st
 // ancestor above it, the 2nd, 4th, 8th, 16th, 32nd, etc.
+// Make sure the root's parent is itself, and not -1.
 void dfs(int a, int parent) {
   tour_begs[a] = timer;
   timer++;
@@ -200,7 +203,9 @@ Find how many times an edge is visited.
 ```cpp
 #include <vector>
 
-#include N 100000
+using namespace std;
+
+const int N = 100000;
 
 vector<pair<int, int>> adjs[N];
 int ps[N];
@@ -239,7 +244,9 @@ Find the nearest opposite parity.
 #include <queue>
 #include <algorithm>
 
-#define N 100000
+using namespace std;
+
+const int N = 100000;
 
 vector<int> adjs[N];
 queue<int> states;
@@ -272,3 +279,114 @@ void init() {
 }
 ```
 This approach may be used with multiple nodes at once to find the minimum distance to any node, as with the solution to this problem.
+
+<br>
+
+## [343D](https://codeforces.com/contest/343/problem/D) - Water Tree
+
+### Problem:
+
+<h3 id="segment-tree">Solution: <a href="#euler-tour">Euler Tour</a> and Segment Tree</h3>
+
+```cpp
+#include <vector>
+
+using namespace std;
+
+const int N = 500000;
+const int SEG = 1048576;
+
+vector<int> adjs[N];
+int range_segs[SEG];
+int point_segs[SEG];
+int tour_begs[N];
+int tour_ends[N];
+int timer = 0;
+int n;
+
+// Initialize Euler tour ranges.
+void dfs(int a, int parent = -1) {
+  tour_begs[a] = timer;
+  timer++;
+  for (const auto b : adjs[a])
+    if (b != parent)
+      dfs(b, a);
+  tour_ends[a] = timer;
+}
+
+// Set a single value in a segment tree. Traverses up the
+// binary segment tree (bintree) in O(log(N)) time, updating
+// every ancestor segment. This segment tree is used to
+// find the maximum value of a range and thus, has a
+// `max(a, b)` transition. It's also possible to find range
+// sums using `a + b` instead.
+void range_update(int i, int value) {
+  i += n;
+  range_segs[i] = value;
+  while (i > 1) {
+    range_segs[i >> 1] = max(range_segs[i], range_segs[i ^ 1]);
+    i >>= 1;
+  }
+}
+
+// Get a range-accumulated value from a segment tree.
+// Accumulate power-of-two chunks of segments in O(log(N))
+// time. This works because the segment tree contains
+// log2(N) layers of increasing detail with respect to
+// depth.
+int range_query(int l, int r) {
+  int result = 0;
+  l += n;
+  r += n;
+  while (l < r) {
+    if (l & 1) {
+      result = max(result, range_segs[l]);
+      l++;
+    }
+    if (r & 1) {
+      r--;
+      result = max(result, range_segs[r]);
+    }
+    l >>= 1;
+    r >>= 1;
+  }
+  return result;
+}
+
+// Set a range of values in a segment tree. Unlike the
+// previous pair of functions, this implementation handles
+// an update range and a query point, versus an update point
+// and a query range. Traversal is similar to the previous
+// `range_query` function.
+void point_update(int l, int r, int value) {
+  l += n;
+  r += n;
+  while (l < r) {
+    if (l & 1) {
+      point_segs[l] = value;
+      l++;
+    }
+    if (r & 1) {
+      r--;
+      point_segs[r] = value;
+    }
+    l >>= 1;
+    r >>= 1;
+  }
+}
+
+// Traversal is similar to the `range_update` function,
+// meanwhile processing is similar to the `range_query`
+// function.
+int point_query(int i) {
+  int result = 0;
+  i += n;
+  while (i > 0) {
+    result = max(result, point_segs[i]);
+    i >>= 1;
+  }
+  return result;
+}
+```
+
+<br>
