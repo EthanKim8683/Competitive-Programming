@@ -8,3 +8,6 @@ Range Update Queries|Easy|AC|1
 Mega Inversions|Easy|AC|1
 List Removals|Easy|AC|1
 Salary Queries|Easy|AC|1
+Increasing Subsequence II|Easy|AC|1
+Distinct Values Queries|Easy|AC|1
+Haircut|Easy|AC|1
