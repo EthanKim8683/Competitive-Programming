@@ -11,3 +11,4 @@ Salary Queries|Easy|AC|1
 Increasing Subsequence II|Easy|AC|1
 Distinct Values Queries|Easy|AC|1
 Haircut|Easy|AC|1
+Balanced Photo|Easy|AC|1
