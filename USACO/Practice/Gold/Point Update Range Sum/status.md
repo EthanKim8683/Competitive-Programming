@@ -15,3 +15,4 @@ Balanced Photo|Easy|AC|1
 Why Did the Cow Cross the Road III|Easy|AC|1
 Sleepy Cow Sort|Easy|AC|1
 Why Did the Cow Cross the Road|Easy|AC|2
+Cow Hopscotch|Easy|AC|1
