@@ -9,7 +9,7 @@ using I = int;
 const I N = 200000;
 
 I pars[N];
-I deps[N];
+I rnks[N];
 
 I fnd(I i) {
   if (pars[i] == -1)
@@ -22,13 +22,14 @@ void uni(I a, I b) {
   b = fnd(b);
   if (a == b)
     return;
-  if (deps[a] > deps[b]) {
+  if (rnks[a] < rnks[b]) {
     const auto t = a;
     a = b;
     b = t;
   }
-  deps[a] += deps[b];
   pars[b] = a;
+  if (rnks[a] == rnks[b])
+    rnks[a]++;
 }
 
 I main(void) {

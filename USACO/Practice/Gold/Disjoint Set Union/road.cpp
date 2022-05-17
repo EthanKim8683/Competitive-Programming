@@ -24,7 +24,7 @@ void uni(I a, I b) {
   b = fnd(b);
   if (a == b)
     return;
-  if (sizs[a] > sizs[b]) {
+  if (sizs[a] < sizs[b]) {
     const auto t = a;
     a = b;
     b = t;
