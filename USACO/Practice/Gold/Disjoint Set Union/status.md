@@ -8,3 +8,4 @@ MooTube|Easy|AC|1
 Wormhole Sort|Easy|AC|1
 Moocast|Easy|AC|1
 Tractor|Easy|AC|1
+Mountain Time|Normal|AC|1
