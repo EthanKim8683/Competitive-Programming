@@ -1,17 +1,16 @@
 #include <iostream>
 #include <cstdio>
-#include <tuple>
 #include <algorithm>
 
 using namespace std;
 
 using I = int;
 
+const I MAX = 1e9;
 const I N = 400;
 const I K = N - 1;
 
-I a_arr[N];
-tuple<I, I, I> dp[N + 1][K + 1];
+pair<I, I> dp[2][K + 1][N + 1];
 
 I main(void) {
   freopen("snakes.in", "r", stdin);
@@ -21,36 +20,39 @@ I main(void) {
   cin.tie(0)->sync_with_stdio(0);
   I n, k;
   cin >> n >> k;
-  for (I i = 0; i < n; i++)
-    cin >> a_arr[i];
-  for (I i = 0; i <= n; i++)
-    fill_n(dp[i], k + 1, tuple<I, I, I>{1e9, 0, 0});
-  dp[0][0] = {0, 0, 0};
+  for (I i = 0; i <= k; i++) {
+    fill_n(dp[0][i], n + 1, pair<I, I>{MAX, 0});
+    fill_n(dp[1][i], n + 1, pair<I, I>{MAX, 0});
+  }
+  dp[0][0][0] = {0, 0};
   for (I i = 0; i < n; i++) {
-    const auto a = a_arr[i];
+    I a;
+    cin >> a;
     for (I j = 0; j <= k; j++) {
-      auto [tot, siz, cnt] = dp[i][j];
-      if (j + 1 <= k)
-        dp[i + 1][j + 1] = {tot, a, 1};
-      if (a > siz) {
-        tot += cnt * (a - siz);
-        siz = a;
-      } else
-        tot += siz - a;
-      if (tot < get<0>(dp[i + 1][j]))
-        dp[i + 1][j] = {tot, siz, cnt + 1};
+      for (I l = 0; l <= n; l++) {
+        auto [tot, siz] = dp[0][j][l];
+        if (tot != MAX) {
+          if (j + 1 <= k)
+            dp[1][j + 1][1] = min(dp[1][j + 1][1], {tot, a});
+          if (a > siz) {
+            tot += (a - siz) * l;
+            siz = a;
+          } else
+            tot += siz - a;
+          if (l + 1 <= n)
+            dp[1][j][l + 1] = min(dp[1][j][l + 1], {tot, siz});
+        }
+      }
+    }
+    for (I j = 0; j <= k; j++) {
+      copy_n(dp[1][j], n + 1, dp[0][j]);
+      fill_n(dp[1][j], n + 1, pair<I, I>{MAX, 0});
     }
   }
-  for (I i = 0; i <= n; i++) {
-    for (I j = 0; j <= k; j++) {
-      const auto [a, b, c] = dp[i][j];
-      printf("%i %i %i\t\t", a, b, c);
-    }
-    printf("\n");
-  }
-  I res = 1e9;
+  I res = MAX;
   for (I i = 0; i <= k; i++)
-    res = min(res, get<0>(dp[n][i]));
+    for (I j = 0; j <= n; j++)
+      res = min(res, dp[0][i][j].first);
   printf("%i\n", res);
   return 0;
 }

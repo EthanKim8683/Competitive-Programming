@@ -13,10 +13,10 @@ Fruit Feast|Easy|AC|1
 Knapsack|Normal|AC|1
 Talent Show|Hard|AC|1
 Mooriokart|Very Hard|DNF|0
-Round Subset|Normal|DNF|5
-Cow Poetry|Normal|DNF|0
-Exercise|Normal|DNF|0
+Round Subset|Normal|AC|5
+Cow Poetry|Normal|AC|1
+Exercise|Normal|AC|1
 2004 - Maximal|Normal|DNF|0
-SubmultiplesOfN|Hard|DNF|0
+SubmultiplesOfN|Hard|AC|1
 Cloud Computing|Hard|DNF|0
 Exercise|Insane|DNF|0

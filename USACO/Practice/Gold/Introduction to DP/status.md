@@ -6,12 +6,13 @@ Mortal Kombat Tower|Easy|AC|2
 Hoof Paper Scissors|Easy|AC|1
 Time is Mooney|Easy|AC|1
 Teamwork|Normal|AC|1
-Snakes|Normal|DNF|0
-Phidias|Normal|DNF|0
-Moving to the Capital|Hard|DNF|0
-Circular Barn Revisited|Hard|DNF|0
-Taming the Herd|Hard|DNF|0
-Moortal Cowmbat|Hard|DNF|0
-Team Building|Hard|DNF|0
-Stamp Painting|Very Hard|DNF|0
+Snakes|Normal|AC|2
+Phidias|Normal|AC|1
+Moving to the Capital|Hard|AC|2
+Circular Barn Revisited|Hard|AC|1
+Taming the Herd|Hard|AC|1
+Drought|Hard|AC|1
+Moortal Cowmbat|Hard|AC|1
+Team Building|Hard|AC|1
+Stamp Painting|Very Hard|AC|1
 Bovine Genetics|Very Hard|DNF|0

@@ -11,7 +11,8 @@ Flight Routes Check|Normal|AC|3
 Moocast|Normal|AC|3
 Wormhole Sort|Normal|AC|3
 Connecting Two Barns|Normal|AC|2
-Redistributing Gifts|Normal|DNF|0
-Connected Components?|Hard|DNF|0
+Redistributing Gifts|Normal|DNF|1
+Connected Components?|Hard|DNF|1
 Lane Switching|Very Hard|DNF|0
 Cereal 2|Very Hard|DNF|0
+Building Teams|Easy|AC|1

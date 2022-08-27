@@ -4,39 +4,53 @@
 using namespace std;
 
 using I = int;
-using F = double;
+using Lli = long long int;
+using Lf = double;
+using B = bool;
 
 const I N = 100000;
+const I M = 10000;
+const I L = 100;
+const Lf MIN = -1e9;
 
 I m_arr[N];
-I ps[N + 1];
-I sum = 0;
+Lf ps[N + 1];
+Lli tot = 0;
 I n;
 
-F check(I m) {
-  I tot = 0;
-  for (I i = 1; i < n; i++) {
-    const I u = i + m;
-    if (u < n)
-      tot = max(tot, ps[u] - ps[i]);
+B che(Lf ave) {
+  ps[0] = 0;
+  for (I i = 0; i < n; i++)
+    ps[i + 1] = ps[i] + m_arr[i] - ave;
+  Lf low = ps[1];
+  Lf res = MIN;
+  for (I i = 2; i < n; i++) {
+    const Lf upp = ps[i];
+    res = max(res, upp - low);
+    low = min(low, upp);
   }
-  return (F) (sum - tot) / (n - m);
+  return res >= tot - ave * n;
 }
 
 I main(void) {
-  freopen("sabotage.in", "r", stdin);
 #ifndef ETHANKIM8683
+  freopen("sabotage.in", "r", stdin);
   freopen("sabotage.out", "w", stdout);
 #endif
-  cin.tie(0)->sync_with_stdio(0);
   cin >> n;
   for (I i = 0; i < n; i++)
     cin >> m_arr[i];
-  for (I i = 0; i <= n; i++) {
-    ps[i] = sum;
-    sum += m_arr[i];
+  for (I i = 0; i < n; i++)
+    tot += m_arr[i];
+  Lf l = 0;
+  Lf r = M;
+  for (I i = 0; i < L; i++) {
+    const Lf m = (l + r) / 2;
+    if (che(m))
+      r = m;
+    else
+      l = m;
   }
-  for (I i = 1; i < n - 1; i++)
-    printf("%i %f\n", i, check(i));
+  printf("%.3lf\n", (l + r) / 2);
   return 0;
 }

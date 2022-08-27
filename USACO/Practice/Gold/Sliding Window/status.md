@@ -10,3 +10,11 @@ Longest k-Good Segment|Easy|AC|1
 Haybale Feast|Easy|AC|1
 Mex Min|Easy|AC|1
 Subarray Distinct Values|Easy|AC|2
+Painting the Barn|Normal|AC|1
+Fort Moo|Normal|AC|1
+2015 - Palembang Bridges|Normal|AC|2
+Digging for Oil|Hard|AC|2
+2005 - Garden|Hard|AC|2
+2006 - Pyramid|Hard|AC|2
+Queue Composite|Hard|AC|1
+2015 - Hacker|Hard|AC|1

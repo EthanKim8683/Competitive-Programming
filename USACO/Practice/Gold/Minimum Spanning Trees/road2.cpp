@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <vector>
 #include <queue>
-#include <algorithm>
 
 using namespace std;
 
@@ -15,7 +14,6 @@ const I N = 1e5;
 
 vector<pair<I, Lli>> adjs[N];
 priority_queue<pair<Lli, I>, vector<pair<Lli, I>>, greater<pair<Lli, I>>> stts;
-Lli dsts[N];
 B viss[N];
 
 I main(void) {
@@ -25,7 +23,6 @@ I main(void) {
   cin.tie(0)->sync_with_stdio(0);
   I n, m;
   cin >> n >> m;
-  fill_n(dsts, n, MAX);
   for (I i = 0; i < m; i++) {
     I a, b;
     Lli c;
@@ -37,17 +34,16 @@ I main(void) {
   }
   I cnt = 0;
   Lli cst = 0;
-  stts.push({dsts[0] = 0, 0});
+  stts.push({0, 0});
   while (!stts.empty()) {
     const auto [dst, a] = stts.top();
     stts.pop();
-    if (!viss[a] && dsts[a] == dst) {
+    if (!viss[a]) {
       viss[a] = true;
       cst += dst;
       cnt++;
       for (const auto [b, c] : adjs[a])
-        if (c < dsts[b])
-          stts.push({dsts[b] = c, b});
+        stts.push({c, b});
     }
   }
   if (cnt == n)

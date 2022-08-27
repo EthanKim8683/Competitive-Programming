@@ -9,14 +9,11 @@
 				"-lm",
 				"-O2",
 				"-Wno-unused-result",
-				"-Wl,--stack,512000000",
 				"-DETHANKIM8683",
-				"-g",
 				"${fileDirname}\\${fileBasenameNoExtension}.cpp",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe"
-			],
-			"group": "build"
+			]
 		},
 		{
 			"type": "shell",
@@ -24,8 +21,7 @@
 			"command": "Remove-Item",
 			"args": [
 				"'${fileDirname}\\${fileBasenameNoExtension}.exe'"
-			],
-			"group": "none"
+			]
 		}
 	]
 }

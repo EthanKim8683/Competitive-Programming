@@ -9,4 +9,4 @@ Diluc and Kaeya|Easy|AC|2
 Common Divisors|Normal|AC|2
 Orac and LCM|Normal|AC|2
 Sum of Divisors|Hard|AC|1
-The Number of Pairs|Hard|DNF|0
+The Number of Pairs|Hard|AC|3
