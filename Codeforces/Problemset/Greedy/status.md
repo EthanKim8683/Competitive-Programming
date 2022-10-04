@@ -6,3 +6,5 @@ Problem|Rating|Correct cases|Attempts
 276C|1500|AC|1
 1409D|1500|AC|1
 1348D|1900|AC|1
+1647C|1300|AC|1
+276B|1300|AC|2

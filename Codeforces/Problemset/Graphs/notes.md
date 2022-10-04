@@ -9,9 +9,7 @@ Find a string that contains each pair of letters only once.
 <h3 id="Euler Cycles for Directed Graphs">Solution: Euler Cycles for Directed Graphs</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -75,10 +73,7 @@ How many maximal cycles are there?
 <h3 id="Strongly Connected Components">Solution: Strongly Connected Components</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
-#include<algorithm>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -155,9 +150,7 @@ Find the centroid of a tree.
 <h3 id="Centroids">Solution: Centroids</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -240,9 +233,7 @@ Find the sum of a traversal where all edges are used.
 <h3 id="Euler Cycles for Undirected Graphs">Solution: Euler Cycles for Undirected Graphs</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -312,10 +303,7 @@ Find the smallest strongly connected component that leads only into itself.
 <h3 id="Sinks">Solution: Sinks</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
-#include<algorithm>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -390,11 +378,7 @@ Check for perfect matchings.
 <h3 id="Hopcroft-Karp Algorithm">Solution: Hopcroft-Karp Algorithm</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
-#include<queue>
-#include<algorithm>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -489,9 +473,7 @@ Checking if every component has an edge leading in and leading out (no bridges).
 <h3 id="Finding Bridges">Solution: Finding Bridges</h3>
 
 ```cpp
-#include<iostream>
-#include<cstdio>
-#include<vector>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -535,5 +517,126 @@ I main(){
   }
   dfs(0);
   printf("%i\n",res);
+}
+```
+
+<br>
+
+## [237E](https://codeforces.com/problemset/problem/237/E) - Build String
+
+### Problem:
+
+Find minimum-cost maximum-flow of characters from a set of strings into one final string.
+
+<h3 id="Ford-Fulkerson Algorithm">Solution: Ford-Fulkerson Algorithm</h3>
+
+```cpp
+#include<bits/stdc++.h>
+ 
+using namespace std;
+ 
+using I=int;
+using B=bool;
+ 
+const I N=500;
+const I MAX=1e9;
+ 
+I adjs[N][N];
+I viss[N];
+I n;
+I t=1;
+ 
+I dfs(I a,I cur=MAX){
+  // If augmenting path has been found, return
+  // flow
+  if(a==n-1)return cur;
+  if(viss[a]>=t)return 0;
+  viss[a]=t;
+  // Traverse into nodes that have the capacity
+  // to receive it
+  for(I b=0;b<n;b++)if(adjs[a][b]){
+    I res=dfs(b,min(cur,adjs[a][b]));
+    // If augmenting path has been found, update
+    // residual graph along the path
+    if(!res)continue;
+    adjs[a][b]-=res,adjs[b][a]+=res;
+    return res;
+  }
+  // No augmenting path has been found
+  return 0;
+}
+
+// Ford-Fulkerson happens here!
+I ffa(){
+  // Find and update augmenting paths while they
+  // still exist
+  I res=0,cur;
+  while(cur=dfs(0))res+=cur,t++;
+  return res;
+}
+
+// I/O
+I main(){
+  cin.tie(0)->sync_with_stdio(0);
+  I m;cin>>n>>m;
+  for(I i=0;i<m;i++){
+    I a,b,w;cin>>a>>b>>w;
+    adjs[a-1][b-1]=w;
+  }
+  printf("%i\n",ffa());
+}
+```
+
+Minimum cost can be achieved by visiting nodes in increasing order, where node index corresponds to cost.
+
+<br>
+
+## [195E](https://codeforces.com/problemset/problem/195/E) - Building Forest
+
+### Problem: 
+
+Perform DSU while keeping track of data relative to respective root.
+
+<h3 id="Extended Disjoint Set Union">Solution: Extended Disjoint Set Union</h3>
+
+```cpp
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using I=int;
+
+const I N=1e5;
+
+I pars[N];
+I sums[N];
+
+// Extended Disjoint Set Union happens here!
+I fnd(I i){
+  if(pars[i]<0)return i;
+  // Propogate changes upwards recursively
+  I j=fnd(pars[i]);
+  sums[i]+=sums[pars[i]];
+  return pars[i]=j;
+}
+
+// Union without balancing
+void uni(I a,I b){
+  if((a=fnd(a))==(b=fnd(b)))return;
+  pars[a]+=pars[b],pars[b]=a;
+}
+
+// I/O
+I main(){
+  cin.tie(0)->sync_with_stdio(0);
+  I n;cin>>n;
+  fill_n(pars,n,-1);
+  for(I i=1;i<n;i++){
+    I a,w;cin>>a>>w,a--;
+    uni(a,i);
+    sums[i]=sums[a]+w;
+  }
+  for(I i=0;i<n;i++)fnd(i);
+  for(I i=0;i<n;i++)printf("%i ",sums[i]);
 }
 ```

@@ -8,7 +8,7 @@ Convention|Easy|AC|2
 Angry Cows|Easy|AC|1
 Social Distancing|Normal|AC|2
 Sabotage|Normal|AC|2
-Angry Cows|Hard|DNF|0
+Angry Cows|Hard|AC|4
 Loan Repayment|Very Hard|DNF|0
 Load Balancing|Insane|DNF|0
 Cellular Network|Easy|AC|1

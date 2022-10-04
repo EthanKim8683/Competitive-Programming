@@ -1,39 +1,36 @@
-#include <iostream>
-#include <cstdio>
-#include <unordered_map>
-
-#define N 100000
+#include<bits/stdc++.h>
 
 using namespace std;
 
-using I = int;
-using Lli = long long int;
+using I=int;
+using B=bool;
+using Lli=long long int;
 
-unordered_map<Lli, I> sieve;
-Lli x_arr[N];
+const I X=1e6;
 
-I main(void) {
-#ifdef ETHANKIM8683
-  freopen("230b.in", "r", stdin);
-#endif
+B coms[X+1];
+vector<I>prms;
+
+I fnd(Lli x){
+  I l=0,r=prms.size()-1;
+  while(l<=r){
+    I m=l+(r-l)/2;
+    Lli prm=prms[m],sqr=prm*prm;
+    if(sqr==x)return m;
+    if(sqr>x)r=m-1;
+    if(sqr<x)l=m+1;
+  }
+  return -1;
+}
+
+I main(){
   cin.tie(0)->sync_with_stdio(0);
-  I n;
-  cin >> n;
-  for (I i = 0; i < n; i++) {
-    Lli x;
-    cin >> x;
-    sieve[x] = 0;
-    x_arr[i] = x;
+  coms[0]=coms[1]=1;
+  for(I i=2;i*i<=X;i++)if(!coms[i])for(I j=i*i;j<=X;j+=i)coms[j]=1;
+  for(I i=0;i<=X;i++)if(!coms[i])prms.push_back(i);
+  I n;cin>>n;
+  for(I i=0;i<n;i++){
+    Lli x;cin>>x;
+    printf("%s\n",fnd(x)==-1?"NO":"YES");
   }
-  for (I i = 2; i <= 1e6; i++)
-    for (auto& [x, count] : sieve)
-      if (x != i && x % i == 0)
-        count++;
-  for (I i = 0; i < n; i++) {
-    if (sieve[x_arr[i]] == 1)
-      printf("YES\n");
-    else
-      printf("NO\n");
-  }
-  return 0;
 }
