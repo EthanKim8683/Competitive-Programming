@@ -11,3 +11,4 @@ The Smallest String Concatenation|Normal|AC|3
 Nezzar and Symmetric Array|Normal|AC|3
 Correct Placement|Normal|AC|1
 Triangles|Hard|AC|1
+Out Of Sorts|Hard|AC|1
