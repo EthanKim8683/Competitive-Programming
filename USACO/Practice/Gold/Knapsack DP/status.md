@@ -18,5 +18,5 @@ Cow Poetry|Normal|AC|1
 Exercise|Normal|AC|1
 2004 - Maximal|Normal|DNF|0
 SubmultiplesOfN|Hard|AC|1
-Cloud Computing|Hard|DNF|0
+Cloud Computing|Hard|AC|2
 Exercise|Insane|DNF|0

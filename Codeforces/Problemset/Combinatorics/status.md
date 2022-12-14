@@ -1,35 +1,37 @@
 # Practice Problems Status
-Problem|Rating|Correct cases|Attempts
--|-|-|-
-1105C|1500|AC|1
-1674B|800|AC|1
-1499A|800|AC|1
-1581A|800|AC|1
-629A|800|AC|1
-1543B|900|AC|1
-1582B|900|AC|1
-1166A|900|AC|1
-1293B|1000|AC|1
-1539A|1000|AC|1
-610A|1000|AC|1
-1732A|1000|AC|2
-535B|1100|DNF|0
-630C|1100|DNF|0
-1574B|1100|DNF|0
-1514B|1200|DNF|0
-478B|1300|DNF|0
-1328B|1300|DNF|0
-1433E|1300|DNF|0
-617B|1300|DNF|0
-1326C|1300|DNF|0
-251A|1300|DNF|0
-1007A|1300|DNF|0
-1178C|1300|DNF|0
-621B|1300|DNF|0
-1594E1|1300|DNF|0
-1096B|1300|DNF|0
-840A|1300|DNF|0
-844B|1300|DNF|0
-630F|1300|DNF|0
-171B|1300|DNF|0
-1743A|800|AC|1
+Problem|Rating|Correct cases|Attempts|Notes
+-|-|-|-|-
+1105C|1500|AC|1|N/A
+1674B|800|AC|1|N/A
+1499A|800|AC|1|N/A
+1581A|800|AC|1|N/A
+629A|800|AC|1|N/A
+1543B|900|AC|1|N/A
+1582B|900|AC|1|N/A
+1166A|900|AC|1|N/A
+1293B|1000|AC|1|N/A
+1539A|1000|AC|1|N/A
+610A|1000|AC|1|N/A
+1732A|1000|AC|2|N/A
+535B|1100|AC|1|N/A
+630C|1100|DNF|1|N/A
+1743A|800|AC|1|N/A
+1305C|1600|AC|4|N/A
+1539A|1000|AC|2|N/A
+1475E|1600|AC|1|Understand that all values except those interchangeable with the "border" are fixed, and that the combinations of the aforementioned values can be trivially calculated for.
+322B|1600|AC|2|Solution could have been more exact, went with brute forcing for all possible remainders and maximizing each case.
+1284C|1600|AC|1|Understand that combinations for each segment length can be trivially calculated for. I feel like I'd classify this as a "classic" combinatorics problem based on the 3 major ones I've done so far as they kind of work me into this specific mindset and approach.
+735C|1600|AC|2|Fibonacci sequence; understand the tree-like structure and how it relates to the structure of the fibonacci sequence.
+364A|1600|AC|4|Understand that the dimensions of the rectangle can be separated such that their relation can be solved in constant time.
+340C|1600|AC|1|Another "classic" combinatorics problem. Understand that each pair occurs `(n - 1)! * 2!` times, and each `a` is a "beginning" `(n - 1)!` times. Meanwhile, the number of total permutations is `n!`. Since `(n - 1)!` will always be a factor of both the numerator and denominator, we don't even need to process it for either. Then factor out the `gcd` of both.
+319A|1600|AC|1|Understand that the only time `a < b && (a ^ x) > (b ^ x)` holds true is when `a` and `b`'s first different bit lies on a `1` on `x` at the same index. The thought process began with recognizing that `a == b && (a ^ x) == (b ^ x)` would remain equal until their first different bit, which led me to realize that it's the first different bit that determines whether or not the inequality is satisfied.
+272D|1600|AC|2|Understand that, since the second value does not matter in the ordering, any order of the second value is possible as long as the first remains non-decreasing. However repeats may happen when there are multiple of a certain pair, namely at most two since each second value may occur at most twice. Therefore we can multiply all possible orderings of each "chunk" and divide for duplicates by simply removing all `2`'s from the factorials and multiplying them manually to handle non-prime modulos.
+630G|1600|AC|1|Understand that you can either place a pennant, or move to the next table. As long as all penants are placed and all tables are visited, the combination is valid. Thus, we there are `bin(n - 1 + x, x)` combinations for `n` tables and `x` penants.
+52B|1600|AC|1|Understand that all triangles have a horizontal and vertical side, and thus, a point containing both the horizontal and vertical components of those sides: the right-angle corner. Using this, we can use combinatorics to combine for the other two corners.
+323A|1600|AC|1|Understand that, for a single-colored group to consist of only cubes with exactly two neighbors of the same color, the group must behave like a cycle such that a cube is neighbor to a "previous" cube and a "next" cube, and the last cube's "next" is the first cube. With this in mind, due to the Euclidean nature of the space, there can only be an even number of cubes to a group. Thus, cubes of odd numbers are always impossible to fill. Even numbers, on the other hand, can be tiled using 2x2x2 cubes consisting of a 1x2x2 white layer and a 1x2x2 black layer.
+1301C|1700|AC|2|Understand that each "gap" consisting of only `0`'s subtracts `x * (x + 1) / 2` substrings from the answer, where `x` is the length of the "gap". Thus, this becomes a greedy problem of distributing the non-`1` characters among gaps such that the final cost is minimum.
+1312D|1700|AC|1|Understand that `n - 1` unique numbers are selected from numbers `[1, m]` for each array. Now it's a matter of distributing them among the left and right sides of the "peak". For this, we can go through all possible sizes of the left side, where we choose `i` values from the `n - 2` non-"peak" chosen numbers to be on the left, while the rest go to the right. Then, we can choose one of those `i` values to be the duplicate on the right side.
+1699C|1700|AC|1|Understand that, for a subarray to have a certain MEX, it must contain every value below the MEX but not the MEX itself. Combined with the fact that the complete array is a permutation, every MEX greater than `0` has at most one subarray, and that subarrays from previous MEXs are contained within it. For the subarray of each MEX, any order of values are possible as long as the value one below the MEX is on the edge of the subarray such that without it, the subarray would not have this MEX, and the subarrays contained within it also satisfy the problem.
+1598D|1700|AC|2|Understand that for a combination of 3 to be invalid, both conditions must not be satisfied. Note that each pair is unique, therefore in a combination of 3, there must be one pair where both values are duplicates, one pair where only the first is a duplicate and one where only the second is. This makes it easy to find invalid combinations by going through all possible pairs of the first type, as well as possible second and third types for those first types.
+1715|1700|AC|1|Understand that there is at most one "split" between each adjacent pair, and that each split contributes to `l * r` subarrays, where `l` is the number of blocks to the left of the split and `r` is the number of blocks to the right.
+1329B|1700|AC|1|Understand that the only way a `b < b ^ a` is if `a`'s leading bit is greater than `b`'s leading bit.
