@@ -436,3 +436,7 @@ Problem|Rating|Correct cases|Attempts|Notes
 1613D|1900|AC|1|N/A
 1200D|1900|AC|1|N/A
 1384B1|1900|AC|2|N/A
+1746D|1900|AC|3|Understand that all paths should end at leaf nodes, this is because any remainders when splitting an amount of paths between children can be accounted for through said children. Now, all that is left is to distribute the path ends to the leaf nodes. We can set the initial counts to the final quotient of all divisions along the path, then greedily increase counts by at most `1` such that the result is maximum.
+1172B|1900|DNF|0|N/A
+1000D|1900|DNF|0|N/A
+16E|1900|DNF|0|N/A

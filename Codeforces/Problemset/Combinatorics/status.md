@@ -35,3 +35,37 @@ Problem|Rating|Correct cases|Attempts|Notes
 1598D|1700|AC|2|Understand that for a combination of 3 to be invalid, both conditions must not be satisfied. Note that each pair is unique, therefore in a combination of 3, there must be one pair where both values are duplicates, one pair where only the first is a duplicate and one where only the second is. This makes it easy to find invalid combinations by going through all possible pairs of the first type, as well as possible second and third types for those first types.
 1715|1700|AC|1|Understand that there is at most one "split" between each adjacent pair, and that each split contributes to `l * r` subarrays, where `l` is the number of blocks to the left of the split and `r` is the number of blocks to the right.
 1329B|1700|AC|1|Understand that the only way a `b < b ^ a` is if `a`'s leading bit is greater than `b`'s leading bit.
+621C|1700|DNF|0|N/A
+1102E|1700|DNF|0|N/A
+1043D|1700|AC|1|Find all valid common parts. Combinations can be found easily by length.
+1735D|1700|AC|1|Understand that, in order to make a meta-set of five containing multiple sets of three following the criteria, the overlap between the sets must equal exactly `1`. If there was an overlap of two, since two cards enforce a single unique third card, the set would ultimately overlap with itself, which does not contribute to the meta-set. If it was any less, the sum of the cards would not be 5.
+689C|1700|AC|1|Binary search for `n`. For all values of `k`, total the number of ways for each `n` and compare with the target `m`.
+327C|1700|AC|1|Understand that there are `(2 ** 0) * m + (2 ** 1) * m +  + (2 ** 2) * m + ... + (2 ** (k - 1)) * m` ways to produce a magic number, where `m` is the number of ways to produce a magic number in a single copy of `a`. This can't be computed naively because `k` is too big, therefore an approach similar to the modulo exponent function can be used.
+596C|1700|DNF|0|N/A
+929C|1700|DNF|0|N/A
+300C|1800|AC|1|Understand that each distribution of `a`'s and `b`'s have the same sum as long as the number of `a`'s and the number of `b`'s are equal. We can use `bin(n, i)` to find the number of numbers such that the number of `a`'s equals `i`.
+1420D|1800|AC|2|Understand that each lamp can pick `k - 1` other lamps to open the door. Therefore, we can, for each lamp, find how many other lamps overlap with its beginning time and choose `k - 1` of them. Note that multiple lamps may begin at the same time and thus, need to be removed once processed.
+1552C|1800|DNF|0|N/A
+1207D|1800|DNF|0|N/A
+1705D|1800|DNF|0|N/A
+1195D2|1800|DNF|0|N/A
+986B|1800|DNF|0|N/A
+894B|1800|DNF|0|N/A
+1750D|1800|DNF|0|N/A
+1442B|1800|DNF|0|N/A
+1508B|1800|DNF|0|N/A
+991E|1800|DNF|0|N/A
+652C|1800|DNF|0|N/A
+603B|1800|DNF|0|N/A
+690D2|1800|DNF|0|N/A
+1400D|1900|DNF|0|N/A
+459C|1900|DNF|0|N/A
+1444B|1900|DNF|0|N/A
+1238D|1900|DNF|0|N/A
+1545B|1900|DNF|0|N/A
+1371E1|1900|DNF|0|N/A
+1202D|1900|DNF|0|N/A
+552D|1900|DNF|0|N/A
+1717D|1900|DNF|0|N/A
+1172B|1900|DNF|0|N/A
+1000D|1900|DNF|0|N/A
