@@ -27,16 +27,56 @@ Problem|Rating|Correct cases|Attempts|Notes
 1316C|1800|AC|1|Understand that, given `x % p = 0` if `x` is divisible by p, `x * y % p != 0` if `x % p != 0` and `y % p != 0`. Since a coefficient of `h(x)` is represented as a sum of products of coefficients from `f(x)` and `g(x)` (with their respective powers of `x`), we can simply find a term in `h(x)` such that `a[i] * b[i] % p != 0` exists. Note that, when multiple such `a[i] * b[i]` are summed, it would require brute forcing to determine whether said sum still doesn't equal `0` modulo `p`. However, one way to ensure only a single `a[i] * b[i] % p != 0` is present is by finding the first term including one, which is as simple as finding the first `i` of `a` such that `a[i] % p != 0` and `j` of `b` where `b[i] % p != 0` and returning their sum.
 1426E|1800|AC|4|Understand that one way to solve the minimum wins case is by maximizing the flow along non-winning edges. In my solution, however, I wanted to see if there was a less complicated approach and ended up looking at the editorial. They did not say why the solution works ("It can be shown..."); expect a better explanation in the future.
 1466E|1800|AC|1|Understand that each bit contributes independently from other bits, so `and`-ing or `or`-ing an entire number is not required. Instead, the number of positive bits at a certain index could be totalled for all `a` and used to calculate the sum of all `and`s and `or`s for a given `a`. Summing the product of the `and` sum and `or` sum for each `a` yields the answer.
-380C|2000|DNF|0|N/A
-1438C|2000|DNF|0|N/A
-2B|2000|DNF|0|N/A
-1366D|2000|DNF|0|N/A
-1370D|2000|DNF|0|N/A
-1359D|2000|DNF|0|N/A
-1311D|2000|DNF|0|N/A
-1349B|2000|DNF|0|N/A
-1244C|2000|DNF|0|N/A
-432D|2000|DNF|0|N/A
-242E|2000|DNF|0|N/A
-540C|2000|DNF|0|N/A
-1363E|2000|DNF|0|N/A
+380C|2000|AC|2|Understand that the length of a maximum regular bracket subsequence could be greedily counted by subtracting the number of invalid open and closing brackets from the total length. This can be counted by going from left to right, adding `1` for each "(", subtracting `1` for each ")" and clamping the count to a value greater than `0`. Whenever the count needs to be clamped, that is an invalid ")" and in the end, if the count is greater than `0`, that is the number of invalid "(". With this in mind, we could find the counts at every index for every starting point of a substring of the original string and answer the queries that way. This could be done using a segment tree, updating per starting index. To count the indices that needed to be clamped, a fenwick tree could be used. (Note that this method is not the intended solution. The intended solution is much simpler, using a segment tree with a simple non-commutative combiner function. Let this be a reminder to self to practice segment trees/data structures in general.)
+1438C|2000|AC|1|Understand that a checkered increasing of the cells would already fix initially same-number pairs. For pairs that become same-number, the checkers could be inverted, such that the neighbors it could pair with would also increase.
+2B|2000|AC|4|Understand that dynamic programming for the minimum number of `2`'s or `5`'s yields an optimal solution, as only the minimum of the two yield the number of trailing zeroes.
+1366D|2000|AC|2|Understand that splitting the set of factors into any two disjoint groups as `d1` and `d2` will always result in `gcd(d1 + d2, a) = 1`. This is because `d2 % d1 != 0`, since their factors are disjoint, so `(d2 + d1) % d1 != 0` as well. Since the sum is already not divisible by a factor of `a`, it cannot be divisible by `a` as a whole (the intended solution). Again, my actual solution deviated from the intended solution as I had realized that, all primes (starting with `5`) can be made by multiplying and adding smaller primes, at least until `19`, which is the largest `MEX` prime possible. For `2` and `3`, I just hoped that any combination of two other primes would suffice.
+1370D|2000|AC|1|Understand that we can use a binary search to on the maximum of the smaller maximums. The checking function would be whether it's possible to arrange the values less than or equal to this maximum in an alternating pattern.
+1359D|2000|AC|1|Understand that in every segment, Bob may only remove one card, a maximum card. Thus, for every card, we can assume it is the card Bob will take, and in return, no greater card may exist in the resulting segment (binary search). Then, using prefix sums and a range query data structure (segment tree), we can find the maximum sum among all possible segments.
+1311D|2000|AC|2|Understand that the factors of any final `b` can be binary searched for such that their difference from `a` is minimum. For `c`, the greatest multiple of `b` smaller than `c` and the smallest multiple greater than `c` can both be calculated using math and then used to find a minimum difference.
+1349B|2000|AC|8|Understand that a set containing `k` and `l` such that `l >= k` would only contain `k` after the operation. Also note that any set majority `k` would only contain `k` after the operation. With this in mind, we first want to make as many values as possible greater than or equal to `k`, which could be done using the second observation. Then, check if it is possible for the first case to happen, which would serve as a "seed" for the second case to finally fill the array.
+1244C|2000|AC|5|Understand that the problem is essentially asking for a solution to `x * d + y * w = p (mod w)`, a Linear Diophantine Equation, which can easily be solved with the Extended Euclidean Algorithm. The solutions may also be shifted such that `x` and `y` are minimal such that their sum fits within `n`.
+432D|2000|AC|1|Understand that a Z-function could be used to check how many suffix-prefix substrings exist at a certain index, since the value of the function at a certain index would correspond to the number of prefixes having substrings at said index. In addition, the Z-function could also be used to check whether a specific prefix is also a suffix.
+242E|2000|AC|1|Understand that, while segment tree xor-ing entire values is quite difficult, processing each bit individually is pretty simple. A lazy segment tree supporting both range query and range update works here.
+540C|2000|AC|4|Understand that, to fall through a cell, either the cell must be already cracked prior to visiting, or it must have a non-cracked neighbor to temporarily stay after cracking the target cell the first time.
+1363E|2000|AC|1|Understand that the `k * a[u]` formula could be decomposed into `2 * a[u]` per swap in the subtree of node `u`. Note that descendants are inside the subtrees of their ancestors, so the cost of a descendant could be handled by an ancestor, thereby making the cost at any given node the minimum cost along its path to the root. With this, swaps could be solved greedily.
+1288D|2000|DNF|0|N/A
+1132F|2000|DNF|0|N/A
+1354C2|2000|DNF|0|N/A
+1200E|2000|DNF|0|N/A
+514C|2000|DNF|0|N/A
+1416B|2000|DNF|0|N/A
+1399E1|2000|DNF|0|N/A
+1268B|2000|DNF|0|N/A
+1359E|2000|DNF|0|N/A
+1674E|2000|DNF|0|N/A
+383C|2000|DNF|0|N/A
+1427C|2000|DNF|0|N/A
+478D|2000|DNF|0|N/A
+1156C|2000|DNF|0|N/A
+337D|2000|DNF|0|N/A
+920F|2000|DNF|0|N/A
+1379C|2000|DNF|0|N/A
+1763C|2000|DNF|0|N/A
+1415D|2000|DNF|0|N/A
+1294F|2000|DNF|0|N/A
+1426F|2000|DNF|0|N/A
+1391D|2000|DNF|0|N/A
+710E|2000|DNF|0|N/A
+1304E|2000|DNF|0|N/A
+359D|2000|DNF|0|N/A
+451D|2000|DNF|0|N/A
+1380D|2000|DNF|0|N/A
+1296E2|2000|DNF|0|N/A
+466B|2000|DNF|0|N/A
+1657D|2000|DNF|0|N/A
+1536D|2000|DNF|0|N/A
+1244E|2000|DNF|0|N/A
+1493C|2000|DNF|0|N/A
+1567D|2000|DNF|0|N/A
+1716D|2000|DNF|0|N/A
+1616D|2000|DNF|0|N/A
+453B|2000|DNF|0|N/A
+1521C|2000|DNF|0|N/A
+1525C|2000|DNF|0|N/A
+1408D|2000|DNF|0|N/A

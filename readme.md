@@ -12,3 +12,4 @@ Reached Platinum on 12/20/2022<br>
 
 Reached Pupil on 10/15/2022<br>
 Reached Specialist on 10/23/2022<br>
+Reached Expert on 1/8/2023<br>
