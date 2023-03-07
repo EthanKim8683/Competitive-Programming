@@ -1,18 +1,18 @@
 # Practice Problems Status
-Problem|Rating|Correct cases|Attempts
--|-|-|-
-Building Roads|Easy|AC|3
-Closing the Farm|Easy|AC|1
-Moocast|Easy|AC|1
-Fence Planning|Easy|AC|1
-Birthday Party|Easy|AC|3
-Rank|Easy|AC|2
-Flight Routes Check|Normal|AC|3
-Moocast|Normal|AC|3
-Wormhole Sort|Normal|AC|3
-Connecting Two Barns|Normal|AC|2
-Redistributing Gifts|Normal|DNF|1
-Connected Components?|Hard|DNF|1
-Lane Switching|Very Hard|DNF|0
-Cereal 2|Very Hard|DNF|0
-Building Teams|Easy|AC|1
+Problem|Rating|Correct cases|Attempts|Notes
+-|-|-|-|-
+Building Roads|Easy|AC|3|N/A
+Closing the Farm|Easy|AC|1|N/A
+Moocast|Easy|AC|1|N/A
+Fence Planning|Easy|AC|1|N/A
+Birthday Party|Easy|AC|3|N/A
+Rank|Easy|AC|2|N/A
+Flight Routes Check|Normal|AC|3|N/A
+Moocast|Normal|AC|3|N/A
+Wormhole Sort|Normal|AC|3|N/A
+Connecting Two Barns|Normal|AC|2|N/A
+Redistributing Gifts|Normal|DNF|1|N/A
+Connected Components?|Hard|DNF|1|N/A
+Lane Switching|Very Hard|DNF|0|N/A
+Cereal 2|Very Hard|DNF|0|N/A
+Building Teams|Easy|AC|1|N/A

@@ -1,10 +1,16 @@
 # Practice Problems Status
-Problem|Rating|Correct cases|Attempts
--|-|-|-
-Hotel Queries|Easy|AC|2
-Seating|Normal|AC|2
-Load Balancing|Normal|AC|1
-Serge and Dining Room|Normal|DNF|0
-Point Set Range Composite|Easy|AC|1
-Subarray Sum Queries|Normal|AC|2
-Pizzeria Queries|Easy|AC|1
+Problem|Rating|Correct cases|Attempts|Notes
+-|-|-|-|-
+Hotel Queries|Easy|AC|2|N/A
+Seating|Normal|AC|2|N/A
+Load Balancing|Normal|AC|1|N/A
+Serge and Dining Room|Normal|AC|3|Understand that, regardless of the order of the pupils, the same meals will be bought. With this in mind, using a segment tree on the domain of `a` (and `b`) can yield the number of remaining meals if the combiner function handles pupils of greater value purchasing meals of lesser value. Binary search can then be used to find the range containing the maximum valued remaining meal and produce an answer.
+Point Set Range Composite|Easy|AC|1|N/A
+Subarray Sum Queries|Normal|AC|2|N/A
+Pizzeria Queries|Easy|AC|1|N/A
+Marathon|Easy|AC|3|Although probably not the intended solution, two segment trees, one summing distances between order-adjacent locations, and the other maximizing the gain of omitting a checkpoint, is enough to calculate, for each query, the minimum total travel time.
+Optimal Milking|Normal|AC|1|Understand that a dynamic programming-like method can be used where each subproblem stores the maximum sum when the leftmost machine is used, the rightmost, neither or both. With each subproblem represented as a segment, a segment tree can be used to support point updates and range queries.
+2014 - Cards|Normal|AC|2|Understand that dynamic programming can be used to store whether, at the left and right endpoints of a segment, any combination of obverse and reverse is possible. Again, treating each segment as a subproblem in a segment tree allows point updates and range queries.
+2021 - Sjeckanje|Hard|AC|2|I think I'm starting to get the hang of it: segment tree could be used like an "update-able range query dynamic programming". In this case, understand that each segment should be monotonic, otherwise values are being "wasted" having not contributed to neither the min nor the max. In addition, range updates can be represented as point queries as each interaction is only between adjacent indices and thus, adding only at the ends of each "range update" is good enough. Using dynamic programming to divide the sequence into segments and segment tree to allow for said point update and range query yields the correct answer.
+High Card Low Card|Hard|AC|2|Understand that the order of Bessie's cards do not matter, so allocating the `k` lowest cards to "low card" mode and the `n - k` highest cards to "high card" mode is optimal. Now, calculating for how many games Bessie will win can be done using a segment tree on the domain of the cards, `[0, 2 * n)` such that the combiner function counts how many pairs of Bessie and Elsie's cards such that Bessie's card is greater or lesser than Elsie's depending on the mode. With this, we can brute force for every partition, gradually removing elements from the "low card" side and adding them to the "high card" side and maximizing the number of Bessie's victories.
+2018 - Election|Hard|AC|3|Understand that the number of nullified votes required during the increasing and decreasing vote counts can be solved independently, then summed minus the overlap, which can be calculated using dynamic programming. To calculate the overlap, note that leftward nullified votes from the decreasing case can be overlapped with rightward nullified votes from the increasing case, assuming each vote is nullified as "late" as possible to their respective direction. This is because later nullifications can be swapped for "pre-emptive" earlier nullifications. However, implementation is a bit tricky, as overlaps can be undone just as nullifications can too. As a result, before calculating a combined overlap, both the left and right source overlaps need to reflect the undoing of nullifications, only for their sum, plus the total number of new overlaps, to be applied to the final combined overlap.

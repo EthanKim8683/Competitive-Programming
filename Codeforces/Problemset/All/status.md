@@ -40,21 +40,21 @@ Problem|Rating|Correct cases|Attempts|Notes
 242E|2000|AC|1|Understand that, while segment tree xor-ing entire values is quite difficult, processing each bit individually is pretty simple. A lazy segment tree supporting both range query and range update works here.
 540C|2000|AC|4|Understand that, to fall through a cell, either the cell must be already cracked prior to visiting, or it must have a non-cracked neighbor to temporarily stay after cracking the target cell the first time.
 1363E|2000|AC|1|Understand that the `k * a[u]` formula could be decomposed into `2 * a[u]` per swap in the subtree of node `u`. Note that descendants are inside the subtrees of their ancestors, so the cost of a descendant could be handled by an ancestor, thereby making the cost at any given node the minimum cost along its path to the root. With this, swaps could be solved greedily.
-1288D|2000|DNF|0|N/A
+1288D|2000|AC|1|Understand that processing each `x` (with repeats), in decreasing order of value each `a[x][y]` only takes `O(N * M)` time. By storing a bitmask of visited `y` for each `x`, comparisons against other `x` that fulfill all `y` such that `a[x][y]` is the minimax only takes at most `O(2 ^ M)`.
 1132F|2000|DNF|0|N/A
-1354C2|2000|DNF|0|N/A
-1200E|2000|DNF|0|N/A
-514C|2000|DNF|0|N/A
-1416B|2000|DNF|0|N/A
-1399E1|2000|DNF|0|N/A
-1268B|2000|DNF|0|N/A
-1359E|2000|DNF|0|N/A
-1674E|2000|DNF|0|N/A
-383C|2000|DNF|0|N/A
-1427C|2000|DNF|0|N/A
-478D|2000|DNF|0|N/A
-1156C|2000|DNF|0|N/A
-337D|2000|DNF|0|N/A
+1354C2|2000|AC|1|Understand that, on `[0, PI / n)`, the width (the initially larger dimension) of the `2n-gon` is monotonically decreasing, and the height (initially smaller) is monotonically increasing. Combined with the fact that, in order to minimize the maximum, both dimensions should be close as possible to each other, otherwise the larger dimension can be decreased or the smaller increased. Thus, a binary search on their difference (also monotonic as a result of the first observation) towards `0` should yield the optimal answer.
+1200E|2000|AC|3|Understand that Knuth-Morris-Pratt can be used to determine by how much the two strings may overlap by running the function on a string `b + "/" + a` where `b` is the word to be added and `a` is the existing word.
+514C|2000|AC|1|Understand that the maximum number of operations during queries given the problem restraints is (very roughly) `1e8` using a trie, this could be found using a separate program with `i + 2 * i * (i + 1) / 2` as the number of trie nodes given `i` as the length of all input and query strings, `3 * i + 1` as the number of strings required to fill such a tree and `i * (3 * i + 1)` as the total length.
+1416B|2000|AC|2|Understand that, loading the first index with all values, then distributing the values among the remaining indices such that no index goes negative produces a solution with exactly `3n` operations. To do this, for each `0`-indexed `i` from `[1, n)`, lend `-a[i] (mod i + 1)` to `a[i]` to initially make it a multiple of `i + 1`, then transfer the entire `a[i]` back to `a[0]`. This works because `a[i] >= 1`, meaning that, at every index, `a[0]` stands to increase by at least `1`, making it possible to handle any modulo if processed in increasing order: `a[0] >= 1` at index `1` where modulo is `[0, 1]`, `a[0] >= 2` at index `2` where modulo is `[0, 2]`, etc.
+1399E1|2000|AC|2|Understand that each edge, when divided by `2` decreases the total path sum by a certain amount, the effect of which decreases per division. The problem can be solved greedily by running a priority queue for maximum decreases.
+1268B|2000|AC|4|Understand that a tiling can be achieved if there is a perfect pairing between every black cell and every white cell, assuming a checkerboard coloring. Meaning, the result is simply the minimum of the number of black cells and the number of white cells. See "domino tiling problem" for further analysis.
+1359E|2000|AC|1|Understand that, as long as the `gcd` of all the numbers in `a` is included in `a`, the array is stable. Using combinatorics, the number of possible arrays of length `k` for each `gcd` can be summed to produce an answer.
+1674E|2000|AC|3|Understand that there are four simple ways to get a minimum answer. The first is only shooting adjacent pairs of walls. This works because both walls contribute to each other's breaking as neighbors. The second is only shooting the two weakest walls. The third is shooting a wall with the goal of breaking its neighbors. The fourth and final method is similar to the third, but shooting the stronger of the two neighbors as well.
+383C|2000|AC|1|Understand that simply keeping track of the odd-depth and even-depth nodes and storing their data in separate segment trees, updating them using their respective Euler tour ranges is enough to differentiate even and odd children of a node.
+1427C|2000|AC|4|Understand that the maximum distance between celebrities is `2 * (r - 1)`. Therefore any celebrities arriving in `2 * (r - 1)` minutes or greater in the future will always be reachable and only those outside this range need to be explicitly checked against. With this in mind, at most `O(R * N)` operations need to be done.
+478D|2000|AC|2|Understand that the maximum `h` among all possible `r` and `g` is `893`. Knapsack DP can produce a result in roughly `O(H * R)`, worst case.
+1156C|2000|AC|1|Understand that a matching can be created between the bottom `m` values and top `m` values. Binary searching for this value `m` produces an answer.
+337D|2000|AC|1|Understand that DP on trees can be used to find the maximum distance to an affected settlement. For every node whose maximum distance to an affected settlement is less than or equal to `d`, it is possible the settlement contains the Book of Evil.
 920F|2000|DNF|0|N/A
 1379C|2000|DNF|0|N/A
 1763C|2000|DNF|0|N/A

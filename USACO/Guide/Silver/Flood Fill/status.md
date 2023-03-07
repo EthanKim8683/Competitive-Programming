@@ -1,5 +1,5 @@
 # Practice Problems Status
-Problem|Rating|Correct cases|Attempts
--|-|-|-
-Icy Perimeter|Easy|AC|1
-Cross Country Skiing|Easy|AC|1
+Problem|Rating|Correct cases|Attempts|Notes
+-|-|-|-|-
+Icy Perimeter|Easy|AC|1|N/A
+Cross Country Skiing|Easy|AC|1|N/A
