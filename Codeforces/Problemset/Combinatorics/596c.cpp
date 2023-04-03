@@ -12,5 +12,4 @@ I main(){
     pnts[i]={x,y};
   }
   for(I i=0;i<n;i++)cin>>w_arr[i];
-  
 }

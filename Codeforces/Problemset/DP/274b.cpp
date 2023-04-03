@@ -5,23 +5,13 @@ using Lli=long long int;
 const I N=1e5;
 vector<I>adjs[N];
 I v_arr[N];
-Lli res=0;
+Lli dp[N];
 void dfs(I a,I p=-1){
-  Lli tot1=0,exc1=0;
-  Lli tot2=0,exc2=0;
+  dp[a]=max(-v_arr[a],0);
   for(auto b:adjs[a])if(b!=p){
     dfs(b,a);
-    Lli v=v_arr[b];
-    if(v<0)tot1+=v;
-    if(v>0)tot2+=v;
-    exc1=max(exc1,v);
-    exc2=min(exc2,v);
+    dp[a]=max(dp[a],dp[b]+max(v_arr[b]-v_arr[a],0));
   }
-  Lli v=v_arr[a];
-  Lli low=tot1+exc1;
-  Lli upp=tot2+exc2;
-  res+=max(v-upp,0ll);
-  res+=max(low-v,0ll);
 }
 I main(){
   cin.tie(0)->sync_with_stdio(0);
@@ -33,5 +23,5 @@ I main(){
   }
   for(I i=0;i<n;i++)cin>>v_arr[i];
   dfs(0);
-  printf("%lli\n",res);
+  printf("%lli\n",v_arr[0]+dp[0]*2);
 }

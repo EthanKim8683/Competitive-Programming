@@ -3,25 +3,18 @@ using namespace std;
 using I=int;
 using Lf=long double;
 const I N=100000;
-pair<I,I>rngs[N];
-Lf facs[N];
-pair<Lf,Lf>dp[N][2];
+Lf prbs[N];
 I main(){
   cin.tie(0)->sync_with_stdio(0);
   I n,p;cin>>n>>p;
   for(I i=0;i<n;i++){
     I l,r;cin>>l>>r;
-    rngs[i]={l,r};
+    prbs[i]=(Lf)(r/p-(l-1)/p)/(r-l+1);
   }
+  Lf res=0;
   for(I i=0;i<n;i++){
-    auto[l,r]=rngs[i];
-    I num=r/p-(l-1)/p;
-    I den=r-l+1;
-    facs[i]=(Lf)num/den;
+    Lf prb1=prbs[i],prb2=prbs[(i+1)%n];
+    res+=prb1+prb2-prb1*prb2;
   }
-  // x' = x + (1 + y) * d, y' = y + d
-  dp[0][1]={facs[0],facs[0]};
-  for(I i=1;i<n;i++){
-    
-  }
+  printf("%.7Lf\n",res*2000);
 }

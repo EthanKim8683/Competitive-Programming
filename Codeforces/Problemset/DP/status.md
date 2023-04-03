@@ -362,7 +362,7 @@ Problem|Rating|Correct cases|Attempts|Notes
 1748C|1600|AC|2|N/A
 1734D|1800|AC|1|N/A
 933A|1800|AC|1|N/A
-274B|1800|DNF|0|N/A
+274B|1800|AC|1|Understand that finding the minimum number of required subtractions and the minimum number of additions and summing up their counts yields the correct answer.
 909C|1800|AC|1|N/A
 527D|1800|AC|5|N/A
 1718A1|1800|AC|5|N/A
@@ -378,7 +378,7 @@ Problem|Rating|Correct cases|Attempts|Notes
 917A|1800|AC|4|N/A
 666A|1800|AC|3|N/A
 914C|1800|AC|3|N/A
-733C|1800|DNF|0|N/A
+733C|1800|AC|3|Understand that as long as its possible to segment `a` into segments with sums equal to `b`, and each segment does not consist of only two equal monsters, it is possible to find a solution greedily.
 822D|1800|AC|1|N/A
 747D|1800|AC|1|N/A
 1740E|1800|AC|2|N/A
@@ -394,7 +394,6 @@ Problem|Rating|Correct cases|Attempts|Notes
 167B|1800|AC|1|N/A
 1575D|1800|AC|3|N/A
 73C|1800|DNF|1|N/A
-513G1|1800|DNF|0|N/A
 187B|1800|DNF|3|N/A
 49D|1800|AC|1|N/A
 79C|1800|AC|3|N/A
@@ -406,11 +405,11 @@ Problem|Rating|Correct cases|Attempts|Notes
 95B|1800|AC|1|N/A
 448C|1900|AC|1|N/A
 1353E|1900|AC|4|N/A
-1479B1|1900|DNF|0|N/A
+1479B1|1900|AC|1|Understand that only one state needs to be kept track of each time: the value of the end of the previous segment. This is because the value of the end of the current segment is always the previous segment, and because the values at the beginning and end of adjacent segments matter when merging segments. With this in mind, we can use dynamic programming with a segment tree to query for maximal values for segments ending in either a certain value, or any value but a certain value. We must also use prefix sums since we need to account for all the different adjacent pairs within each segment. And finally, the transitions represent switching colors.
 1155D|1900|AC|2|N/A
 1313C2|1900|AC|2|N/A
 1475G|1900|AC|1|N/A
-1238D|1900|DNF|0|N/A
+1238D|1900|AC|1|Understand that there are three different cases for each right-hand substring index. Let `i` be the current index, `j` be the greatest index such that `j < i && a[j] == a[i]` and `k` be the greatest index such that `k < i && a[k] != a[i]`. If `j` doesn't exist, no palindrome greater than length `1` can exist either. If `k` doesn't exist, all previous indices can be palindromes. If both exist and `j < k`, all indices `l` such that `l <= j` can be left-hand substring indices, since indices `l` where `l > j` will end in `a[i]` but not begin with `a[i]`. If `j > k`, then there is exactly one index that does not begin a palindrome: `k`.
 505C|1900|AC|1|N/A
 1512F|1900|AC|2|N/A
 1413C|1900|AC|2|N/A
@@ -423,12 +422,11 @@ Problem|Rating|Correct cases|Attempts|Notes
 1214D|1900|AC|2|N/A
 510D|1900|AC|1|N/A
 479E|1900|AC|1|N/A
-1647D|1900|DNF|0|N/A
 1383B|1900|AC|1|N/A
 687C|1900|AC|1|N/A
 1119E|1900|AC|3|N/A
 1558B|1900|AC|1|N/A
-1153D|1900|DNF|0|N/A
+1153D|1900|AC|2|Understand that dynamic programming storing the minimum count above and maximum count below the maximal value for each node is enough to solve the problem. For `min` nodes, the maximum value cannot have a smaller above count than the sum of all its children's above counts as well as the total number of children minus one. For `max` nodes, the maximum value cannot have a smaller above count than the minimum of all its childrens amove counts.
 1749D|1900|AC|1|N/A
 1718A2|1900|AC|1|N/A
 557C|1900|AC|1|N/A
@@ -437,3 +435,68 @@ Problem|Rating|Correct cases|Attempts|Notes
 1200D|1900|AC|1|N/A
 1384B1|1900|AC|2|N/A
 1746D|1900|AC|3|Understand that all paths should end at leaf nodes, this is because any remainders when splitting an amount of paths between children can be accounted for through said children. Now, all that is left is to distribute the path ends to the leaf nodes. We can set the initial counts to the final quotient of all divisions along the path, then greedily increase counts by at most `1` such that the result is maximum.
+16E|1900|AC|1|Understand that bitmask dynamic programming can be used to calculate and transition states where certain combinations of fishes are still alive.
+1000D|1900|AC|3|Understand that, for each index `j`, each previous beginning index `i` contributes `lCa[i]` subsequences, where `l` is `j - i - 1` and `a[i] > 0`.
+1172B|1900|AC|1|Understand for all nodes `i` such that `i != 1`, the number of possible permutations is `(k + 1) * k!`, where `k` is the number of children of `i`, `(k + 1)` different counts of children left and right of node `i` and `k!` different orderings. For node `1`, the number of possible permutations is `n * k!`, where `n` is the total number of positions and `k` is the number of children of node `1`, `n` different places to root the tree and `k!` different orderings of children.
+1689D|1900|AC|1|Understand that the distances can be represented as a sort of "convex hull", where each line on each axis represents the distance to that node on that axis. The hull is made by maximizing among all such lines for the given position on each axis. Calculating this hull can be done using dynamic programming. Finding the minimum point on this hull can be found through a complete search.
+597C|1900|AC|1|Understand that the problem can be solved with knapsack dynamic programming except each transition takes a range query instead of a point query, this can be accomplished with a point update range sum data structure like Fenwick tree.
+19B|1900|AC|2|Understand that, as long as the final time taken is greater than or equal to the amount of items stolen, there exists some permutation of items where such moves are possible.
+1260D|1900|AC|9|Understand overlapping ranges can be joined into and traversed as one, saving time. With this in mind, binary search along `a` with prefix sums can be used to find the maximal number of soldiers that can reach the boss.
+148E|1900|AC|2|Understand that range dynamic programming for each index `i` can be used to solve for the maximal damage for each quantity of items at `i`. Then, knapsack dynamic programming can be used to find the maximal damage over all indices where the final quantity is `m`.
+685B|1900|AC|6|Understand that the centroid can only decrease in depth going from a child node to a parent node, so binary lifting can be used to find the parent's centroid from any child's.
+1077F1|1900|AC|3|Understand that, between two reposts, their distance cannot be greater than `k - 1`. We can use dynamic programming to simulate this for `x` reposts. (Note to self, for 1077F2, remember that by "each segment of the news feed of at least `k` consecutive pictures", the problem means "each subarray of length `k`". This misunderstanding cost me `2` submissions!)
+650B|1900|AC|4|Prefix sums can be used to calculate the cost of going `i` photos from the left or right of the starting photo `0`. In the case of going only one direction, just the prefix sum can be used to calculate total time. In the case of going one direction, then the other, both prefix sums and binary search can be used to find the maximum distance possible under the time limit.
+582B|1900|AC|2|Understand that the maximum longest non-decreasing subsequence consisting of only unique indices has length `n`, and since each repeat of the original array contributes at least `1` element to the sequence, we can calculate the longest non-decreasing subsequence of the original array repeated `min(n, t)` times. For the remaining repeats, we can find the most common value in the array, as it will be contributed the most during said repeats.
+1015E2|1900|AC|2|Understand that each row and column can be simplified into bounds. For each cell, a star of maximum size can be calculated using said bounds, then drawn onto another grid. If the final grid matches the input grid, a solution exists, and if a solution exists, the stars of maximum size found earlier form the solution.
+9D|1900|AC|1|Understand that for each binary search tree of size `i`, we can transition from trees of size `j` and `k`, where `j + k == i - 1`, representing the left and right children. The maximum height can also be kept, for a final complexity of `O(N ^ 4)`.
+1611E2|1900|AC|7|Understand that if all children of a node are solvable, then the parent is too. In addition, if the distance to a friend is less than or equal to the distance to Vlad, the node is solvable. The total number of friends needed is the number of nodes where the distance to a friend is less than or equal to the distance to Vlad, this is because Vlad is unable to reach those nodes.
+811C|1900|AC|6|Using range dynamic programming to solve for all ranges, and then dynamic programming again using said ranges as transitions.
+682D|1900|AC|2|Using grid dynamic programming we can find the longest common subsequence with exactly `x` disjoint segments.
+750D|1900|DNF|0|N/A
+981D|1900|AC|3|Understand that a dynamic programming can be used to maximize each bit of the answer in decreasing order of significance. The final complexity is `O(L * (N ^ 2) * K)`.
+1181C|1900|AC|1|Understand that 2D prefix sums can be used to determine whether a rectangular region consists entirely of one color. Finding contigious rows of one color along each column, treating these rows as the middle rows of a flag and the column as the left bound of the flag, then binary searching for a right bound using the region checking from earlier yields a solution in `O(N * M * log2(M))`.
+1012C|1900|AC|1|Understand that knapsack dynamic programming keeping track of the state of the previous hill can be used to solve the problem. The states of the previous hill `i` is `excavate(i, i - 1)`, `excavate(i, i + 1)` and `a_arr[i]`, where `excavate(i, j)` represents the height of `i` after excavating it to a height below that of `j`.
+149D|1900|AC|2|Understand that the brackets form a tree, which allows us to solve the problem using dynamic programming on trees. The states represent the color of the leftmost and rightmost brackets of each node, if any.
+796C|1900|AC|1|Understand that dynamic programming on trees can be used to solve for each root, where the pattern is that the root has `0` additional strength, nodes adjacent to the root have `1` additional strength and all other nodes have `2` additional strength. Finding the minimum among all roots yields the solution.
+109C|1900|AC|1|Understand that dynamic programming on trees can be used to find the number of nodes such that the path to said nodes contains at least one lucky edge. Combinatorics can then be used to find the number of ordered pairs of nodes `j` and `k` for each node `i` such that both the paths from `i` to `j` and `i` to `k` contain a lucky edge.
+1799D1|1900|DNF|0|N/A
+893D|1900|DNF|0|N/A
+1774E|1900|DNF|0|N/A
+730J|1900|DNF|0|N/A
+1183H|1900|DNF|0|N/A
+321B|1900|DNF|0|N/A
+1067A|1900|DNF|0|N/A
+1794D|1900|DNF|0|N/A
+372B|1900|DNF|0|N/A
+633C|1900|DNF|0|N/A
+568B|1900|DNF|0|N/A
+351B|1900|DNF|0|N/A
+417D|1900|DNF|0|N/A
+222E|1900|DNF|0|N/A
+613B|1900|DNF|0|N/A
+292D|1900|DNF|0|N/A
+1801C|1900|DNF|0|N/A
+930C|1900|DNF|0|N/A
+335B|1900|DNF|0|N/A
+41D|1900|DNF|0|N/A
+404D|1900|DNF|0|N/A
+213B|1900|DNF|0|N/A
+663I|1900|DNF|0|N/A
+223B|1900|DNF|0|N/A
+262C|1900|DNF|0|N/A
+285D|1900|DNF|0|N/A
+137D|1900|DNF|0|N/A
+158E|1900|DNF|0|N/A
+14E|1900|DNF|0|N/A
+258B|1900|DNF|0|N/A
+279E|1900|DNF|0|N/A
+232B|1900|DNF|0|N/A
+261B|1900|DNF|0|N/A
+208B|1900|DNF|0|N/A
+67D|1900|DNF|0|N/A
+173C|1900|DNF|0|N/A
+69D|1900|DNF|0|N/A
+46E|1900|DNF|0|N/A
+1132F|1900|DNF|0|N/A
+1379C|1900|DNF|0|N/A
+1294F|1900|DNF|0|N/A

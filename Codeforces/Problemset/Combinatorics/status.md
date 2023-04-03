@@ -35,8 +35,8 @@ Problem|Rating|Correct cases|Attempts|Notes
 1598D|1700|AC|2|Understand that for a combination of 3 to be invalid, both conditions must not be satisfied. Note that each pair is unique, therefore in a combination of 3, there must be one pair where both values are duplicates, one pair where only the first is a duplicate and one where only the second is. This makes it easy to find invalid combinations by going through all possible pairs of the first type, as well as possible second and third types for those first types.
 1715|1700|AC|1|Understand that there is at most one "split" between each adjacent pair, and that each split contributes to `l * r` subarrays, where `l` is the number of blocks to the left of the split and `r` is the number of blocks to the right.
 1329B|1700|AC|1|Understand that the only way a `b < b ^ a` is if `a`'s leading bit is greater than `b`'s leading bit.
-621C|1700|DNF|0|N/A
-1102E|1700|DNF|0|N/A
+621C|1700|AC|2|Understand that each pair of cyclically adjacent sharks contribute to the expected count independently.
+1102E|1700|AC|2|Find all strongly connected components, the answer is `2 ^ (n - 1)`, where `n` is the number of components. The reason is that each node in a strongly connected component has to have the same value. Meanwhile, each next strongly connected component can be at most one more than the previous, allowing `2 ^ (n - 1)` different combinations as the first component always has to equal `0`.
 1043D|1700|AC|1|Find all valid common parts. Combinations can be found easily by length.
 1735D|1700|AC|1|Understand that, in order to make a meta-set of five containing multiple sets of three following the criteria, the overlap between the sets must equal exactly `1`. If there was an overlap of two, since two cards enforce a single unique third card, the set would ultimately overlap with itself, which does not contribute to the meta-set. If it was any less, the sum of the cards would not be 5.
 689C|1700|AC|1|Binary search for `n`. For all values of `k`, total the number of ways for each `n` and compare with the target `m`.
