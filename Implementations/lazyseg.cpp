@@ -9,7 +9,7 @@ const Lli MIN=-1e18;
 I a_arr[N];
 Lli vals[2*FIXN],dels[2*FIXN];
 I siz(I i){
-  return 1<<(__builtin_clz(i)-30+LOGN);
+  return 1<<(__builtin_clz(i)-31+LOGN);
 }
 void app(I i,Lli val){
   vals[i]+=val;

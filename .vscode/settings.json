@@ -88,6 +88,11 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "queue": "cpp",
-    "*.kt": "cpp"
+    "*.kt": "cpp",
+    "format": "cpp",
+    "expected": "cpp",
+    "spanstream": "cpp",
+    "stacktrace": "cpp",
+    "stdfloat": "cpp"
   }
 }
