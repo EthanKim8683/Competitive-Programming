@@ -2,15 +2,19 @@
 using namespace std;
 using I=int;
 using Lli=long long int;
-using B=bool;
 const I N=1e5;
-const Lli MOD=1e9;
+const Lli MOD=1e9+7;
 pair<I,I>rngs[N];
-I rgts[N];
-Lli dp[N];//how many end at i
-Lli ps[N];//how many end at or before i
-B cmp(pair<I,I>a,pair<I,I>b){
-  return a.second<b.second;
+Lli fens[2][2*N+1];
+Lli pows[N+1];
+I n;
+void upd(I t,I i,Lli val){
+  for(;i<=2*n;i+=i&-i)(fens[t][i]+=val)%=MOD;
+}
+Lli qry(I t,I i){
+  Lli res=0;
+  for(;i>0;i-=i&-i)(res+=fens[t][i])%=MOD;
+  return res;
 }
 I main(){
 #ifndef ETHANKIM8683
@@ -18,25 +22,18 @@ I main(){
   freopen("help.out","w",stdout);
 #endif
   cin.tie(0)->sync_with_stdio(0);
-  I n;cin>>n;
+  pows[0]=1;
+  for(I i=1;i<=N;i++)pows[i]=pows[i-1]*2%MOD;
+  cin>>n;
   for(I i=0;i<n;i++){
-    I l,r;cin>>l>>r;
+    I l,r;cin>>l>>r,l--,r--;
     rngs[i]={l,r};
   }
-  sort(rngs,rngs+n,cmp);
+  sort(rngs,rngs+n);
   for(I i=0;i<n;i++){
     auto[l,r]=rngs[i];
-    rgts[i]=r;
+    upd(0,r+1,qry(0,2*n)-qry(0,l)+qry(0,l)+pows[qry(1,l)]);
+    upd(1,r+1,1);
   }
-  fill_n(dp,n,1),ps[0]=1;
-  for(I i=1;i<n;i++){
-    auto[l,r]=rngs[i];
-    I j=lower_bound(rgts,rgts+n,l)-rgts-1;
-    if(j>=0)(dp[i]+=ps[j])%=MOD;
-    (ps[i]=ps[i-1]+dp[i])%=MOD;
-  }
-  for(I i=0;i<n;i++)printf("%lli ",dp[i]);
-  printf("\n");
-  for(I i=0;i<n;i++)printf("%lli ",ps[i]);
-  printf("\n");
+  printf("%lli\n",qry(0,2*n));
 }

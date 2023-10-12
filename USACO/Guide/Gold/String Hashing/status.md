@@ -6,13 +6,14 @@ Finding Periods|Very Easy|AC|1|Understand that checking all possible period leng
 Censoring|Easy|AC|1|Using stack, queue and two pointers, we can test  at every index `i` in `s`, a `t`-sized block ending at `i`. If it matches with `t`, we remove it.
 2017 - Palindromic Partitions|Easy|AC|1|Understand that partitions can be greedily created.
 Palindromic Characteristics|Easy|AC|9|Understand that the `k` of a `k`-palindrome can be at most `log2(N)`. This is because each `k`-palindrome requires two non-empty `(k - 1)`-palindromes, which themselves require two non-empty `(k - 2)`-palindromes, and so on. Using this, we can use dynamic programming to determine the total number of `k`-palindromes for each `k` in `O(log2(N) * N ^ 2)`.
-Check Transcription|Easy|DNF|0|N/A
-Bovine Genomics|Normal|DNF|0|N/A
-Lights Out|Normal|DNF|0|N/A
-2017 - Hangman 2|Normal|DNF|0|N/A
-2017 - Osmosmjerka|Normal|DNF|0|N/A
-2012 - Sateliti|Hard|DNF|0|N/A
-Liar|Hard|DNF|0|N/A
-2018 - Genetics|Hard|DNF|0|N/A
+Check Transcription|Easy|AC|1|Understand that the strings $r _ 0$ and $r _ 1$ can be determined solely by their lengths. This means we can check all strings in at most $O(n \, \ln \, n)$ time.
+Fullmetal Alchemist II|Easy|AC|2|Understand that we can find the cost of putting one phrase after another for all pairs of phrases, then use bitmask dynamic programming to find the minimum cost of joining all phrases.
+Bovine Genomics|Normal|AC|2|Understand that, provided a length, we can test all substrings of said length whether all no spotty/plain pair shares the same substring. This can be combined with binary search to get the minimum length in $O(m ^ 2 \, \log ^ 2 \, n$.
+Lights Out|Normal|AC|1|Understand that binary search can be used to find the minimum distance required to determine, for each starting point, Bessie's location.
+2017 - Hangman 2|Normal|AC|2|Understand that if $n < B$, then it would be faster to brute force all word pairs, otherwise, it would be faster to brute force all index pairs, where $B$ is the solution to $n ^ 2 \cdot \frac{3 \cdot 10 ^ 4}{n} = n \cdot \frac{3 \cdot 10 ^ 4}{n} ^ 2 \cdot \log _ 2 (n \cdot \frac{3 \cdot 10 ^ 4}{n} ^ 2)$.
+2017 - Osmosmjerka|Normal|AC|9|Understand that only the first $\min(\text{lcm}(m, n), k)$ letters of a crossword are needed to distinguish them, since the first $\text{lcm}(m, n)$ letters repeat.
+2012 - Sateliti|Hard|AC|4|Understand that strings can be quickly compared by binary searching to the first index resulting in different prefix hashes (different prefixes) and comparing them there. This takes $O(\log _ 2 (n))$ for string length $n$.
+Liar|Hard|AC|1|Understand that dynamic programming/greedy can be used, where states are dependent on the current index $i$ in $s$ and the number of pieces $j$, and store the maximum index $k$ in $t$. Transitions are binary searching for the greatest possible index $l$ in $t$ such that $s[i:i+(l-k)] = t[k:k+(l-k)]$.
+2018 - Genetics|Hard|AC|6|Understand that we can keep track of the indices of all sequences different from any given sequence $S$ at a given index $i$ by hashing together all one-hot encoded indices containing each character at index $i$, then adding up the hashes of all characters not equal to $S[i]$. This is similar to taking an $n$-digit number of base $m$, except hashing it because such a number is unrealistic. Finally, finding the sequence having a total equivalent to an $n$-digit number containing only digit $k$ yields the sequence that differs from all other sequences in exactly $k$ indices.
 2016 - Zamjene|Very Hard|DNF|0|N/A
 2016 - Palinilap|Very Hard|DNF|0|N/A

@@ -55,28 +55,233 @@ Problem|Rating|Correct cases|Attempts|Notes
 478D|2000|AC|2|Understand that the maximum `h` among all possible `r` and `g` is `893`. Knapsack DP can produce a result in roughly `O(H * R)`, worst case.
 1156C|2000|AC|1|Understand that a matching can be created between the bottom `m` values and top `m` values. Binary searching for this value `m` produces an answer.
 337D|2000|AC|1|Understand that DP on trees can be used to find the maximum distance to an affected settlement. For every node whose maximum distance to an affected settlement is less than or equal to `d`, it is possible the settlement contains the Book of Evil.
-920F|2000|DNF|0|N/A
-1379C|2000|DNF|0|N/A
-1763C|2000|DNF|0|N/A
-1415D|2000|DNF|0|N/A
-1294F|2000|DNF|0|N/A
-1426F|2000|DNF|0|N/A
-1391D|2000|DNF|0|N/A
-710E|2000|DNF|0|N/A
-1304E|2000|DNF|0|N/A
-359D|2000|DNF|0|N/A
-451D|2000|DNF|0|N/A
-1380D|2000|DNF|0|N/A
-1296E2|2000|DNF|0|N/A
-466B|2000|DNF|0|N/A
-1657D|2000|DNF|0|N/A
-1536D|2000|DNF|0|N/A
-1244E|2000|DNF|0|N/A
-1493C|2000|DNF|0|N/A
-1567D|2000|DNF|0|N/A
-1716D|2000|DNF|0|N/A
-1616D|2000|DNF|0|N/A
-453B|2000|DNF|0|N/A
-1521C|2000|DNF|0|N/A
-1525C|2000|DNF|0|N/A
-1408D|2000|DNF|0|N/A
+920F|2000|AC|2|Understand that each `a` can change at most `6` times before replacements no longer affect it, meaning that the array will not change after at most `N * 6` operations. For this, we can keep a set of all `i` such that the `a[i]`, as it is currently, will change after an operation, and update only such `i` in range `[l, r]` for all replace operations. Sum operations can be handled using any point update range query data structure. If Fenwick tree is used, the final complexity is `O(N * log(N))`.
+1415D|2000|AC|1|Understand that if the number of leading zeroes of more than two consecutive `a` are equal, the last two can be xor'ed, resulting in a non-non-decreasing array. Otherwise, `n` is at most `60`, meaning we can brute force all number of operations on the left-hand side and right-hand side of all possible "border"s where a border describes the position at which `a[i] < a[i + 1]`.
+359D|2000|AC|1|Understand that an `a[i]` divides all `a[j]` such that `l <= i, j <= r` if `gcd(a[j])` for all such `j` equals `a[i]`. We can find, for all such `a[i]`, `l` and `r` using binary search and a range query data structure like sparse table.
+1304E|2000|AC|1|Understand that we can use Euler tour and binary lifting to calculate the least common ancestor of any two nodes to then find the distance between them. This can be used to test all possible paths betwen `a` and `b` in each query: `a` to `x` to `y` to `b`, `a` to `y` to `x` to `b`, and `a` to `b`. If any of these path lengths have the same parity as `k` and are less than or equal to `k`, edges can be added to the path to reach such a length.
+451D|2000|AC|3|Understand that, with regards to bounds, any `a` can be paired with any `a` before it and any `b` can be paired with any `b` before it, so keeping prefix sums of `a`'s and `b`'s can allow us to count the number of good substrings using combinatorics. If an index is of odd distance to its partner, their resulting substring must be of even length, otherwise it is odd.
+466B|2000|AC|2|Understand that, assuming `b1` always equals `(6 * n + a1 - 1) / a1`, the requirements are always satisfied for positive `a1`. In addition, for all values `a1` less than or equal to `f = floor(sqrt(6 * n - 1)) + 1`, values of `b1` greater than or equal to `f` will be tested. This results in all relevant values satisfying the stated requirements being tested.
+1380D|2000|AC|4|Understand that we can, first, find all removed ranges (and print "-1" if deemed invalid in this stage), and determine the minimum cost of removing such a range. If `x >= k * y`, then as many operations of the second type should be used. This can be accomplished in two cases: with `len` as the length of the range, if `len >= k`, by using the warrior of greatest power within the range to destroy other warriors until there are at most `k` warriors remaining, we can destroy the rest of the warriors using the first operation if the warriors cannot be entirely destroyed using either of the boundary warriors and with the second operation otherwise. If `len < k`, all warriors in the range must be destroy-able using either of the boundary warriors, or the transformation is impossible. If `x < k * y`, using the most powerful warrior to destroy warriors until the number of remaining warriors is divisible by `k` and destroying the rest using the first operation is ideal.
+1536D|2000|AC|1|Understand that, for every two elements added, the median can only shift at most one index. This allows us to create a constructive algorithm that, upon seeing a new median, attributes its value to coming from one of the two elements added. Remaining elements can be either `-10 ^ 9` or `10 ^ 9` depending on constraints. This allows us to determine the existence of an array `a` based on whether medians can be added without "overstepping" previously added medians, since such medians need to be visited first before seeing the current one.
+1493C|2000|AC|2|Understand that you can binary search for the least significant letter that would need to be updated to produce a satisfactory string, then brute force for the letter it would be updated to.
+1567D|2000|AC|10|Understand that a solution can be greedily constructed where, if it is possible to "split a digit" (e.g. `900` to `800` and `100`), it should always be done. Otherwise, the least significant digit must be "decomposed" (e.g. `100` to ten `10`s). This always produces the optimal solution as splitting a digit has `0` cost and decomposing a digit has cost equivalent to the digit in base `11` and this should always be as insignificant as possible.
+1521C|2000|AC|1|Understand that, when cases for `p[i]` and `p[j]`, in relation to `x`, are laid out, it is clear that in some cases, the maximum or minimum of `p[i]` and `p[j]` can be found. Combine this with the fact that the `p[i]` for some index `i` can be found in two queries, the remaining numbers can be found using the aforementioned minimum/maximum property. In addition, if the initial `p[i]` is greater than half, the minimum property should be used, as at least half of all `p[j]` can be found using such a query. Similar case for `p[i]` being less than half, using the maximum property instead. This ensures that the total number of queries will be less than `floor(3 * n / 2) + 30`.
+1632D|2000|AC|1|Understand that the left bound `l` for each index `r` can be found using binary search, as `gcd(l, r)` monotonically decreases and `r - l + 1` monotonically increases as `l` decreases. Then, operations can be performed greedily, processing the indices in increasing order, choosing the maximum index possible for an operation each time if needed. It can be shown this produces an optimal result.
+1634D|2000|AC|2|Understand that given three numbers, `x`, `m` and `y`, where `x` and `y` represent the extremes of the three numbers, we can determine if a number `z` is more extreme in the `x` or `y` direction by substituting them for `x` and `y` respectively and taking the maximum of their query results. Whichever direction `z` is more extreme in should then be replaced with `z`. Once all checks are complete, the two most extreme values should be provided in the answer, as `0` itself is an extreme value (no value can go below `0` according to the statement). The initial values of `x`, `m` and `y` can be found in `4` queries in the beginning, then subsequent checks for `z` can be found in `(n - 4) * 2` queries for a total of `2 * n - 4` queries.
+1451E1|2000|AC|1|Understand that `a[0]` can be found using `AND 0 1` (`0`-indexed for the sake of consistency), `OR 0 1`, `AND 0 2`, `OR 0 2` and `AND 1 2`. This is because, for all bits where `AND 0 1` or `AND 0 2` are `1`, `a[0]` must be `1` and, for all bits where `OR 0 1` and `OR 0 2` are `0`, `a[0]` must be `0`. All remaining bits `i` can either be as a result of `{1, 0, 0}` or `{0, 1, 1}`, where `{x, y, z}` represents bit `i` of `a[0]`, `a[1]` and `a[2]`, respectively. Finally, all other `a[k]` can be found using `XOR 0 k`.
+578C|2000|AC|1|Understand that we can binary search for the optimal `x`. Since the minimal negative subsegment value and maximum positive subsegment value both contribute to the maximum absolute subsegment value, we can binary search to make them as close to equal as possible. The maximum or minimum subsegment of an array can be found in linear time.
+475D|2000|AC|1|Understand that a number `a` can have up to `log2(a)` unique `gcd` subsegment values. This is because each additional unique `gcd` is the result of removing at most one prime factor and the smallest prime factor, `2`, can fit `log2(a)` times in `a`.
+1804D|2000|AC|8|Stupid greedy. Will explain later or, better yet, solve it properly.
+961D|2000|AC|11|Understand that each point must be part of at least one line segment. This means that, for a point `x`, we can sort all other points by their slope relative to `x` and call a single group of points with identical such slope a line. This is done twice and, if there are still points unattached to either of the previous lines, the answer is `NO`.
+52C|2200|AC|1|Understand that it's just range update range query but cyclical if `l > r`.
+617E|2200|AC|3|Understand that a modified Mo's algorithm can handle the range queries in `O(N * sqrt(N))`. Instead of walking the left bound, we re-calculate it each time as the set of xor prefix pairs may be different for each right bound.
+570D|2200|AC|7|Understand that Euler tour can be used to find children of nodes. This can be used to find the children of a node at a certain depth, and furthermore, of a certain letter. If there is no more than one letter of odd count for a query, the answer is `YES`.
+559C|2200|AC|2|Understand that PIE can be used to find the number of ways to the bottom right corner from each black cell, and then the number of ways from the top left corner.
+165E|2200|AC|3|Understand that a number `a` is compatible with `b` if `a | ~b = ~b`, where `~x` denotes `x ^ ((1 << 14) - 1)`. We can find such an `a | ~b` using bitmask dynamic programming, where, starting with an `a`, we can set bits making all `a | x` possible, where `x` is in range `[0, 1 << 14)`.
+1485D|2200|AC|1|Understand that the `gcd` of all numbers `[1, 16]` is `720720`, which all numbers `[1, 16]` can differ by a `k ^ 4`. Arranging `720720` and such numbers in a checkerboard pattern ensures a solution.
+1400E|2200|AC|6|Understand that we can use dynamic programming, storing for the number of operations of the first kind being done on the current index.
+1537E2|2200|AC|3|Understand that we can use a Z-function to find the first postition in `s` where each prefix would be different if repeated to fit and determine if said prefix is lexicographically greater or lesser than the original string. If it is strictly lesser, repeat this prefix and trim to size `k`.
+1407D|2200|AC|8|Understand that a monotonically increasing and decreasing stack can be used to describe all skyscrapers that can be jumped from at each index.
+1438D|2200|AC|1|Understand that the `xor` of all elements always remains the same. This is because for each operation containing `a[i]`, `a[j]` and `a[k]`, just focusing on `a[i]`, it contributes `a[i]`, `a[i] ^ a[j]` and `a[i] ^ a[k]`, meaning the net `xor` difference is `0`. The same can be said for `a[j]` and `a[k]`. With this, we can determine that if the array has even length and an `xor` other than `0`, it is impossible to make all elements equal. Otherwise, `xor`ing three consecutive elements every two elements produces a number of even-sized groups of equal elements and one odd-sized group of equal elements. Each even-sized group can be made equal to an element in the odd-sized group by `xor`ing a pair of elements from the even-sized group with one from the odd-sized group. This results in `n - 2` operations.
+1333F|2200|AC|1|Understand that all `gcd`s `x` have a list of "dependencies" or values that, when `gcd`ed result in `x`. With this, we can process the `gcd`'s in decreasing order, getting rid of un-deleted dependencies as we go. The result for the current number of un-deleted dependencies is the `gcd`'s value minus one.
+1092D1|2200|DNF|0|Marked DNF because I did not solve this problem myself.
+1474D|2200|AC|3|N/A
+11D|2200|AC|1|N/A
+833B|2200|AC|1|N/A
+1110E|2200|AC|2|N/A
+903D|2200|AC|3|N/A
+1467D|2200|AC|1|N/A
+1428E|2200|AC|6|N/A
+1470D|2200|AC|2|N/A
+13C|2200|AC|2|N/A
+551C|2200|AC|2|N/A
+1406D|2200|AC|1|N/A
+1567E|2200|AC|2|N/A
+1520G|2200|AC|2|N/A
+7D|2200|AC|1|N/A
+1437E|2200|AC|1|N/A
+1336C|2200|AC|1|N/A
+1156D|2200|AC|1|N/A
+1110D|2200|AC|2|N/A
+1515E|2200|AC|1|N/A
+915D|2200|AC|2|N/A
+282E|2200|AC|2|N/A
+1389E|2200|AC|1|N/A
+1656E|2200|AC|1|N/A
+1503C|2200|AC|1|N/A
+1327D|2200|AC|2|N/A
+1353F|2200|AC|1|N/A
+280C|2200|AC|2|N/A
+1328F|2200|AC|3|N/A
+1338C|2200|AC|2|N/A
+1305E|2200|AC|2|N/A
+1175E|2200|AC|3|N/A
+1520F2|2200|AC|7|N/A
+1215E|2200|AC|2|N/A
+1630C|2200|AC|2|N/A
+1486E|2200|AC|1|N/A
+1373E|2200|AC|3|N/A
+1092D2|2200|AC|1|N/A
+1114E|2200|AC|2|N/A
+1552F|2200|AC|1|N/A
+839D|2200|AC|1|N/A
+1037E|2200|AC|2|N/A
+1238E|2200|AC|1|N/A
+768D|2200|AC|1|N/A
+1334E|2200|AC|2|N/A
+1154G|2200|AC|3|N/A
+1253E|2200|AC|6|N/A
+1303E|2200|AC|1|N/A
+707D|2200|AC|6|N/A
+1535E|2200|AC|2|N/A
+1059D|2200|AC|4|N/A
+1556E|2200|AC|3|N/A
+1730D|2200|AC|2|N/A
+1542D|2200|AC|1|N/A
+1097D|2200|AC|4|Understand that the probability of any given path is the product of the inverse of the number of times each prime occurs in the prime factorization of each number along that path. Instead of combining based on number, since there are many possible numbers along the path from one number to another, we can combine based on prime, as the sum of the probabilities of the ways to transition from one prime count down to another can be efficiently calculated using dynamic programming and combining them is as simple as multiplying their sum.
+590C|2200|AC|3|N/A
+1384B2|2200|AC|1|N/A
+1156E|2200|AC|1|N/A
+1415E|2200|AC|1|N/A
+429D|2200|DNF|0|N/A
+616E|2200|AC|6|N/A
+1557D|2200|AC|3|N/A
+1220E|2200|AC|3|N/A
+549G|2200|AC|1|N/A
+505D|2200|AC|4|N/A
+547A|2200|AC|11|N/A
+1526D|2200|AC|4|N/A
+1616E|2200|AC|1|N/A
+1806E|2200|AC|8|N/A
+592D|2200|AC|1|N/A
+1537F|2200|AC|2|N/A
+1295E|2200|AC|1|N/A
+1736D|2200|AC|2|N/A
+27D|2200|AC|2|N/A
+1717E|2200|AC|1|N/A
+1498D|2200|AC|3|N/A
+1234F|2200|AC|1|N/A
+1641C|2200|AC|3|N/A
+908D|2200|AC|1|N/A
+1100E|2200|AC|1|N/A
+1788E|2200|AC|1|N/A
+1168C|2200|AC|2|N/A
+438D|2300|AC|3|N/A
+558E|2300|AC|3|N/A
+786B|2300|AC|1|N/A
+1009F|2300|AC|3|N/A
+1188B|2300|AC|1|N/A
+713C|2300|AC|4|N/A
+598C|2300|AC|4|N/A
+915E|2300|AC|2|N/A
+1450C2|2300|AC|3|N/A
+718C|2300|AC|2|N/A
+1628C|2300|AC|2|N/A
+451E|2300|AC|2|N/A
+1699D|2300|AC|3|N/A
+383D|2300|AC|1|N/A
+1451E2|2300|AC|1|N/A
+1198D|2300|AC|1|N/A
+708C|2300|AC|2|N/A
+1342E|2300|AC|1|N/A
+547C|2300|AC|1|N/A
+1422D|2300|AC|2|N/A
+715B|2300|AC|5|N/A
+675E|2300|AC|2|N/A
+154C|2300|AC|1|N/A
+1495C|2300|AC|2|N/A
+1494D|2300|AC|4|N/A
+785D|2300|AC|1|N/A
+1203F2|2300|AC|1|N/A
+1182E|2300|AC|2|N/A
+1404C|2300|AC|1|N/A
+1528C|2300|AC|2|N/A
+543D|2300|AC|2|N/A
+1540B|2300|AC|1|N/A
+1396C|2300|AC|1|N/A
+1228E|2300|AC|2|N/A
+487C|2300|AC|2|N/A
+1371E2|2300|AC|1|N/A
+1536E|2300|AC|1|N/A
+1658D2|2300|AC|1|N/A
+1824B2|2300|DNF|0|N/A
+1693C|2300|AC|11|N/A
+1408F|2300|AC|1|N/A
+160D|2300|AC|2|N/A
+1073E|2300|AC|1|N/A
+1385F|2300|AC|2|N/A
+808G|2300|AC|2|N/A
+817F|2300|AC|3|N/A
+1270E|2300|AC|4|N/A
+1706E|2300|AC|1|N/A
+1592D|2300|AC|2|N/A
+510E|2300|AC|1|N/A
+1553F|2300|AC|1|N/A
+891C|2300|AC|2|N/A
+1614D2|2300|AC|1|N/A
+732F|2300|AC|1|N/A
+1282D|2300|AC|5|N/A
+623B|2300|AC|3|N/A
+515E|2300|AC|1|N/A
+788C|2300|AC|2|N/A
+1712E1|2300|AC|1|N/A
+1322C|2300|AC|2|N/A
+1251E1|2300|AC|2|N/A
+1251E2|2400|AC|1|N/A
+149E|2300|AC|3|N/A
+1453E|2300|AC|2|N/A
+1139D|2300|AC|1|N/A
+1603C|2300|AC|1|N/A
+1625D|2300|DNF|0|N/A
+1783E|2300|AC|1|N/A
+1654E|2300|AC|2|N/A
+884D|2300|AC|2|N/A
+1607F|2300|AC|6|N/A
+1705E|2300|AC|1|N/A
+1380E|2300|AC|1|N/A
+1292C|2300|DNF|0|N/A
+1695D2|2300|AC|4|N/A
+1601C|2300|AC|2|N/A
+1132D|2300|AC|1|N/A
+1550D|2300|AC|1|N/A
+652E|2300|AC|4|N/A
+85D|2300|AC|1|N/A
+1534E|2300|AC|9|N/A
+1394B|2300|AC|2|N/A
+570E|2300|DNF|0|N/A
+1093G|2300|AC|2|N/A
+1552E|2300|AC|2|N/A
+1190C|2300|AC|1|N/A
+808E|2300|AC|7|N/A
+594A|2300|AC|1|N/A
+1621E|2300|AC|3|N/A
+1834E|2300|AC|1|N/A
+1768E|2300|DNF|0|N/A
+1691E|2300|AC|1|N/A
+1236D|2300|AC|2|N/A
+1245F|2300|AC|1|N/A
+1148E|2300|AC|1|N/A
+960E|2300|AC|3|N/A
+1196F|2200|DNF|0|N/A
+1070A|2200|DNF|0|N/A
+1646E|2200|DNF|0|N/A
+1399E2|2200|DNF|0|N/A
+653D|2200|DNF|0|N/A
+1398E|2200|DNF|0|N/A
+1477C|2200|DNF|0|N/A
+1704E|2200|DNF|0|N/A
+679B|2200|DNF|0|N/A
+813E|2200|DNF|0|N/A
+1583E|2200|DNF|0|N/A
+1034B|2200|DNF|0|N/A
+301D|2200|DNF|0|N/A
+1579G|2200|DNF|0|N/A
+1562D2|2200|DNF|0|N/A
+1840G1|2200|DNF|0|N/A
+1635E|2200|DNF|0|N/A
+1461E|2200|DNF|0|N/A
+1311E|2200|DNF|0|N/A
+427D|2200|DNF|0|N/A
+402E|2200|DNF|0|N/A
+1158B|2200|DNF|0|N/A
+56E|2200|DNF|0|N/A
