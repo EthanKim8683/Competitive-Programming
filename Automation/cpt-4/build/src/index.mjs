@@ -1,0 +1,10 @@
+import { config } from "dotenv";
+import path from "path";
+import { fetch } from "./scrape/scrape.mjs";
+import makeEnvironment from "./make-environment/make-environment.mjs";
+import testSolution from "./test-solution/test-solution.mjs";
+const __dirname = import.meta.dirname;
+config({ path: path.join(__dirname, "../../.env") });
+await makeEnvironment(await fetch("https://codeforces.com/contest/2025"));
+await testSolution(path.join(process.cwd(), "2025/A"));
+process.exit();
