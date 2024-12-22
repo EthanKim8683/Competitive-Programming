@@ -23,14 +23,21 @@ samples`
   )
 ); */
 
-/* import makeRunner from "./run/makeRunner";
+import makeRunner from "./run/makeRunner";
+import { StdioOption } from "./run/types";
 
 (async () => {
-	const run = await makeRunner("demo.c++20.cpp");
-	await run();
-})().catch((e) => console.error(e)); */
+	const result = await makeRunner("demo.c++20.cpp");
+	if (result.success) {
+		const { run } = result;
+		const { stdout } = await run({
+			stdout: [StdioOption.STRING, StdioOption.INHERIT] as const,
+		});
+		process.stdout.write("String: " + stdout);
+	}
+})().catch((e) => console.error(e));
 
-import checkUsingGenerator from "./check/checkUsingGenerator";
+/* import checkUsingGenerator from "./check/checkUsingGenerator";
 
 (async () => {
 	await checkUsingGenerator({
@@ -42,4 +49,4 @@ import checkUsingGenerator from "./check/checkUsingGenerator";
 			checker: "checker.c++20.cpp",
 		},
 	});
-})().catch((e) => console.error(JSON.stringify(e, null, 2)));
+})().catch((e) => console.error(JSON.stringify(e, null, 2))); */

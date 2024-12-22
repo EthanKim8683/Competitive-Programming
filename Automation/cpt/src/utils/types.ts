@@ -1,5 +1,10 @@
-export type IfIncludes<T extends any[], S, Then = true, Else = false> = {
-	[U in keyof T]: T[U] extends S ? unknown : never;
+export type IfIncludes<
+	Haystack extends any[],
+	Needle,
+	Then = true,
+	Else = false,
+> = {
+	[I in keyof Haystack]: Haystack[I] extends Needle ? unknown : never;
 }[number] extends never
 	? Else
 	: Then;

@@ -2,11 +2,11 @@ import compile from "./compile";
 import { makeExecutor } from "./execute";
 import { LanguageEntry } from "./types";
 
-export default async (
+export default (
 	setup: (
 		filePath: string
 	) => Promise<{ compile?: string[]; execute?: string[] }>
-): Promise<LanguageEntry> => {
+): LanguageEntry => {
 	return async (filePath) => {
 		const { compile: compileArgs, execute: executeArgs } =
 			await setup(filePath);

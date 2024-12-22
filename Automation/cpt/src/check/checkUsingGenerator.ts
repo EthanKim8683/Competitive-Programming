@@ -5,6 +5,7 @@ import { StdioOption } from "../run/types";
 import makeSolutionRunner from "./makeSolutionRunner";
 import makeRunners from "./makeRunners";
 import randomUnsigned from "../utils/randomUnsigned";
+import fs from "fs";
 
 export default async ({
 	config: { generator, checker, n, keys },
@@ -28,32 +29,40 @@ export default async ({
 		const generatorStdout = new PassThrough();
 		const checkerStdin = new Duplex();
 
+		const generatorOutput = fs.openSync("", "w");
+		const checkerOutput = fs.openSync("", "w");
+		const solutionOutput = fs.openSync("", "w");
+
 		checkerStdin.write(`${key}\n`);
 		generatorStdout.pipe(checkerStdin);
 
 		const generatorAborter = new AbortController();
 		const checkerAborter = new AbortController();
 		const solutionAborter = new AbortController();
+
 		let verdict: TestCaseVerdict | undefined, code, signal;
 		await Promise.all([
 			(async () => {
 				({ code, signal } = await runGenerator({
 					stdin: `${key}\n`,
-					stdout: generatorStdout,
-					stderr: StdioOption.STRING,
+					stdout: [generatorStdout, generatorOutput] as const,
+					stderr: [StdioOption.STRING] as const,
 					aborter: generatorAborter,
 				}));
+
 				if ((code !== 0 || signal) && !verdict) {
 					checkerAborter.abort();
 					verdict = TestCaseVerdict.GRE;
 					return;
 				}
+
 				({ code, signal } = await runSolution({
 					stdin: generatorStdout,
-					stdout: checkerStdin,
-					stderr: StdioOption.STRING,
+					stdout: [checkerStdin, solutionOutput] as const,
+					stderr: [StdioOption.STRING] as const,
 					aborter: solutionAborter,
 				}));
+
 				if ((code !== 0 || signal) && !verdict) {
 					checkerAborter.abort();
 					verdict = TestCaseVerdict.RE;
@@ -62,10 +71,11 @@ export default async ({
 			async () => {
 				({ code, signal } = await runChecker({
 					stdin: checkerStdin,
-					stdout: StdioOption.STRING,
-					stderr: StdioOption.STRING,
+					stdout: [StdioOption.STRING, checkerOutput] as const,
+					stderr: [StdioOption.STRING] as const,
 					aborter: checkerAborter,
 				}));
+
 				if ((code !== 0 || signal) && !verdict) {
 					generatorAborter.abort();
 					solutionAborter.abort();

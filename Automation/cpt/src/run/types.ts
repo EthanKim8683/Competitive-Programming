@@ -4,7 +4,6 @@ import { makeExecutor } from "./execute";
 export enum StdioOption {
 	STRING,
 	INHERIT,
-	IGNORE,
 }
 
 export type StdinOption = string | StdioOption.INHERIT | Readable;
