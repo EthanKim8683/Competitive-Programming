@@ -2,7 +2,6 @@ import { GeneratorTestSet, TestSetResult, TestCaseVerdict } from "../types";
 import makeRunners from "../utils/makeRunners";
 import { PassThrough, Readable } from "stream";
 import fs from "fs";
-import { StdioOption } from "../../run/types";
 import randomUnsigned from "../../utils/randomUnsigned";
 import WritableString from "../../utils/WritableString";
 
