@@ -1,3 +1,4 @@
+import { MakeRunnerResult } from "../run/types";
 import {
 	samplesTestSetSchema,
 	generatorTestSetSchema,
@@ -17,26 +18,35 @@ export type TestSetParsingError = {
 };
 
 export enum TestCaseVerdict {
-	OK,
-	WA,
-	RE,
-	TLE,
-	MLE,
-	GRE,
-	CRE,
-	IRE,
+	OK = "OK",
+	WRONG_ANSWER = "WA",
+	RUNTIME_ERROR = "RE",
+	TIME_LIMIT_EXCEEDED = "TLE",
+	MEMORY_LIMIT_EXCEEDED = "MLE",
+	GENERATOR_RUNTIME_ERROR = "GRE",
+	CHECKER_RUNTIME_ERROR = "CRE",
+	INTERACTOR_RUNTIME_ERROR = "IRE",
 }
 
 export type TestCaseResult = {
-	index: number;
 	key: number;
 	verdict: TestCaseVerdict;
-	log: string;
+	hint?: string;
 	time: number;
 	memory: number;
 };
 
-export type TestSetResult = {
-	name: string;
+type TestSetResultBase = TestSet;
+type TestSetResultMadeRunner = TestSetResultBase & {
+	makeRunnersResult: MakeRunnerResult[];
+};
+type TestSetResultTested = TestSetResultMadeRunner & {
 	testCaseResults: TestCaseResult[];
 };
+export type UnsuccessfulTestSetResult = TestSetResultMadeRunner & {
+	success: false;
+};
+export type SuccessfulTestSetResult = TestSetResultTested & {
+	success: true;
+};
+export type TestSetResult = UnsuccessfulTestSetResult | SuccessfulTestSetResult;

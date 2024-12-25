@@ -1,39 +1,45 @@
-import { GeneratorTestSet, TestCaseVerdict, TestSetResult } from "./types";
-import makeRunner from "../run/makeRunner";
+import { GeneratorTestSet, TestSetResult, TestCaseVerdict } from "../types";
+import makeRunners from "../utils/makeRunners";
 import { PassThrough } from "stream";
-import { StdioOption } from "../run/types";
-import makeSolutionRunner from "./makeSolutionRunner";
-import makeRunners from "./makeRunners";
-import randomUnsigned from "../utils/randomUnsigned";
 import fs from "fs";
+import { StdioOption } from "../../run/types";
+import randomUnsigned from "../../utils/randomUnsigned";
 
-export default async ({
-	name,
-	config: { generator: generatorPath, checker: checkerPath, n, keys },
-}: GeneratorTestSet): TestSetResult => {
-	const makeRunnersResult = await makeRunners([
-		makeRunner(generatorPath),
-		makeRunner(checkerPath),
-		makeSolutionRunner(),
+export default async (
+	solutionPath: string,
+	testSet: GeneratorTestSet
+): TestSetResult => {
+	const {
+		config: { generator: generatorPath, checker: checkerPath, n, keys },
+	} = testSet;
+
+	const base = testSet;
+
+	const { success, results: makeRunnersResult } = await makeRunners([
+		generatorPath,
+		checkerPath,
+		solutionPath,
 	]);
 
-	if (!makeRunnersResult.success) {
+	const madeRunners = {
+		...base,
+		makeRunnersResult,
+	};
+
+	if (!success) {
 		return {
-			name,
+			...madeRunners,
 			success: false,
-			error: "",
 		};
 	}
 
-	const [generator, checker, solution] = makeRunnersResult.runners;
+	const [generator, checker, solution] = makeRunnersResult.map(
+		(result) => result.run
+	);
 
 	async function runTestCase(key: number) {
 		const generatorStdout = new PassThrough();
 		const checkerStdin = new PassThrough();
-
-		const generatorOutput = fs.openSync("", "w");
-		const checkerOutput = fs.openSync("", "w");
-		const solutionOutput = fs.openSync("", "w");
 
 		checkerStdin.write(`${key}\n`);
 		generatorStdout.pipe(checkerStdin);
@@ -41,47 +47,57 @@ export default async ({
 		const generatorAborter = new AbortController();
 		const checkerAborter = new AbortController();
 		const solutionAborter = new AbortController();
+		let aborted = false;
+		function abort() {
+			if (aborted) return;
+			aborted = true;
+
+			generatorAborter.abort();
+			checkerAborter.abort();
+			solutionAborter.abort();
+		}
 
 		let verdict, code, signal, time, memory;
 		await Promise.all([
 			(async () => {
 				({ code, signal } = await generator({
 					stdin: `${key}\n`,
-					stdout: [generatorStdout, generatorOutput] as const,
+					stdout: [generatorStdout] as const,
 					stderr: [StdioOption.STRING] as const,
 					aborter: generatorAborter,
 				}));
 
 				if ((code !== 0 || signal) && !verdict) {
-					checkerAborter.abort();
-					verdict = TestCaseVerdict.GRE;
+					abort();
+					verdict = TestCaseVerdict.GENERATOR_RUNTIME_ERROR;
 					return;
 				}
 
 				({ code, signal, time, memory } = await solution({
 					stdin: generatorStdout,
-					stdout: [checkerStdin, solutionOutput] as const,
+					stdout: [checkerStdin] as const,
 					stderr: [StdioOption.STRING] as const,
 					aborter: solutionAborter,
 				}));
 
 				if ((code !== 0 || signal) && !verdict) {
-					checkerAborter.abort();
-					verdict = TestCaseVerdict.RE;
+					abort();
+					verdict = TestCaseVerdict.RUNTIME_ERROR;
+					return;
 				}
 			})(),
 			(async () => {
 				({ code, signal } = await checker({
 					stdin: checkerStdin,
-					stdout: [StdioOption.STRING, checkerOutput] as const,
+					stdout: [StdioOption.STRING] as const,
 					stderr: [StdioOption.STRING] as const,
 					aborter: checkerAborter,
 				}));
 
 				if ((code !== 0 || signal) && !verdict) {
-					generatorAborter.abort();
-					solutionAborter.abort();
-					verdict = TestCaseVerdict.CRE;
+					abort();
+					verdict = TestCaseVerdict.CHECKER_RUNTIME_ERROR;
+					return;
 				}
 			})(),
 		]);
@@ -94,5 +110,4 @@ export default async ({
 	for (const key of keys) {
 		promises.push(runTestCase(key));
 	}
-	await Promise.all(promises);
 };

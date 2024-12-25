@@ -1,7 +1,9 @@
-import makeLanguageEntry from "../makeLanguageEntry";
+import { LanguageEntry } from "../types";
 
-export default makeLanguageEntry(async (filePath) => {
+const languageEntry: LanguageEntry = (filePath) => {
 	return {
-		execute: ["python3", filePath],
+		runArgs: ["python3", filePath],
 	};
-});
+};
+
+export default languageEntry;

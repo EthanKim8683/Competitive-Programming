@@ -2,34 +2,31 @@ import makeRunner from "../run/makeRunner";
 import { makeExecutor } from "../run/execute";
 
 export default async (
-	filePaths: Record<string, ReturnType<typeof makeRunner>>
+	filePaths: ReturnType<typeof makeRunner>[]
 ): Promise<
 	| {
 			success: true;
-			runners: Record<string, ReturnType<typeof makeExecutor>>;
+			runners: ReturnType<typeof makeExecutor>[];
 	  }
 	| { success: false; errors: string[] }
 > => {
-	const keys = Object.keys(filePaths);
-	const results = await Promise.all(Object.values(filePaths));
+	const results = await Promise.all(filePaths);
 
-	const successes = [],
-		fails = [];
+	const successful = [],
+		unsuccessful = [];
 	for (const result of results) {
-		if (result.success) successes.push(result);
-		else fails.push(result);
+		if (result.success) successful.push(result);
+		else unsuccessful.push(result);
 	}
 
-	if (fails.length > 0)
+	if (unsuccessful.length > 0)
 		return {
 			success: false,
-			errors: fails.map((fail) => fail.error),
+			errors: unsuccessful.map((fail) => fail.error),
 		};
 	else
 		return {
 			success: true,
-			runners: Object.fromEntries(
-				successes.map((success, index) => [keys[index], success.run])
-			),
+			runners: successful.map((success) => success.run),
 		};
 };

@@ -27,9 +27,10 @@ import makeRunner from "./run/makeRunner";
 import { StdioOption } from "./run/types";
 
 (async () => {
-	const result = await makeRunner("demo.c++20.cpp");
-	if (result.success) {
-		const { run } = result;
+	const makeRunnerResult = await makeRunner("demo.c++20.cpp");
+	console.log(makeRunnerResult);
+	if (makeRunnerResult.success) {
+		const { run } = makeRunnerResult;
 		const { stdout } = await run({
 			stdout: [StdioOption.STRING, StdioOption.INHERIT] as const,
 		});

@@ -16,10 +16,7 @@ type Options<
 	aborter?: AbortController;
 };
 
-type ExecutionResult<
-	T1 extends StdoutOption[],
-	T2 extends StderrOption[],
-> = Promise<{
+type RunResult<T1 extends StdoutOption[], T2 extends StderrOption[]> = Promise<{
 	code: number | null;
 	signal: NodeJS.Signals | null;
 	stdout: IfIncludes<T1, StdioOption.STRING, string, null>;
@@ -28,17 +25,17 @@ type ExecutionResult<
 	memory: number;
 }>;
 
-function execute<
+function run<
 	T0 extends StdinOption = StdioOption.INHERIT,
 	T1 extends StdoutOption[] = [StdioOption.INHERIT],
 	T2 extends StderrOption[] = [StdioOption.INHERIT],
->(args: string[], options?: Options<T0, T1, T2>): ExecutionResult<T1, T2>;
+>(args: string[], options?: Options<T0, T1, T2>): RunResult<T1, T2>;
 
-function execute(
+function run(
 	args: string[]
-): ExecutionResult<[StdioOption.INHERIT], [StdioOption.INHERIT]>;
+): RunResult<[StdioOption.INHERIT], [StdioOption.INHERIT]>;
 
-function execute(
+function run(
 	args: string[],
 	{
 		stdin: stdinOption = StdioOption.INHERIT,
@@ -121,9 +118,9 @@ function execute(
 			if (stderrInherit && stderrSpawnOption === "pipe")
 				child.stderr!.pipe(process.stderr);
 
-			child.on("error", (err) =>
-				reject(`child process became unresponsive:\n${err}`)
-			);
+			child.on("error", (err) => {
+				reject(`child process became unresponsive:\n${err}`);
+			});
 
 			child.on("close", async (code, signal) => {
 				const rusage = await fs
@@ -150,8 +147,9 @@ function execute(
 	});
 }
 
-export function makeExecutor(args: string[]) {
-	return <
+export const partial =
+	(args: string[]) =>
+	<
 		T0 extends StdinOption,
 		T1 extends StdoutOption[],
 		T2 extends StderrOption[],
@@ -160,7 +158,7 @@ export function makeExecutor(args: string[]) {
 		stdout?: T1;
 		stderr?: T2;
 		aborter?: AbortController;
-	}) => execute<T0, T1, T2>(args, options);
-}
+	}) =>
+		run(args, options);
 
-export default execute;
+export default run;
