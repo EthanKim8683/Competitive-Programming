@@ -1,15 +1,4 @@
-import { Readable, Writable } from "stream";
 import { partial } from "./run";
-
-export enum StdioOption {
-	STRING,
-	INHERIT,
-	IGNORE,
-}
-
-export type StdinOption = string | StdioOption.INHERIT | Readable;
-export type StdoutOption = StdioOption | Writable;
-export type StderrOption = StdioOption | Writable;
 
 type Args = {
 	compileArgs?: string[];

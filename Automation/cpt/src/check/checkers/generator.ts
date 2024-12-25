@@ -1,9 +1,10 @@
 import { GeneratorTestSet, TestSetResult, TestCaseVerdict } from "../types";
 import makeRunners from "../utils/makeRunners";
-import { PassThrough } from "stream";
+import { PassThrough, Readable } from "stream";
 import fs from "fs";
 import { StdioOption } from "../../run/types";
 import randomUnsigned from "../../utils/randomUnsigned";
+import WritableString from "../../utils/WritableString";
 
 export default async (
 	solutionPath: string,
@@ -61,10 +62,8 @@ export default async (
 		await Promise.all([
 			(async () => {
 				({ code, signal } = await generator({
-					stdin: `${key}\n`,
-					stdout: [generatorStdout] as const,
-					stderr: [StdioOption.STRING] as const,
-					aborter: generatorAborter,
+					stdin: Readable.from(`${key}`),
+					stdout: generatorStdout,
 				}));
 
 				if ((code !== 0 || signal) && !verdict) {
@@ -75,9 +74,7 @@ export default async (
 
 				({ code, signal, time, memory } = await solution({
 					stdin: generatorStdout,
-					stdout: [checkerStdin] as const,
-					stderr: [StdioOption.STRING] as const,
-					aborter: solutionAborter,
+					stdout: checkerStdin,
 				}));
 
 				if ((code !== 0 || signal) && !verdict) {
@@ -89,9 +86,6 @@ export default async (
 			(async () => {
 				({ code, signal } = await checker({
 					stdin: checkerStdin,
-					stdout: [StdioOption.STRING] as const,
-					stderr: [StdioOption.STRING] as const,
-					aborter: checkerAborter,
 				}));
 
 				if ((code !== 0 || signal) && !verdict) {
