@@ -1,5 +1,5 @@
 import {
-	GeneratorTestSet,
+	SamplesTestSet,
 	TestSetResult,
 	TestCaseVerdict,
 	TestCaseResult,
@@ -10,17 +10,11 @@ import randomUnsigned from "../../utils/randomUnsigned";
 import runMany from "../utils/runMany";
 import WritableString from "../../utils/WritableString";
 
-export default async (
+async function usingChecker(
 	solutionPath: string,
-	{
-		config: { generator: generatorPath, checker: checkerPath, n, keys },
-	}: GeneratorTestSet
-): Promise<TestSetResult> => {
-	const makeRunnersResult = await makeRunners([
-		generatorPath,
-		checkerPath,
-		solutionPath,
-	]);
+	checkerPath: string
+): Promise<TestSetResult> {
+	const makeRunnersResult = await makeRunners([checkerPath, solutionPath]);
 	if (!makeRunnersResult.success) {
 		return {
 			success: false,
@@ -28,7 +22,7 @@ export default async (
 		};
 	}
 
-	const [generator, checker, solution] = makeRunnersResult.results.map(
+	const [checker, solution] = makeRunnersResult.results.map(
 		(result) => result.run
 	);
 
@@ -80,4 +74,14 @@ export default async (
 		makeRunnerResults: makeRunnersResult.results,
 		testCaseResults,
 	};
+}
+
+async function usingSamples() {}
+
+export default (
+	solutionPath: string,
+	{ config: { checker: checkerPath } }: SamplesTestSet
+): Promise<TestSetResult> => {
+	if (checkerPath) return usingChecker(solutionPath, checkerPath);
+	else return usingSamples(solutionPath);
 };

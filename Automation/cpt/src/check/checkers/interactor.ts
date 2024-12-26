@@ -1,26 +1,20 @@
 import {
-	GeneratorTestSet,
+	InteractorTestSet,
 	TestSetResult,
 	TestCaseVerdict,
 	TestCaseResult,
 } from "../types";
 import makeRunners from "../utils/makeRunners";
-import { PassThrough, Readable } from "stream";
+import { PassThrough } from "stream";
 import randomUnsigned from "../../utils/randomUnsigned";
 import runMany from "../utils/runMany";
 import WritableString from "../../utils/WritableString";
 
 export default async (
 	solutionPath: string,
-	{
-		config: { generator: generatorPath, checker: checkerPath, n, keys },
-	}: GeneratorTestSet
+	{ config: { interactor: interactorPath, n, keys } }: InteractorTestSet
 ): Promise<TestSetResult> => {
-	const makeRunnersResult = await makeRunners([
-		generatorPath,
-		checkerPath,
-		solutionPath,
-	]);
+	const makeRunnersResult = await makeRunners([interactorPath, solutionPath]);
 	if (!makeRunnersResult.success) {
 		return {
 			success: false,
@@ -28,39 +22,36 @@ export default async (
 		};
 	}
 
-	const [generator, checker, solution] = makeRunnersResult.results.map(
+	const [interactor, solution] = makeRunnersResult.results.map(
 		(result) => result.run
 	);
 
 	async function runTestCase(key: number): Promise<TestCaseResult> {
-		const input = new PassThrough();
-		const checkerInput = new PassThrough();
-		const checkerOutput = new WritableString();
+		const interactorInput = new PassThrough();
+		const interactorOutput = new PassThrough();
+		const interactorError = new WritableString();
 
-		checkerInput.write(`${key}\n`);
-		input.pipe(checkerInput);
+		interactorInput.write(`${key}\n`);
 
 		const runManyResult = await runMany([
-			generator({ stdin: Readable.from(`${key}\n`), stdout: input }),
-			checker({ stdin: checkerInput, stderr: checkerOutput }),
-			solution({ stdin: input, stdout: checkerInput }),
+			interactor({ stdin: interactorInput, stdout: interactorOutput }),
+			solution({ stdin: interactorOutput, stdout: interactorInput }),
 		]);
 
 		if (!runManyResult.success)
 			return {
 				key,
 				verdict: [
-					TestCaseVerdict.GENERATOR_RUNTIME_ERROR,
-					TestCaseVerdict.CHECKER_RUNTIME_ERROR,
+					TestCaseVerdict.INTERACTOR_RUNTIME_ERROR,
 					TestCaseVerdict.RUNTIME_ERROR,
 				][runManyResult.index],
 			};
 
-		if (checkerOutput.string)
+		if (interactorError.string)
 			return {
 				key,
 				verdict: TestCaseVerdict.WRONG_ANSWER,
-				hint: checkerOutput.string,
+				hint: interactorError.string,
 			};
 
 		return { key, verdict: TestCaseVerdict.OK };
