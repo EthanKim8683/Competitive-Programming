@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { LanguageEntry, MakeRunnerError, MakeRunnerResult } from "./types";
+import { MakeRunnerResult } from "./types";
 import compile from "./compile";
 import { partial } from "./run";
+import { LanguageEntry } from "./types";
 
 function inferLanguage(
 	filePath: string,
@@ -35,73 +36,44 @@ export default async (
 	filePath: string,
 	language?: string
 ): Promise<MakeRunnerResult> => {
-	const base = {
-		filePath,
-	};
-
 	const accessError = await fs.promises
 		.access(filePath, fs.constants.R_OK)
 		.catch((err: Error) => err.toString());
 	if (accessError)
 		return {
-			...base,
 			success: false,
-			error: MakeRunnerError.ACCESS_ERROR,
-			hint: accessError,
+			error: accessError,
 		};
-
-	const accessed = {
-		...base,
-	};
 
 	if (!(language = inferLanguage(filePath, language)))
 		return {
-			...accessed,
 			success: false,
-			error: MakeRunnerError.INFER_ERROR,
+			error: `Could not infer language of file: \`${filePath}\``,
 		};
-
-	const inferred = {
-		...accessed,
-		language,
-	};
 
 	const languageEntry = getLanguageEntry(language);
 	if (!languageEntry)
 		return {
-			...inferred,
 			success: false,
-			error: MakeRunnerError.SUPPORT_ERROR,
+			error: `Unsupported language: \`${language}\``,
 		};
 	const args = await languageEntry(filePath);
 	const { compileArgs, runArgs } = args;
-
-	const supports = {
-		...inferred,
-		...args,
-	};
 
 	let warning: string | undefined;
 	if (compileArgs) {
 		const compileResult = await compile(compileArgs);
 		if (!compileResult.success)
 			return {
-				...supports,
 				success: false,
-				error: MakeRunnerError.COMPILE_ERROR,
-				hint: compileResult.error,
+				error: compileResult.error,
 			};
 		else ({ warning } = compileResult);
 	}
 
-	const compiled = {
-		...supports,
+	return {
+		success: true,
 		warning,
 		run: partial(runArgs),
-	};
-
-	return {
-		...compiled,
-		success: true,
 	};
 };

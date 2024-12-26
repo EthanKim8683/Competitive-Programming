@@ -1,5 +1,5 @@
 import makeRunner from "../../run/makeRunner";
-import { MakeRunnerResult, SuccessfulMakeRunnerResult } from "../../run/types";
+import { MakeRunnerResult } from "../../run/types";
 
 export default async (
 	filePaths: string[]
@@ -10,7 +10,7 @@ export default async (
 	  }
 	| {
 			success: true;
-			results: SuccessfulMakeRunnerResult[];
+			results: Exclude<MakeRunnerResult, { success: false }>[];
 	  }
 > => {
 	const results = await Promise.all(

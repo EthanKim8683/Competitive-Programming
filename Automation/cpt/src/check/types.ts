@@ -32,21 +32,16 @@ export type TestCaseResult = {
 	key: number;
 	verdict: TestCaseVerdict;
 	hint?: string;
-	time: number;
-	memory: number;
 };
 
-type TestSetResultBase = TestSet;
-type TestSetResultMadeRunner = TestSetResultBase & {
-	makeRunnersResult: MakeRunnerResult[];
-};
-type TestSetResultTested = TestSetResultMadeRunner & {
-	testCaseResults: TestCaseResult[];
-};
-export type UnsuccessfulTestSetResult = TestSetResultMadeRunner & {
-	success: false;
-};
-export type SuccessfulTestSetResult = TestSetResultTested & {
-	success: true;
-};
-export type TestSetResult = UnsuccessfulTestSetResult | SuccessfulTestSetResult;
+export type TestSetResult = {
+	makeRunnerResults: MakeRunnerResult[];
+} & (
+	| {
+			success: false;
+	  }
+	| {
+			success: true;
+			testCaseResults: TestCaseResult[];
+	  }
+);

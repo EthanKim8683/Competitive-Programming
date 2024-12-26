@@ -5,9 +5,14 @@ import { TestSet, TestSetParsingError } from "./types";
 export default (configString: string) => {
 	const config = ini.parse(configString);
 
+	let solutionPath: string;
 	const testSets: TestSet[] = [],
 		errors: TestSetParsingError[] = [];
-	function dfs(object: typeof config, fullKey: string = ""): void {
+	function dfs(
+		object: typeof config,
+		path: string[] = [],
+		root: boolean = true
+	): void {
 		const config: Record<string, any> = {};
 		let hasConfig = false;
 		for (const key in object) {
@@ -18,23 +23,22 @@ export default (configString: string) => {
 			) {
 				config[key] = object[key];
 				hasConfig = true;
-			} else dfs(object[key], fullKey.length === 0 ? key : `${fullKey}.${key}`);
+			} else dfs(object[key], path.concat([key]), false);
 		}
 
-		if (hasConfig && fullKey.length > 0) {
+		if (root) {
+			// TODO: solutionPath, maybe other configs
+			return;
+		}
+
+		if (hasConfig) {
+			const name = path.join(".");
 			const { success, error, data } = testSetSchema.safeParse({
-				name: fullKey,
+				name,
 				config: object,
 			});
-			if (!success) {
-				errors.push({
-					name: fullKey,
-					error,
-				});
-				return;
-			}
-
-			testSets.push(data);
+			if (success) testSets.push(data);
+			else errors.push({ name, error });
 		}
 	}
 	dfs(config);
