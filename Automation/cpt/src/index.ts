@@ -25,16 +25,21 @@ samples`
 
 import { Readable } from "stream";
 import makeRunner from "./run/makeRunner";
-import WritableString from "./utils/WritableString";
+import WritableString from "./stream/WritableString";
 
 (async () => {
 	const makeRunnerResult = await makeRunner("demo.c++20.cpp");
 	console.log(makeRunnerResult);
 	if (makeRunnerResult.success) {
 		const { run } = makeRunnerResult;
-		const w = new WritableString();
-		await run({ stdin: Readable.from("1 2"), stdout: w });
-		process.stdout.write(w.string);
+		const writableString = new WritableString();
+		const { code, signal } = await run({
+			stdin: Readable.from("1 2"),
+			stdout: writableString,
+			stderr: process.stderr,
+		}).exit;
+		console.log(`code=${code}, signal=${signal}`);
+		process.stdout.write(writableString.string);
 	}
 })().catch((e) => console.error(e));
 

@@ -4,40 +4,55 @@ import {
 	TestCaseVerdict,
 	TestCaseResult,
 } from "../types";
-import makeRunners from "../utils/makeRunners";
 import { PassThrough, Readable } from "stream";
-import randomUnsigned from "../../utils/randomUnsigned";
+import fs from "fs";
+import WritableString from "../../stream/WritableString";
+import randomUnsigned from "../utils/randomUnsigned";
+import makeRunners from "../utils/makeRunners";
 import runMany from "../utils/runMany";
-import WritableString from "../../utils/WritableString";
+
+const readDir = (dir: string) =>
+	fs.promises.readdir(dir).then((filePaths) =>
+		Promise.all(
+			filePaths.map((filePath, key) =>
+				fs.promises
+					.readFile(filePath)
+					.then((string) => [key, { success: true, string }])
+					.catch((error) => [key, { success: false, error }])
+			)
+		)
+			.then((entries) => ({
+				success: true,
+				results: Object.fromEntries(entries),
+			}))
+			.catch((error) => ({
+				success: false,
+				error,
+			}))
+	);
 
 async function usingChecker(
 	solutionPath: string,
 	checkerPath: string
 ): Promise<TestSetResult> {
-	const makeRunnersResult = await makeRunners([checkerPath, solutionPath]);
-	if (!makeRunnersResult.success) {
+	const { success, results: makeRunnerResults } = await makeRunners([
+		checkerPath,
+		solutionPath,
+	]);
+	if (!success)
 		return {
 			success: false,
-			makeRunnerResults: makeRunnersResult.results,
+			makeRunnerResults,
 		};
-	}
-
-	const [checker, solution] = makeRunnersResult.results.map(
-		(result) => result.run
-	);
+	const [checker, solution] = makeRunnerResults.map((result) => result.run);
 
 	async function runTestCase(key: number): Promise<TestCaseResult> {
-		const input = new PassThrough();
 		const checkerInput = new PassThrough();
 		const checkerOutput = new WritableString();
 
-		checkerInput.write(`${key}\n`);
-		input.pipe(checkerInput);
-
 		const runManyResult = await runMany([
-			generator({ stdin: Readable.from(`${key}\n`), stdout: input }),
 			checker({ stdin: checkerInput, stderr: checkerOutput }),
-			solution({ stdin: input, stdout: checkerInput }),
+			solution({ stdin: Readable.from(), stdout: checkerInput }),
 		]);
 
 		if (!runManyResult.success)
