@@ -1,5 +1,7 @@
 import { ChildProcess, spawn } from "child_process";
 import { Readable, Writable } from "stream";
+import NullReadable from "../stream/NullReadable";
+import NullWritable from "../stream/NullWritable";
 
 type Exit = {
 	code: number | null;
@@ -9,9 +11,9 @@ type Exit = {
 function run(
 	args: string[],
 	{
-		stdin = process.stdin,
-		stdout = process.stdout,
-		stderr = process.stderr,
+		stdin = new NullReadable(),
+		stdout = new NullWritable(),
+		stderr = new NullWritable(),
 	}: { stdin?: Readable; stdout?: Writable; stderr?: Writable } = {}
 ): { child: ChildProcess; exit: Promise<Exit> } {
 	if (args.length === 0) args = [""];
@@ -26,10 +28,8 @@ function run(
 	child.stderr!.pipe(stderr);
 
 	const { promise, resolve, reject } = Promise.withResolvers<Exit>();
-
 	child.on("error", (err) => reject(err));
 	child.on("close", (code, signal) => resolve({ code, signal }));
-
 	return { child, exit: promise };
 }
 

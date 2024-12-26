@@ -4,11 +4,11 @@ import {
 	TestCaseVerdict,
 	TestCaseResult,
 } from "../types";
-import makeRunners from "../utils/makeRunners";
 import { PassThrough, Readable } from "stream";
-import randomUnsigned from "../../utils/randomUnsigned";
+import WritableString from "../../stream/WritableString";
+import randomUnsigned from "../utils/randomUnsigned";
+import makeRunners from "../utils/makeRunners";
 import runMany from "../utils/runMany";
-import WritableString from "../../utils/WritableString";
 
 export default async (
 	solutionPath: string,
@@ -16,19 +16,13 @@ export default async (
 		config: { generator: generatorPath, checker: checkerPath, n, keys },
 	}: GeneratorTestSet
 ): Promise<TestSetResult> => {
-	const makeRunnersResult = await makeRunners([
+	const { success, results: makeRunnerResults } = await makeRunners([
 		generatorPath,
 		checkerPath,
 		solutionPath,
 	]);
-	if (!makeRunnersResult.success) {
-		return {
-			success: false,
-			makeRunnerResults: makeRunnersResult.results,
-		};
-	}
-
-	const [generator, checker, solution] = makeRunnersResult.results.map(
+	if (!success) return { success, makeRunnerResults };
+	const [generator, checker, solution] = makeRunnerResults.map(
 		(result) => result.run
 	);
 
@@ -36,8 +30,6 @@ export default async (
 		const input = new PassThrough();
 		const checkerInput = new PassThrough();
 		const checkerOutput = new WritableString();
-
-		checkerInput.write(`${key}\n`);
 		input.pipe(checkerInput);
 
 		const runManyResult = await runMany([
@@ -67,17 +59,9 @@ export default async (
 	}
 
 	const promises = [];
-	for (let i = 0; i < n; i++) {
-		promises.push(runTestCase(randomUnsigned()));
-	}
-	for (const key of keys) {
-		promises.push(runTestCase(key));
-	}
+	for (let i = 0; i < n; i++) promises.push(runTestCase(randomUnsigned()));
+	for (const key of keys) promises.push(runTestCase(key));
 	const testCaseResults = await Promise.all(promises);
 
-	return {
-		success: true,
-		makeRunnerResults: makeRunnersResult.results,
-		testCaseResults,
-	};
+	return { success, makeRunnerResults, testCaseResults };
 };
