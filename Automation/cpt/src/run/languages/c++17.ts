@@ -1,9 +1,9 @@
-import tmp from "tmp-promise";
+import tmp from "tmp";
 import path from "path";
 import { LanguageEntry } from "../types";
 
-const languageEntry: LanguageEntry = async (filePath) => {
-	const { path: exePath } = await tmp.file();
+const languageEntry: LanguageEntry = (filePath) => {
+	const { name: exePath } = tmp.fileSync();
 	return {
 		compileArgs: [
 			"/opt/homebrew/bin/g++-14",
@@ -14,7 +14,7 @@ const languageEntry: LanguageEntry = async (filePath) => {
 			"-DETHANKIM8683",
 			"-std=c++17",
 		],
-		runArgs: [path.relative(process.cwd(), exePath)],
+		spawnArgs: [path.relative(process.cwd(), exePath)],
 	};
 };
 

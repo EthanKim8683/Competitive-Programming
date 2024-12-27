@@ -9,6 +9,7 @@ import WritableString from "../../stream/WritableString";
 import randomUnsigned from "../utils/randomUnsigned";
 import makeRunners from "../utils/makeRunners";
 import runMany from "../utils/runMany";
+import { RuntimeError } from "../../run/Runner";
 
 export default async (
 	solutionPath: string,
@@ -16,15 +17,11 @@ export default async (
 		config: { generator: generatorPath, checker: checkerPath, n, keys },
 	}: GeneratorTestSet
 ): Promise<TestSetResult> => {
-	const { success, results: makeRunnerResults } = await makeRunners([
+	const [generator, checker, solution] = await makeRunners([
 		generatorPath,
 		checkerPath,
 		solutionPath,
 	]);
-	if (!success) return { success, makeRunnerResults };
-	const [generator, checker, solution] = makeRunnerResults.map(
-		(result) => result.run
-	);
 
 	async function runTestCase(key: number): Promise<TestCaseResult> {
 		const input = new PassThrough();
@@ -32,10 +29,10 @@ export default async (
 		const checkerOutput = new WritableString();
 		input.pipe(checkerInput);
 
-		const runManyResult = await runMany([
-			generator({ stdin: Readable.from(`${key}\n`), stdout: input }),
-			checker({ stdin: checkerInput, stderr: checkerOutput }),
-			solution({ stdin: input, stdout: checkerInput }),
+		const runManyResult = await Promise.all([
+			generator.run({ stdin: Readable.from(`${key}\n`), stdout: input }),
+			checker.run({ stdin: checkerInput, stderr: checkerOutput }),
+			solution.run({ stdin: input, stdout: checkerInput }),
 		]);
 
 		if (!runManyResult.success)

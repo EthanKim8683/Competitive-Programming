@@ -1,7 +1,7 @@
-import run from "../../run/run";
+import { ChildProcess } from "child_process";
 
 export default (
-	runs: ReturnType<typeof run>[]
+	children: ChildProcess[]
 ): Promise<
 	| {
 			success: false;
@@ -13,16 +13,16 @@ export default (
 > => {
 	return new Promise((resolve, reject) => {
 		function killAll() {
-			const kills = runs.map(({ child }) =>
+			const kills = children.map((child) =>
 				// child.exitCode is null if the child is still running
 				child.exitCode ? false : child.kill()
 			);
-			if (kills.includes(true)) reject("Could not kill some processes");
+			if (kills.includes(true)) reject("Could not kill some children");
 		}
 
 		let fulfilled = 0;
-		runs.forEach(({ exit }, index) =>
-			exit.then(({ code, signal }) => {
+		children.forEach((child, index) =>
+			child.on("close", (code, signal) => {
 				if (code !== 0 || signal) {
 					killAll();
 					resolve({
@@ -34,7 +34,7 @@ export default (
 				}
 
 				fulfilled++;
-				if (fulfilled === runs.length) {
+				if (fulfilled === children.length) {
 					resolve({
 						success: true,
 					});

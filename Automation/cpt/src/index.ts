@@ -24,23 +24,19 @@ samples`
 ); */
 
 import { Readable } from "stream";
-import makeRunner from "./run/makeRunner";
+import Runner from "./run/Runner";
 import WritableString from "./stream/WritableString";
+import NullWritable from "./stream/NullWritable";
 
 (async () => {
-	const makeRunnerResult = await makeRunner("demo.c++20.cpp");
-	console.log(makeRunnerResult);
-	if (makeRunnerResult.success) {
-		const { run } = makeRunnerResult;
-		const writableString = new WritableString();
-		const { code, signal } = await run({
-			stdin: Readable.from("1 2"),
-			stdout: writableString,
-			stderr: process.stderr,
-		}).exit;
-		console.log(`code=${code}, signal=${signal}`);
-		process.stdout.write(writableString.string);
-	}
+	const demo = new Runner("`'\".c++20.cpp");
+	const writableString = new WritableString();
+	await demo.run({
+		stdin: Readable.from("1 2"),
+		stdout: writableString,
+		stderr: new NullWritable(),
+	});
+	process.stdout.write(writableString.string);
 })().catch((e) => console.error(e));
 
 /* import checkUsingGenerator from "./check/checkUsingGenerator";
