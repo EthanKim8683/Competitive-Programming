@@ -1,22 +1,4 @@
-import { partial } from "./run";
-
-type LanguageEntryArgs = {
+export type LanguageEntry = (filePath: string) => {
 	compileArgs?: string[];
-	runArgs: string[];
+	spawnArgs: string[];
 };
-export type LanguageEntry = (
-	filePath: string
-) => Promise<LanguageEntryArgs> | LanguageEntryArgs;
-
-export type Runner = ReturnType<typeof partial>;
-
-export type MakeRunnerResult =
-	| {
-			success: false;
-			error: any;
-	  }
-	| {
-			success: true;
-			warning?: string;
-			run: Runner;
-	  };

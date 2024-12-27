@@ -11,7 +11,9 @@ int main() {
 	// cout << "y=\n";
 	// cin >> y;
 	// cout << "x+y=" << x + y << endl;
-	
+
+	*(int *) 0 = 0;
+
 	int x;
 	cout << "x=", cout.flush();
 	cin >> x;

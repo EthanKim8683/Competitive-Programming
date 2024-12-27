@@ -24,6 +24,5 @@ To combat these things, I've found the following pretty helpful:
 
 ## Things I stick to
 
-- Errors are if CPT itself errors (that way anything can throw an error without triggering something it needn't), otherwise, return `success` and `errors` properties
 - Aim for the simplest possible solution. That way the project won't get cluttered in the future with things we don't need.
 - Don't consider the future too much. Considering the future is for planning. If you consider the future while designing, you'll get lost in the possibilities without improving what's in front of you.

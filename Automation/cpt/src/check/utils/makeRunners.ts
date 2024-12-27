@@ -1,23 +1,12 @@
-import makeRunner from "../../run/makeRunner";
-import { MakeRunnerResult } from "../../run/types";
+import Runner from "../../run/Runner";
 
-export default async (
-	filePaths: string[]
-): Promise<
-	| {
-			success: false;
-			results: MakeRunnerResult[];
-	  }
-	| {
-			success: true;
-			results: Exclude<MakeRunnerResult, { success: false }>[];
-	  }
-> => {
-	const results = await Promise.all(
-		filePaths.map((filePath) => makeRunner(filePath))
+export default async (filePaths: string[]): Promise<Runner[]> =>
+	Promise.allSettled(
+		filePaths.map((filePath) => (async () => new Runner(filePath))())
+	).then((results) =>
+		results.map((result) => {
+			if (result.status === "rejected")
+				throw new Error("Could not make all runners", { cause: results });
+			return result.value;
+		})
 	);
-
-	if (results.every((result) => result.success))
-		return { success: true, results };
-	else return { success: false, results };
-};
