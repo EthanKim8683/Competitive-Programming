@@ -1,6 +1,6 @@
 import tmp from "tmp-promise";
 import path from "path";
-import { LanguageEntry } from "../types";
+import LanguageEntry from "../types/LanguageEntry";
 
 const languageEntry: LanguageEntry = (filePath) => {
 	const { name: exePath } = tmp.fileSync();
