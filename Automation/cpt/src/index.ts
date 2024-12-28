@@ -29,7 +29,7 @@ import WritableString from "./stream/WritableString";
 import NullWritable from "./stream/NullWritable";
 
 (async () => {
-	const demo = new Runner("`'\".c++20.cpp");
+	const demo = new Runner("demo.c++20.cpp");
 	const writableString = new WritableString();
 	await demo.run({
 		stdin: Readable.from("1 2"),

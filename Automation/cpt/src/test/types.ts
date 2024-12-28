@@ -1,4 +1,3 @@
-import { MakeRunnerResult } from "../run/types";
 import {
 	samplesTestSetSchema,
 	generatorTestSetSchema,
@@ -16,6 +15,12 @@ export type TestSetParsingError = {
 	name: string;
 	error: z.ZodError;
 };
+
+export class TesterInitError extends Error {
+	constructor(message: string, options?: ErrorOptions) {
+		super(message, options);
+	}
+}
 
 export enum TestCaseVerdict {
 	OK = "OK",

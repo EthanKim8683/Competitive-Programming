@@ -1,4 +1,4 @@
-import { LanguageEntry } from "../types";
+import LanguageEntry from "../types/LanguageEntry";
 
 const languageEntry: LanguageEntry = (filePath) => {
 	return {
