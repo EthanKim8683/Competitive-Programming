@@ -1,4 +1,4 @@
-import Runner from "../../run/Runner";
+import Runner from "../../../run/Runner";
 
 export default async (
 	...args: ConstructorParameters<typeof Runner>
