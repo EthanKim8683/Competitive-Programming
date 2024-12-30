@@ -1,39 +1,18 @@
 import fs from "fs";
-import { ChildProcess } from "child_process";
 import quote from "../utils/quote";
 import RunnerInitError from "./types/RunnerInitError";
+import RunnerRuntimeError from "./types/RunnerRuntimeError";
+import RunnerRunPromise from "./types/RunnerRunPromise";
 import inferLanguage from "./helpers/inferLanguage";
 import getLanguageEntry from "./helpers/getLanguageEntry";
 import compileUsingArgs from "./helpers/compileUsingArgs";
 import spawnerUsingArgs from "./helpers/spawnerUsingArgs";
 
-class Run extends Promise<{
-	code: number | null;
-	signal: NodeJS.Signals | null;
-}> {
-	constructor(readonly child: ChildProcess) {
-		super((resolve, reject) => {
-			child.on("exit", (code, signal) => {
-				resolve({ code, signal });
-			});
-
-			child.on("error", (err) => {
-				this.kill();
-				reject(err);
-			});
-		});
-
-		this.child = child;
-	}
-
-	kill() {
-		// PIDs can be reassigned once a process ends. To avoid the possibility of
-		// killing an unrelated process, check first if the process is still alive.
-		if (this.child.exitCode === null && this.child.signalCode === null)
-			this.child.kill();
-	}
-}
 export default class Runner {
+	public static InitError = RunnerInitError;
+	public static RuntimeError = RunnerRuntimeError;
+	public static RunPromise = RunnerRunPromise;
+
 	readonly language: string;
 	readonly spawn: ReturnType<typeof spawnerUsingArgs>;
 
@@ -89,10 +68,8 @@ export default class Runner {
 		this.spawn = spawnerUsingArgs(spawnArgs);
 	}
 
-	run(
-		options?: Parameters<typeof this.spawn>[0]
-	): Promise<{ code: number | null; signal: NodeJS.Signals | null }> {
-		return new Run(this.spawn(options));
+	run(options?: Parameters<typeof this.spawn>[0]): RunnerRunPromise {
+		return new RunnerRunPromise(this, options);
 	}
 
 	toString(): string {

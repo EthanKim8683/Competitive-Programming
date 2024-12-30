@@ -1,57 +1,99 @@
 import { PassThrough, Readable } from "stream";
+import GeneratorTestSet from "../types/GeneratorTestSet";
+import initTogether from "../tester/helpers/initTogether";
+import runTogether from "../tester/helpers/runTogether";
+import testTogether from "../tester/helpers/testTogether";
 import WritableString from "../../stream/WritableString";
+import newRunner from "../tester/utils/newRunner";
+import randomUnsigneds from "../tester/utils/randomUnsigneds";
+import TestCaseResult from "../tester/types/TestCaseResult";
+import TestSetResult from "../tester/types/TestSetResult";
 
 export default async (
 	solutionPath: string,
 	{
 		config: { generator: generatorPath, checker: checkerPath, n, keys },
 	}: GeneratorTestSet
-) => {
-	try {
-		const [generator, checker, solution] = await initTogether([
-			initGeneratorUsing(newRunner(generatorPath)),
-			initCheckerUsing(newRunner(checkerPath)),
-			initSolutionUsing(newRunner(solutionPath)),
-		]);
-	} catch (err) {
-		// Initers themselves filter out errors to handle and propogate them here.
-		// This allows real errors to throw, while "pretend" errors become results.
-		if (!(err instanceof TesterInitError)) throw err;
-		return err.toTestSetResult();
-	}
+): Promise<TestSetResult> => {
+	const initResult = await initTogether([
+		{
+			promise: newRunner(generatorPath),
+			initErrorSymbol: "IE(G)",
+			runnerAccessErrorSymbol: "DNE(G)",
+			runnerCompilationErrorSymbol: "CE(G)",
+		},
+		{
+			promise: newRunner(checkerPath),
+			initErrorSymbol: "IE(C)",
+			runnerAccessErrorSymbol: "DNE(C)",
+			runnerCompilationErrorSymbol: "CE(C)",
+		},
+		{
+			promise: newRunner(solutionPath),
+			initErrorSymbol: "IE",
+			runnerAccessErrorSymbol: "DNE",
+			runnerCompilationErrorSymbol: "CE",
+		},
+	]);
 
-	// Still a little iffy on this? I guess it would still work with input/output
-	// files...
+	if (!initResult.success)
+		return {
+			success: false,
+			errorSymbols: initResult.errorSymbols,
+		};
+	const [generator, checker, solution] = initResult.results;
+
 	return testTogether(
-		[...keys, randomUnsigneds(n)],
-		async (key: number): TestCaseResult => {
+		[...keys, ...randomUnsigneds(n)],
+		async (key: number): Promise<TestCaseResult> => {
 			const input = new PassThrough();
 			const checkerInput = new PassThrough();
-			const checkerOutput = new WritableString();
+			const checkerStdout = new WritableString();
+			const checkerStderr = new WritableString();
 			input.pipe(checkerInput);
 
-			try {
-				await runTogether([
-					runGeneratorUsing(
-						generator.run({ stdin: Readable.from(""), stdout: input })
-					),
-					runCheckerUsing(
-						checker.run({ stdin: checkerInput, stdout: checkerOutput })
-					),
-					runSolutionUsing(
-						solution.run({ stdin: input, stdout: checkerOutput })
-					),
-				]);
-			} catch (err) {
-				if (!(err instanceof TesterRuntimeError)) throw err;
-				return err.toTestCaseResult();
+			let result = await runTogether([
+				{
+					promise: generator.run({
+						stdin: Readable.from(`${key}`),
+						stdout: input,
+					}),
+					runtimeErrorVerdict: "RE(G)",
+				},
+				{
+					promise: checker.run({
+						stdin: checkerInput,
+						stdout: checkerStdout,
+						stderr: checkerStderr,
+					}),
+					runtimeErrorVerdict: "RE(C)",
+				},
+				{
+					promise: solution.run({
+						stdin: input,
+						stderr: checkerInput,
+					}),
+					runtimeErrorVerdict: "RE",
+				},
+			]);
+
+			if (!result && checkerStderr.string) {
+				result = {
+					passed: false,
+					verdict: "WA",
+					reason: checkerStderr.string,
+				};
 			}
 
-			if (checkerOutput.string) {
-				const verdict = TestCaseVerdict.WRONG_ANSWER;
+			if (!result) {
+				result = {
+					passed: true,
+					verdict: "OK",
+					reason: checkerStdout.string,
+				};
 			}
 
-			const verdict = TestCaseVerdict.OK;
+			return result;
 		}
 	);
 };
