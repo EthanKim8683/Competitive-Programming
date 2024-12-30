@@ -26,6 +26,10 @@ export default class RunnerRunPromise extends Promise<void> {
 		this.child = child;
 	}
 
+	// TODO: Override `.then()`, `.catch()` and `.finally()` to pass the right
+	// arguments to the custom constructor. Below is a short-term solution that
+	// uses the default constructor instead (which the aforementioned methods
+	// populate based on).
 	static get [Symbol.species]() {
 		return Promise;
 	}
