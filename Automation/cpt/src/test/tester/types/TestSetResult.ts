@@ -4,6 +4,7 @@ type TestSetResult =
 	| {
 			success: false;
 			errorSymbols: string[];
+			reasons: any[];
 	  }
 	| {
 			success: true;

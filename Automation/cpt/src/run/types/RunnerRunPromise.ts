@@ -26,6 +26,10 @@ export default class RunnerRunPromise extends Promise<void> {
 		this.child = child;
 	}
 
+	static get [Symbol.species]() {
+		return Promise;
+	}
+
 	kill() {
 		// PIDs can be reassigned once a process ends. To avoid the possibility of
 		// killing an unrelated process, check first if the process is still alive.

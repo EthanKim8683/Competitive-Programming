@@ -1,6 +1,6 @@
 type TestCaseResult = {
 	passed?: boolean;
 	verdict: string;
-	reason?: string;
+	reason?: any;
 };
 export default TestCaseResult;

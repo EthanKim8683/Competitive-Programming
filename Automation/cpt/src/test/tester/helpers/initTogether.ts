@@ -7,17 +7,21 @@ import TesterInitTask from "../types/TesterInitTask";
 export default async <T extends TesterInitTask<any>[]>(
 	tasks: T
 ): Promise<
-	{ success: false; errorSymbols: string[] } | { success: true; results: any[] }
+	| { success: false; errorSymbols: string[]; reasons: any[] }
+	| { success: true; results: any[] }
 > => {
 	const outcomes = await Promise.allSettled(tasks.map((task) => task.promise));
 
-	const errorSymbols: string[] = [],
+	const values: any[] = [],
+		errorSymbols: string[] = [],
 		errors: Error[] = [],
 		unhandledErrors: Error[] = [];
-	const values = outcomes.map((outcome, index) => {
-		if (outcome.status === "fulfilled") return outcome.value;
+	for (let i = 0; i < outcomes.length; i++) {
+		const outcome = outcomes[i];
+
+		if (outcome.status === "fulfilled") values.push(outcome.value);
 		else {
-			const task = tasks[index];
+			const task = tasks[i];
 			const { reason } = outcome;
 
 			if (reason instanceof RunnerInitError) {
@@ -36,16 +40,18 @@ export default async <T extends TesterInitTask<any>[]>(
 
 				errorSymbols.push(errorSymbol);
 				errors.push(reason);
+				continue;
 			}
 
 			unhandledErrors.push(reason);
 		}
-	});
+	}
 
 	if (unhandledErrors.length > 0)
 		throw new Error("Unhandled error(s)", { cause: unhandledErrors });
 
-	if (errors.length > 0) return { success: false, errorSymbols };
+	if (errors.length > 0)
+		return { success: false, errorSymbols, reasons: errors };
 
 	return { success: true, results: values };
 };

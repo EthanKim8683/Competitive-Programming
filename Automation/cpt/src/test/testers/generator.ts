@@ -36,11 +36,7 @@ export default async (
 		},
 	]);
 
-	if (!initResult.success)
-		return {
-			success: false,
-			errorSymbols: initResult.errorSymbols,
-		};
+	if (!initResult.success) return initResult;
 	const [generator, checker, solution] = initResult.results;
 
 	return testTogether(

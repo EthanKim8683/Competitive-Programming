@@ -11,6 +11,7 @@ export default (tasks: TesterRunTask[]): Promise<TestCaseResult | undefined> =>
 					passed: false,
 					verdict: tasks.find((task) => task.promise === err.runPromise)!
 						.runtimeErrorVerdict,
+					reason: err,
 				};
 
 			throw new Error("Unhandled error", { cause: err });
