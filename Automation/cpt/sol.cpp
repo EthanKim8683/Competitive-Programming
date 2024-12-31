@@ -2,10 +2,10 @@
 using namespace std;
 
 int main() {
-	random_device rd;
-	mt19937 rng(rd());
-	if (rng() % 3 == 0) {
-		*(int *) 0 = 0;
-	}
-	cout << "Hello World!" << endl;
+	int a, b;
+	cin >> a >> b;
+	
+	this_thread::sleep_for(chrono::milliseconds(1'000));
+	
+	cout << a + b << endl;
 }

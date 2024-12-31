@@ -39,30 +39,4 @@ export default class RunnerRunPromise extends Promise<void> {
 	static get [Symbol.species]() {
 		return Promise;
 	}
-
-	// Override `Promise`'s static methods to be effectively unusable.
-	static all(..._: never): never {
-		throw "Use `Promise.all` instead";
-	}
-	static allSettled(..._: never): never {
-		throw "Use `Promise.allSettled` instead";
-	}
-	static any(..._: never): never {
-		throw "Use `Promise.any` instead";
-	}
-	static race(..._: never): never {
-		throw "Use `Promise.race` instead";
-	}
-	static reject(..._: never): never {
-		throw "Use `Promise.reject` instead";
-	}
-	static resolve(..._: never): never {
-		throw "Use `Promise.resolve` instead";
-	}
-	static try(..._: never): never {
-		throw "Use `Promise.try` instead";
-	}
-	static withResolvers(..._: never): never {
-		throw "Use `Promise.withResolvers` instead";
-	}
 }

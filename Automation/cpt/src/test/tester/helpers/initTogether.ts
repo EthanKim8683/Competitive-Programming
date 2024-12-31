@@ -1,16 +1,14 @@
 import TesterInitTask from "../types/TesterInitTask";
 
-// Promise-typed for convenience; tasks can be destructured in the order they
-// were provided. Maybe I'll make this a discriminated union to fully hide the
-// TesterInitError class in the future.
-export default async <T extends TesterInitTask<any>[]>(
-	tasks: T
-): Promise<
+export default async <T extends any[]>(tasks: {
+	[K in keyof T]: TesterInitTask<T[K]>;
+}): Promise<
 	| { success: false; errorSymbols: string[]; reasons: any[] }
-	| { success: true; results: any[] }
+	| { success: true; results: T }
 > => {
 	const outcomes = await Promise.allSettled(tasks.map((task) => task.promise));
 
+	// TODO: Get rid of the `any`s (if possible).
 	const values: any[] = [],
 		errorSymbols: string[] = [],
 		errors: Error[] = [],
@@ -41,5 +39,5 @@ export default async <T extends TesterInitTask<any>[]>(
 	if (errors.length > 0)
 		return { success: false, errorSymbols, reasons: errors };
 
-	return { success: true, results: values };
+	return { success: true, results: values as T };
 };

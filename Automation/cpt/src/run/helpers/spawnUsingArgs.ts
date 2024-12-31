@@ -18,9 +18,9 @@ export default (
 	const child = spawn(args[0], args.slice(1), {
 		stdio: "pipe",
 	});
-	stdin.pipe(child.stdin!);
-	child.stdout!.pipe(stdout);
-	child.stderr!.pipe(stderr);
+	if (child.stdin) stdin.pipe(child.stdin);
+	if (child.stdout) child.stdout.pipe(stdout);
+	if (child.stderr) child.stderr.pipe(stderr);
 
 	return child;
 };

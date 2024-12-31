@@ -62,7 +62,7 @@ export default async (
 				{
 					promise: solution.run({
 						stdin: input,
-						stderr: output,
+						stdout: output,
 					}),
 					runtimeErrorVerdictSymbol: "RE",
 				},

@@ -1,8 +1,18 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using i64 = long long;
+
 int main() {
-	random_device rd;
-	mt19937 rng(rd());
-	(rng() % 2 ? cout : cerr) << rng() << endl;
+	i64 a, b;
+	cin >> a >> b;
+
+	i64 c;
+	cin >> c;
+	
+	this_thread::sleep_for(chrono::milliseconds(1'000));
+	
+	if (a + b != c) {
+		cerr << a << " + " << b << " != " << c << endl;
+	}
 }

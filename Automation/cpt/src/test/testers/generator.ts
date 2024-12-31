@@ -55,11 +55,14 @@ export default async (
 	return testTogether(
 		[...keys, ...randomUnsigneds(n)],
 		async (key: number): Promise<TestCaseResult> => {
-			const input = new PassThrough();
 			const checkerInput = new PassThrough();
-			const checkerStdout = new WritableString();
-			const checkerStderr = new WritableString();
-			input.pipe(checkerInput);
+			const checkerOutput = new WritableString();
+			const input = new PassThrough();
+
+			// `{ end: false }` prevents the pipee from ending when the piper does.
+			// Ensures the checker doesn't end before reading the solution's output
+			// first.
+			input.pipe(checkerInput, { end: false });
 
 			// TODO: Make it so that outputs also go to a folder/file to be reviewed
 			// later.
@@ -74,25 +77,24 @@ export default async (
 				{
 					promise: checker.run({
 						stdin: checkerInput,
-						stdout: checkerStdout,
-						stderr: checkerStderr,
+						stderr: checkerOutput,
 					}),
 					runtimeErrorVerdictSymbol: "RE(C)",
 				},
 				{
 					promise: solution.run({
 						stdin: input,
-						stderr: checkerInput,
+						stdout: checkerInput,
 					}),
 					runtimeErrorVerdictSymbol: "RE",
 				},
 			]);
 
-			if (!result && checkerStderr.string) {
+			if (!result && checkerOutput.string) {
 				result = {
 					passed: false,
 					verdictSymbol: "WA",
-					reason: checkerStderr.string,
+					reason: checkerOutput.string,
 				};
 			}
 

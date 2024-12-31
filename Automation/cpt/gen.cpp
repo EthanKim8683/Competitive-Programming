@@ -1,11 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+using i64 = long long;
+
 int main() {
-	random_device rd;
-	mt19937 rng(rd());
-	if (rng() % 4 == 0) {
-		*(int *) 0 = 0;
-	}
-	cout << "Hello World!" << endl;
+	i64 key;
+	cin >> key;
+	
+	this_thread::sleep_for(chrono::milliseconds(1'000));
+	
+	mt19937 rng(key);
+	cout << key << ' ' << rng() << endl;
 }
