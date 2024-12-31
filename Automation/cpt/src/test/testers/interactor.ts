@@ -43,11 +43,11 @@ export default async (
 	return testTogether(
 		[...keys, ...randomUnsigneds(n)],
 		async (key: number): Promise<TestCaseResult> => {
-			const input = new PassThrough();
-			const output = new PassThrough();
 			const interactorInput = new PassThrough();
 			const interactorStderr = new WritableString();
-			interactorInput.write(`${key}`);
+			const input = new PassThrough();
+			const output = new PassThrough();
+			interactorInput.write(`${key}\n`);
 			output.pipe(interactorInput);
 
 			let result = await runTogether([

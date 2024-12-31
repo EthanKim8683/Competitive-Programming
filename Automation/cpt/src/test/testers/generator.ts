@@ -60,8 +60,8 @@ export default async (
 			const input = new PassThrough();
 
 			// `{ end: false }` prevents the pipee from ending when the piper does.
-			// Ensures the checker doesn't end before reading the solution's output
-			// first.
+			// Ensures the checker's input doesn't end before reading the solution's
+			// output first.
 			input.pipe(checkerInput, { end: false });
 
 			// TODO: Make it so that outputs also go to a folder/file to be reviewed
