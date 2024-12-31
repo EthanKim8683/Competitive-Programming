@@ -1,4 +1,3 @@
-import RunnerInitError from "../../../run/types/RunnerInitError";
 import TesterInitTask from "../types/TesterInitTask";
 
 // Promise-typed for convenience; tasks can be destructured in the order they
@@ -21,29 +20,18 @@ export default async <T extends TesterInitTask<any>[]>(
 
 		if (outcome.status === "fulfilled") values.push(outcome.value);
 		else {
-			const task = tasks[i];
+			const { errorHandlers = [], initErrorSymbol } = tasks[i];
 			const { reason } = outcome;
 
-			if (reason instanceof RunnerInitError) {
-				const errorSymbol =
-					{
-						[RunnerInitError.Code.ACCESS_ERROR]: task.runnerAccessErrorSymbol,
-						[RunnerInitError.Code.LANGUAGE_INFERENCE_ERROR]:
-							task.runnerLanguageInferenceErrorSymbol,
-						[RunnerInitError.Code.LANGUAGE_SUPPORT_ERROR]:
-							task.runnerLanguageSupportErrorSymbol,
-						[RunnerInitError.Code.LANGUAGE_ENTRY_ERROR]:
-							task.runnerLanguageEntryErrorSymbol,
-						[RunnerInitError.Code.COMPILATION_ERROR]:
-							task.runnerCompilationErrorSymbol,
-					}[reason.code] ?? task.initErrorSymbol;
-
-				errorSymbols.push(errorSymbol);
-				errors.push(reason);
-				continue;
+			let errorSymbol: string | undefined;
+			for (const errorHandler of errorHandlers) {
+				errorSymbol ??= errorHandler(reason, initErrorSymbol);
 			}
 
-			unhandledErrors.push(reason);
+			if (errorSymbol) {
+				errors.push(reason);
+				errorSymbols.push(errorSymbol);
+			} else unhandledErrors.push(reason);
 		}
 	}
 

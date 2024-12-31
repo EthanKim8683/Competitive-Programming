@@ -1,102 +1,105 @@
-import {
-	SamplesTestSet,
-	TestSetResult,
-	TestCaseVerdict,
-	TestCaseResult,
-} from "../types";
-import { PassThrough, Readable } from "stream";
-import fs from "fs";
+import { PassThrough } from "stream";
+import SamplesTestSet from "../types/SamplesTestSet";
+import initTogether from "../tester/helpers/initTogether";
+import runTogether from "../tester/helpers/runTogether";
+import testTogether from "../tester/helpers/testTogether";
 import WritableString from "../../stream/WritableString";
-import randomUnsigned from "../utils/randomUnsigned";
-import makeRunners from "../utils/makeRunners";
-import runMany from "../utils/runMany";
+import newRunner from "../tester/utils/newRunner";
+import readFiles from "../tester/utils/readFiles";
+import newRunnerErrorHandler from "../tester/utils/newRunnerErrorHandler";
+import readFilesErrorHandler from "../tester/utils/readFilesErrorHandler";
+import TestCaseResult from "../types/TestCaseResult";
+import TestSetResult from "../types/TestSetResult";
 
-const readDir = (dir: string) =>
-	fs.promises.readdir(dir).then((filePaths) =>
-		Promise.all(
-			filePaths.map((filePath, key) =>
-				fs.promises
-					.readFile(filePath)
-					.then((string) => [key, { success: true, string }])
-					.catch((error) => [key, { success: false, error }])
-			)
-		)
-			.then((entries) => ({
-				success: true,
-				results: Object.fromEntries(entries),
-			}))
-			.catch((error) => ({
-				success: false,
-				error,
-			}))
-	);
-
-async function usingChecker(
-	solutionPath: string,
-	checkerPath: string
-): Promise<TestSetResult> {
-	const { success, results: makeRunnerResults } = await makeRunners([
-		checkerPath,
-		solutionPath,
-	]);
-	if (!success)
-		return {
-			success: false,
-			makeRunnerResults,
-		};
-	const [checker, solution] = makeRunnerResults.map((result) => result.run);
-
-	async function runTestCase(key: number): Promise<TestCaseResult> {
-		const checkerInput = new PassThrough();
-		const checkerOutput = new WritableString();
-
-		const runManyResult = await runMany([
-			checker({ stdin: checkerInput, stderr: checkerOutput }),
-			solution({ stdin: Readable.from(), stdout: checkerInput }),
-		]);
-
-		if (!runManyResult.success)
-			return {
-				key,
-				verdict: [
-					TestCaseVerdict.GENERATOR_RUNTIME_ERROR,
-					TestCaseVerdict.CHECKER_RUNTIME_ERROR,
-					TestCaseVerdict.RUNTIME_ERROR,
-				][runManyResult.index],
-			};
-
-		if (checkerOutput.string)
-			return {
-				key,
-				verdict: TestCaseVerdict.WRONG_ANSWER,
-				hint: checkerOutput.string,
-			};
-
-		return { key, verdict: TestCaseVerdict.OK };
-	}
-
-	const promises = [];
-	for (let i = 0; i < n; i++) {
-		promises.push(runTestCase(randomUnsigned()));
-	}
-	for (const key of keys) {
-		promises.push(runTestCase(key));
-	}
-	const testCaseResults = await Promise.all(promises);
-
-	return {
-		success: true,
-		makeRunnerResults: makeRunnersResult.results,
-		testCaseResults,
-	};
-}
-
-async function usingSamples() {}
-
-export default (
+export default async (
 	solutionPath: string,
 	{ config: { checker: checkerPath } }: SamplesTestSet
 ): Promise<TestSetResult> => {
-	if (checkerPath) return usingChecker(solutionPath, checkerPath);
-	else return usingSamples(solutionPath);
+	if (checkerPath) {
+		const initResult = await initTogether([
+			{
+				promise: readFiles("inputs"),
+				initErrorSymbol: "IE(I)",
+				errorHandlers: [
+					readFilesErrorHandler({
+						dirExistenceErrorSymbol: "DDNE(I)",
+						dirAccessErrorSymbol: "DAE(I)",
+						fileExistenceErrorSymbol: "FDNE(I)",
+						fileAccessErrorSymbol: "FAE(I)",
+					}),
+				],
+			},
+			{
+				promise: newRunner(checkerPath),
+				initErrorSymbol: "IE(C)",
+				errorHandlers: [
+					newRunnerErrorHandler({
+						accessErrorSymbol: "DNE(C)",
+						compilationErrorSymbol: "CE(C)",
+					}),
+				],
+			},
+			{
+				promise: newRunner(solutionPath),
+				initErrorSymbol: "IE",
+				errorHandlers: [
+					newRunnerErrorHandler({
+						accessErrorSymbol: "DNE",
+						compilationErrorSymbol: "CE",
+					}),
+				],
+			},
+		]);
+
+		if (!initResult.success) return initResult;
+		const [inputs, checker, solution] = initResult.results;
+
+		return testTogether(
+			Object.keys(inputs),
+			async (key: number): Promise<TestCaseResult> => {
+				const input = new PassThrough();
+				const output = new PassThrough();
+				const checkerInput = new PassThrough();
+				const checkerStderr = new WritableString();
+				checkerInput.write(`${key}`);
+				output.pipe(checkerInput);
+
+				let result = await runTogether([
+					{
+						promise: checker.run({
+							stdin: checkerInput,
+							stdout: input,
+							stderr: checkerStderr,
+						}),
+						runtimeErrorVerdictSymbol: "RE(I)",
+					},
+					{
+						promise: solution.run({
+							stdin: input,
+							stderr: output,
+						}),
+						runtimeErrorVerdictSymbol: "RE",
+					},
+				]);
+
+				if (!result && checkerStderr.string) {
+					result = {
+						passed: false,
+						verdictSymbol: "WA",
+						reason: checkerStderr.string,
+					};
+				}
+
+				if (!result) {
+					result = {
+						passed: true,
+						verdictSymbol: "OK",
+					};
+				}
+
+				return result;
+			}
+		);
+	} else {
+	}
 };

@@ -5,7 +5,8 @@ export default (args: string[]): string | undefined => {
 		execSync(
 			// Basic sanitization for personal use. Just making sure I don't
 			// accidentally hack myself.
-			args.map((arg) => `"${arg.replaceAll(/[`"]/g, "\\$&")}"`).join(" ")
+			args.map((arg) => `"${arg.replaceAll(/[`"]/g, "\\$&")}"`).join(" "),
+			{ stdio: "pipe" }
 		).toString() || undefined
 	);
 };

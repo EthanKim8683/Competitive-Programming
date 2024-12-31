@@ -1,64 +1,89 @@
-import {
-	InteractorTestSet,
-	TestSetResult,
-	TestCaseVerdict,
-	TestCaseResult,
-} from "../types";
 import { PassThrough } from "stream";
+import InteractorTestSet from "../types/InteractorTestSet";
+import initTogether from "../tester/helpers/initTogether";
+import runTogether from "../tester/helpers/runTogether";
+import testTogether from "../tester/helpers/testTogether";
 import WritableString from "../../stream/WritableString";
-import randomUnsigned from "../utils/randomUnsigned";
-import makeRunners from "../utils/makeRunners";
-import runMany from "../utils/runMany";
+import newRunner from "../tester/utils/newRunner";
+import newRunnerErrorHandler from "../tester/utils/newRunnerErrorHandler";
+import randomUnsigneds from "../tester/utils/randomUnsigneds";
+import TestCaseResult from "../types/TestCaseResult";
+import TestSetResult from "../types/TestSetResult";
 
 export default async (
 	solutionPath: string,
 	{ config: { interactor: interactorPath, n, keys } }: InteractorTestSet
 ): Promise<TestSetResult> => {
-	const { success, results: makeRunnerResults } = await makeRunners([
-		interactorPath,
-		solutionPath,
+	const initResult = await initTogether([
+		{
+			promise: newRunner(interactorPath),
+			initErrorSymbol: "IE(I)",
+			errorHandlers: [
+				newRunnerErrorHandler({
+					accessErrorSymbol: "DNE(I)",
+					compilationErrorSymbol: "CE(I)",
+				}),
+			],
+		},
+		{
+			promise: newRunner(solutionPath),
+			initErrorSymbol: "IE",
+			errorHandlers: [
+				newRunnerErrorHandler({
+					accessErrorSymbol: "DNE",
+					compilationErrorSymbol: "CE",
+				}),
+			],
+		},
 	]);
-	if (!success) return { success, makeRunnerResults };
-	const [interactor, solution] = makeRunnerResults.map((result) => result.run);
 
-	async function runTestCase(key: number): Promise<TestCaseResult> {
-		const interactorInput = new PassThrough();
-		const interactorOutput = new PassThrough();
-		const interactorError = new WritableString();
-		interactorInput.write(`${key}\n`);
+	if (!initResult.success) return initResult;
+	const [interactor, solution] = initResult.results;
 
-		const runManyResult = await runMany([
-			interactor({
-				stdin: interactorInput,
-				stdout: interactorOutput,
-				stderr: interactorError,
-			}),
-			solution({ stdin: interactorOutput, stdout: interactorInput }),
-		]);
+	return testTogether(
+		[...keys, ...randomUnsigneds(n)],
+		async (key: number): Promise<TestCaseResult> => {
+			const input = new PassThrough();
+			const output = new PassThrough();
+			const interactorInput = new PassThrough();
+			const interactorStderr = new WritableString();
+			interactorInput.write(`${key}`);
+			output.pipe(interactorInput);
 
-		if (!runManyResult.success)
-			return {
-				key,
-				verdict: [
-					TestCaseVerdict.INTERACTOR_RUNTIME_ERROR,
-					TestCaseVerdict.RUNTIME_ERROR,
-				][runManyResult.index],
-			};
+			let result = await runTogether([
+				{
+					promise: interactor.run({
+						stdin: interactorInput,
+						stdout: input,
+						stderr: interactorStderr,
+					}),
+					runtimeErrorVerdictSymbol: "RE(I)",
+				},
+				{
+					promise: solution.run({
+						stdin: input,
+						stderr: output,
+					}),
+					runtimeErrorVerdictSymbol: "RE",
+				},
+			]);
 
-		if (interactorError.string)
-			return {
-				key,
-				verdict: TestCaseVerdict.WRONG_ANSWER,
-				hint: interactorError.string,
-			};
+			if (!result && interactorStderr.string) {
+				result = {
+					passed: false,
+					verdictSymbol: "WA",
+					reason: interactorStderr.string,
+				};
+			}
 
-		return { key, verdict: TestCaseVerdict.OK };
-	}
+			if (!result) {
+				result = {
+					passed: true,
+					verdictSymbol: "OK",
+				};
+			}
 
-	const promises = [];
-	for (let i = 0; i < n; i++) promises.push(runTestCase(randomUnsigned()));
-	for (const key of keys) promises.push(runTestCase(key));
-	const testCaseResults = await Promise.all(promises);
-
-	return { success, makeRunnerResults, testCaseResults };
+			return result;
+		}
+	);
 };

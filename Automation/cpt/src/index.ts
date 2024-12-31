@@ -17,3 +17,11 @@ import GeneratorTestSet from "./test/types/GeneratorTestSet";
 
 	console.log(await generator(solutionPath, generatorTestSet));
 })();
+
+// import Runner from "./run/Runner";
+//
+// (async () => {
+// 	const runner = new Runner("sol.cpp");
+//
+// 	console.log(await runner.run());
+// })().catch(() => {});

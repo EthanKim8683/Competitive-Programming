@@ -5,9 +5,10 @@ import runTogether from "../tester/helpers/runTogether";
 import testTogether from "../tester/helpers/testTogether";
 import WritableString from "../../stream/WritableString";
 import newRunner from "../tester/utils/newRunner";
+import newRunnerErrorHandler from "../tester/utils/newRunnerErrorHandler";
 import randomUnsigneds from "../tester/utils/randomUnsigneds";
-import TestCaseResult from "../tester/types/TestCaseResult";
-import TestSetResult from "../tester/types/TestSetResult";
+import TestCaseResult from "../types/TestCaseResult";
+import TestSetResult from "../types/TestSetResult";
 
 export default async (
 	solutionPath: string,
@@ -19,20 +20,32 @@ export default async (
 		{
 			promise: newRunner(generatorPath),
 			initErrorSymbol: "IE(G)",
-			runnerAccessErrorSymbol: "DNE(G)",
-			runnerCompilationErrorSymbol: "CE(G)",
+			errorHandlers: [
+				newRunnerErrorHandler({
+					accessErrorSymbol: "DNE(G)",
+					compilationErrorSymbol: "CE(G)",
+				}),
+			],
 		},
 		{
 			promise: newRunner(checkerPath),
 			initErrorSymbol: "IE(C)",
-			runnerAccessErrorSymbol: "DNE(C)",
-			runnerCompilationErrorSymbol: "CE(C)",
+			errorHandlers: [
+				newRunnerErrorHandler({
+					accessErrorSymbol: "DNE(C)",
+					compilationErrorSymbol: "CE(C)",
+				}),
+			],
 		},
 		{
 			promise: newRunner(solutionPath),
 			initErrorSymbol: "IE",
-			runnerAccessErrorSymbol: "DNE",
-			runnerCompilationErrorSymbol: "CE",
+			errorHandlers: [
+				newRunnerErrorHandler({
+					accessErrorSymbol: "DNE",
+					compilationErrorSymbol: "CE",
+				}),
+			],
 		},
 	]);
 
@@ -48,13 +61,15 @@ export default async (
 			const checkerStderr = new WritableString();
 			input.pipe(checkerInput);
 
+			// TODO: Make it so that outputs also go to a folder/file to be reviewed
+			// later.
 			let result = await runTogether([
 				{
 					promise: generator.run({
 						stdin: Readable.from(`${key}`),
 						stdout: input,
 					}),
-					runtimeErrorVerdict: "RE(G)",
+					runtimeErrorVerdictSymbol: "RE(G)",
 				},
 				{
 					promise: checker.run({
@@ -62,21 +77,21 @@ export default async (
 						stdout: checkerStdout,
 						stderr: checkerStderr,
 					}),
-					runtimeErrorVerdict: "RE(C)",
+					runtimeErrorVerdictSymbol: "RE(C)",
 				},
 				{
 					promise: solution.run({
 						stdin: input,
 						stderr: checkerInput,
 					}),
-					runtimeErrorVerdict: "RE",
+					runtimeErrorVerdictSymbol: "RE",
 				},
 			]);
 
 			if (!result && checkerStderr.string) {
 				result = {
 					passed: false,
-					verdict: "WA",
+					verdictSymbol: "WA",
 					reason: checkerStderr.string,
 				};
 			}
@@ -84,8 +99,7 @@ export default async (
 			if (!result) {
 				result = {
 					passed: true,
-					verdict: "OK",
-					reason: checkerStdout.string,
+					verdictSymbol: "OK",
 				};
 			}
 
