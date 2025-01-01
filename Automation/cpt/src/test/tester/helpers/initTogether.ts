@@ -1,43 +1,34 @@
+import TesterInitResult from "../types/TesterInitResult";
 import TesterInitTask from "../types/TesterInitTask";
+import coerceArray from "../../../utils/coerceArray";
 
 export default async <T extends any[]>(tasks: {
-	[K in keyof T]: TesterInitTask<T[K]>;
-}): Promise<
-	| { success: false; errorSymbols: string[]; reasons: any[] }
-	| { success: true; results: T }
-> => {
-	const outcomes = await Promise.allSettled(tasks.map((task) => task.promise));
+	[K in keyof T]: ReturnType<TesterInitTask<T[K]>>;
+}): Promise<TesterInitResult<T>> => {
+	const initResults = await Promise.all(tasks);
 
 	// TODO: Get rid of the `any`s (if possible).
-	const values: any[] = [],
-		errorSymbols: string[] = [],
-		errors: Error[] = [],
-		unhandledErrors: Error[] = [];
-	for (let i = 0; i < outcomes.length; i++) {
-		const outcome = outcomes[i];
+	const result: any[] = [],
+		reasons: Record<string, Error | Error[]> = {};
+	for (const initResult of initResults)
+		if (initResult.success) result.push(initResult.result);
+		else
+			for (const key in initResult.reasons)
+				if (key in reasons) {
+					reasons[key] = [
+						...coerceArray(reasons[key]),
+						...coerceArray(initResult.reasons[key]),
+					];
+				} else reasons[key] = initResult.reasons[key];
 
-		if (outcome.status === "fulfilled") values.push(outcome.value);
-		else {
-			const { errorHandlers = [], initErrorSymbol } = tasks[i];
-			const { reason } = outcome;
-
-			let errorSymbol: string | undefined;
-			for (const errorHandler of errorHandlers) {
-				errorSymbol ??= errorHandler(reason, initErrorSymbol);
-			}
-
-			if (errorSymbol) {
-				errors.push(reason);
-				errorSymbols.push(errorSymbol);
-			} else unhandledErrors.push(reason);
-		}
-	}
-
-	if (unhandledErrors.length > 0)
-		throw new Error("Unhandled error(s)", { cause: unhandledErrors });
-
-	if (errors.length > 0)
-		return { success: false, errorSymbols, reasons: errors };
-
-	return { success: true, results: values as T };
+	if (Object.keys(reasons).length > 0)
+		return {
+			success: false,
+			reasons,
+		};
+	else
+		return {
+			success: true,
+			result: result as T,
+		};
 };

@@ -1,11 +1,11 @@
 import { PassThrough, Readable } from "stream";
+import WritableString from "../../stream/WritableString";
 import GeneratorTestSet from "../types/GeneratorTestSet";
 import initTogether from "../tester/helpers/initTogether";
 import runTogether from "../tester/helpers/runTogether";
 import testTogether from "../tester/helpers/testTogether";
-import WritableString from "../../stream/WritableString";
 import newRunner from "../tester/utils/newRunner";
-import newRunnerErrorHandler from "../tester/utils/newRunnerErrorHandler";
+import runRunner from "../tester/utils/runRunner";
 import randomUnsigneds from "../tester/utils/randomUnsigneds";
 import TestCaseResult from "../types/TestCaseResult";
 import TestSetResult from "../types/TestSetResult";
@@ -17,40 +17,25 @@ export default async (
 	}: GeneratorTestSet
 ): Promise<TestSetResult> => {
 	const initResult = await initTogether([
-		{
-			promise: newRunner(generatorPath),
-			initErrorSymbol: "IE(G)",
-			errorHandlers: [
-				newRunnerErrorHandler({
-					accessErrorSymbol: "DNE(G)",
-					compilationErrorSymbol: "CE(G)",
-				}),
-			],
-		},
-		{
-			promise: newRunner(checkerPath),
-			initErrorSymbol: "IE(C)",
-			errorHandlers: [
-				newRunnerErrorHandler({
-					accessErrorSymbol: "DNE(C)",
-					compilationErrorSymbol: "CE(C)",
-				}),
-			],
-		},
-		{
-			promise: newRunner(solutionPath),
-			initErrorSymbol: "IE",
-			errorHandlers: [
-				newRunnerErrorHandler({
-					accessErrorSymbol: "DNE",
-					compilationErrorSymbol: "CE",
-				}),
-			],
-		},
+		newRunner([generatorPath], {
+			default: "IE(G)",
+			accessError: "DNE(G)",
+			compilationError: "CE(G)",
+		}),
+		newRunner([checkerPath], {
+			default: "IE(C)",
+			accessError: "DNE(C)",
+			compilationError: "CE(C)",
+		}),
+		newRunner([solutionPath], {
+			default: "IE",
+			accessError: "DNE",
+			compilationError: "CE",
+		}),
 	]);
 
 	if (!initResult.success) return initResult;
-	const [generator, checker, solution] = initResult.results;
+	const [generator, checker, solution] = initResult.result;
 
 	return testTogether(
 		[...keys, ...randomUnsigneds(n)],
@@ -66,46 +51,28 @@ export default async (
 
 			// TODO: Make it so that outputs also go to a folder/file to be reviewed
 			// later.
-			let result = await runTogether([
-				{
-					promise: generator.run({
-						stdin: Readable.from(`${key}`),
-						stdout: input,
-					}),
-					runtimeErrorVerdictSymbol: "RE(G)",
-				},
-				{
-					promise: checker.run({
-						stdin: checkerInput,
-						stderr: checkerOutput,
-					}),
-					runtimeErrorVerdictSymbol: "RE(C)",
-				},
-				{
-					promise: solution.run({
-						stdin: input,
-						stdout: checkerInput,
-					}),
-					runtimeErrorVerdictSymbol: "RE",
-				},
+			const runResult = await runTogether([
+				runRunner(
+					generator.run({ stdin: Readable.from(`${key}`), stdout: input }),
+					{ default: "?(G)", runtimeError: "RE(G)" }
+				),
+				runRunner(checker.run({ stdin: checkerInput, stderr: checkerOutput }), {
+					default: "?(G)",
+					runtimeError: "RE(C)",
+				}),
+				runRunner(solution.run({ stdin: input, stdout: checkerInput }), {
+					default: "?",
+					runtimeError: "RE",
+				}),
 			]);
 
-			if (!result && checkerOutput.string) {
-				result = {
-					passed: false,
-					verdictSymbol: "WA",
-					reason: checkerOutput.string,
-				};
-			}
+			if (!runResult.success)
+				return { passed: false, reasons: runResult.reasons };
 
-			if (!result) {
-				result = {
-					passed: true,
-					verdictSymbol: "OK",
-				};
-			}
+			if (checkerOutput.string)
+				return { passed: false, reasons: { WA: checkerOutput.string } };
 
-			return result;
+			return { passed: true };
 		}
 	);
 };

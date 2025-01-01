@@ -1,8 +1,4 @@
-import TesterInitTaskErrorHandler from "./TesterInitTaskErrorHandler";
+import TesterInitResult from "./TesterInitResult";
 
-type TesterInitTask<T> = {
-	promise: Promise<T>;
-	initErrorSymbol: string;
-	errorHandlers?: TesterInitTaskErrorHandler[];
-};
+type TesterInitTask<T> = (...args: any[]) => Promise<TesterInitResult<T>>;
 export default TesterInitTask;

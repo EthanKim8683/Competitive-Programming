@@ -6,54 +6,38 @@ import testTogether from "../tester/helpers/testTogether";
 import WritableString from "../../stream/WritableString";
 import newRunner from "../tester/utils/newRunner";
 import readFiles from "../tester/utils/readFiles";
-import newRunnerErrorHandler from "../tester/utils/newRunnerErrorHandler";
-import readFilesErrorHandler from "../tester/utils/readFilesErrorHandler";
 import TestCaseResult from "../types/TestCaseResult";
 import TestSetResult from "../types/TestSetResult";
-import recordIntersection from "../../utils/recordIntersection";
+import TesterInitResult from "../tester/types/TesterInitResult";
+import diffChecker from "../tester/utils/diffChecker";
 
+// TODO: Rewrite this entire thing. It sucks.
 export default async (
 	solutionPath: string,
 	{ config: { checker: checkerPath } }: SamplesTestSet
 ): Promise<TestSetResult> => {
 	if (checkerPath) {
 		const initResult = await initTogether([
-			{
-				promise: readFiles("inputs"),
-				initErrorSymbol: "IE(I/i)",
-				errorHandlers: [
-					readFilesErrorHandler({
-						dirExistenceErrorSymbol: "DNE(I)",
-						dirAccessErrorSymbol: "AE(I)",
-						fileAccessErrorSymbol: "AE(i)",
-						fileNameErrorSymbol: "NE(i)",
-					}),
-				],
-			},
-			{
-				promise: newRunner(checkerPath),
-				initErrorSymbol: "IE(C)",
-				errorHandlers: [
-					newRunnerErrorHandler({
-						accessErrorSymbol: "DNE(C)",
-						compilationErrorSymbol: "CE(C)",
-					}),
-				],
-			},
-			{
-				promise: newRunner(solutionPath),
-				initErrorSymbol: "IE",
-				errorHandlers: [
-					newRunnerErrorHandler({
-						accessErrorSymbol: "DNE",
-						compilationErrorSymbol: "CE",
-					}),
-				],
-			},
+			readFiles("inputs", {
+				default: "IE(I/i)",
+				dirAccessError: "DNE(I)",
+				fileAccessError: "DNE(i)",
+				fileNameError: "NE(i)",
+			}),
+			newRunner([checkerPath], {
+				default: "IE(C)",
+				accessError: "DNE(C)",
+				compilationError: "CE(C)",
+			}),
+			newRunner([solutionPath], {
+				default: "IE",
+				accessError: "DNE",
+				compilationError: "CE",
+			}),
 		]);
 
 		if (!initResult.success) return initResult;
-		const [inputs, checker, solution] = initResult.results;
+		const [inputs, checker, solution] = initResult.result;
 
 		return testTogether(
 			Object.keys(inputs).map((key) => parseInt(key)),
@@ -98,51 +82,54 @@ export default async (
 		);
 	} else {
 		const initResult = await initTogether([
-			{
-				promise: readFiles("inputs"),
-				initErrorSymbol: "IE(I/i)",
-				errorHandlers: [
-					readFilesErrorHandler({
-						dirExistenceErrorSymbol: "DNE(I)",
-						dirAccessErrorSymbol: "AE(I)",
-						fileAccessErrorSymbol: "AE(i)",
-						fileNameErrorSymbol: "NE(i)",
-					}),
-				],
-			},
-			{
-				promise: readFiles("outputs"),
-				initErrorSymbol: "IE(O/o)",
-				errorHandlers: [
-					readFilesErrorHandler({
-						dirExistenceErrorSymbol: "DNE(O)",
-						dirAccessErrorSymbol: "AE(o)",
-						fileAccessErrorSymbol: "AE(o)",
-						fileNameErrorSymbol: "NE(o)",
-					}),
-				],
-			},
-			{
-				promise: newRunner(solutionPath),
-				initErrorSymbol: "IE",
-				errorHandlers: [
-					newRunnerErrorHandler({
-						accessErrorSymbol: "DNE",
-						compilationErrorSymbol: "CE",
-					}),
-				],
-			},
+			initTogether([
+				readFiles("inputs", {
+					default: "IE(I/i)",
+					dirAccessError: "DNE(I)",
+					fileAccessError: "DNE(i)",
+					fileNameError: "NE(i)",
+				}),
+				readFiles("outputs", {
+					default: "IE(O/o)",
+					dirAccessError: "DNE(O)",
+					fileAccessError: "DNE(o)",
+					fileNameError: "NE(o)",
+				}),
+			]).then(
+				(
+					initResult
+				): TesterInitResult<
+					[Record<number, string>, Record<number, string>]
+				> => {
+					if (!initResult.success) return initResult;
+					const [inputs, outputs] = initResult.result;
+
+					if (
+						JSON.stringify(Object.keys(inputs)) ==
+						JSON.stringify(Object.keys(outputs))
+					)
+						return initResult;
+
+					return {
+						success: false,
+						reasons: {
+							"KE(I/O)": new Error("Input and output cases' keys do not match"),
+						},
+					};
+				}
+			),
+			newRunner([solutionPath], {
+				default: "IE",
+				accessError: "DNE",
+				compilationError: "CE",
+			}),
 		]);
 
 		if (!initResult.success) return initResult;
-		const [inputs, outputs, solution] = initResult.results;
+		const [[inputs, outputs], solution] = initResult.result;
 
 		return testTogether(
-			// TODO: Throw error when `inputs`/`outputs` are missing keys from each
-			// other.
-			Object.keys(recordIntersection(inputs, outputs)).map((key) =>
-				parseInt(key)
-			),
+			Object.keys(inputs).map((key) => parseInt(key)),
 			async (key: number): Promise<TestCaseResult> => {
 				const output = new WritableString();
 
@@ -156,24 +143,21 @@ export default async (
 					},
 				]);
 
-				if (
-					!result &&
-					JSON.stringify(outputs[key].split(/\w/g)) !=
-						JSON.stringify(output.string.split(/\w/g))
-				) {
-					result = {
-						passed: false,
-						verdictSymbol: "WA",
-						// TODO: `reason`
-					};
+				if (!result) {
+					const diffCheck = diffChecker(output.string, outputs[key]);
+					if (diffCheck)
+						result = {
+							passed: false,
+							verdictSymbol: "WA",
+							reason: diffCheck,
+						};
 				}
 
-				if (!result) {
+				if (!result)
 					result = {
 						passed: true,
 						verdictSymbol: "OK",
 					};
-				}
 
 				return result;
 			}

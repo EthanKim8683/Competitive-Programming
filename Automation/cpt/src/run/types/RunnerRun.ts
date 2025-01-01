@@ -2,29 +2,27 @@ import { ChildProcess } from "child_process";
 import Runner from "../Runner";
 import RunnerRuntimeError from "./RunnerRuntimeError";
 
-// I override `Promise` for the `await` syntax.
-export default class RunnerRunPromise extends Promise<void> {
+export default class RunnerRun {
 	readonly child: ChildProcess;
+	readonly promise: Promise<void>;
 
 	// This constructor should only be called by `Runner`.
 	constructor(
 		readonly runner: Runner,
 		readonly options?: Parameters<Runner["run"]>[0]
 	) {
-		const child = runner.spawn(options);
-		super((resolve, reject) => {
-			child.on("exit", (code, signal) => {
+		this.child = runner.spawn(options);
+		this.promise = new Promise((resolve, reject) => {
+			this.child.on("exit", (code, signal) => {
 				if (code || signal) reject(new RunnerRuntimeError(this, code, signal));
 				resolve();
 			});
 
-			child.on("error", (err) => {
+			this.child.on("error", (err) => {
 				this.kill();
 				reject(err);
 			});
 		});
-
-		this.child = child;
 	}
 
 	kill() {

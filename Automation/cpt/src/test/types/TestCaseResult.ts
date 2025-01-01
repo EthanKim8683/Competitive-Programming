@@ -1,6 +1,7 @@
-type TestCaseResult = {
-	passed?: boolean;
-	verdictSymbol: string;
-	reason?: any;
-};
+type TestCaseResult =
+	| {
+			passed: false;
+			reasons: Record<string, Error | Error[] | string | string[]>;
+	  }
+	| { passed: true };
 export default TestCaseResult;

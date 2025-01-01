@@ -2,7 +2,7 @@ import fs from "fs";
 import quote from "../utils/quote";
 import RunnerInitError from "./types/RunnerInitError";
 import RunnerRuntimeError from "./types/RunnerRuntimeError";
-import RunnerRunPromise from "./types/RunnerRunPromise";
+import RunnerRun from "./types/RunnerRun";
 import inferLanguage from "./helpers/inferLanguage";
 import getLanguageEntry from "./helpers/getLanguageEntry";
 import compileUsingArgs from "./helpers/compileUsingArgs";
@@ -11,7 +11,7 @@ import spawnerUsingArgs from "./helpers/spawnerUsingArgs";
 export default class Runner {
 	public static InitError = RunnerInitError;
 	public static RuntimeError = RunnerRuntimeError;
-	public static RunPromise = RunnerRunPromise;
+	public static Run = RunnerRun;
 
 	readonly language: string;
 	readonly spawn: ReturnType<typeof spawnerUsingArgs>;
@@ -68,8 +68,8 @@ export default class Runner {
 		this.spawn = spawnerUsingArgs(spawnArgs);
 	}
 
-	run(options?: Parameters<typeof this.spawn>[0]): RunnerRunPromise {
-		return new RunnerRunPromise(this, options);
+	run(options?: Parameters<typeof this.spawn>[0]): RunnerRun {
+		return new RunnerRun(this, options);
 	}
 
 	toString(): string {

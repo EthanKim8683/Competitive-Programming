@@ -1,7 +1,7 @@
-import Runner from "../../../run/Runner";
+import TesterRunResult from "./TesterRunResult";
 
-type TesterRunTask = {
-	promise: ReturnType<Runner["run"]>;
-	runtimeErrorVerdictSymbol: string;
+type TesterRunTask<T> = (...args: any[]) => {
+	promise: Promise<TesterRunResult<T>>;
+	kill: () => void;
 };
 export default TesterRunTask;
