@@ -1,8 +1,9 @@
 import fs from "fs";
+import path from "path";
 import parseIntWithError from "../../../utils/parseIntWithError";
 import TesterTaskResult from "../types/TesterTaskResult";
 import TesterInitTask from "../types/TesterInitTask";
-import path from "path";
+import isSystemError from "../../../utils/isSystemError";
 
 const readDir = async (
 	dirPath: string,
@@ -25,6 +26,8 @@ const readDir = async (
 			};
 		})
 		.catch((err) => {
+			if (!isSystemError(err)) throw err;
+
 			return {
 				success: false,
 				reasons: {
