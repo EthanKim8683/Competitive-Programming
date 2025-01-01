@@ -1,72 +1,42 @@
 import fs from "fs";
-import path from "path";
 import parseIntWithError from "../../../utils/parseIntWithError";
-import TesterInitResult from "../types/TesterInitResult";
+import TesterTaskResult from "../types/TesterTaskResult";
 import TesterInitTask from "../types/TesterInitTask";
+import path from "path";
 
-const readFiles = async (
+const readDir = async (
 	dirPath: string,
 	errorToSymbol: {
 		default: string;
-		dirAccessError?: string;
-		fileAccessError?: string;
-		fileNameError?: string;
+		accessError?: string;
 	}
-): Promise<TesterInitResult<Record<number, string>>> => {
-	const contents: string[] = [],
-		reasons: Record<string, Error | Error[]> = {};
-
-	const filePaths = await fs.promises.readdir(dirPath).catch((err) => {
-		errorSymbols.push(
-			(
-				{
-					ENOENT: errorToSymbol.dirAccessError,
-					EACCES: errorToSymbol.dirAccessError,
-				} as Record<string, string | undefined>
-			)[err.code] ?? errorToSymbol.default
-		);
-		reasons.push(err);
-		return [];
-	});
-	const keys = filePaths.map((filePath) =>
-		parseIntWithError(path.parse(filePath).name)
-	);
-
-	const outcomes = await Promise.allSettled(
-		filePaths.map((filePath) =>
-			fs.promises.readFile(path.join(dirPath, filePath))
-		)
-	);
-	for (const outcome of outcomes) {
-		if (outcome.status === "fulfilled") contents.push(outcome.value.toString());
-		else {
-			const err = outcome.reason;
-			errorSymbols.push(
-				(
-					{
-						ENOENT: errorToSymbol.fileAccessError,
-						EACCES: errorToSymbol.fileAccessError,
-					} as Record<string, string | undefined>
-				)[err.code] ?? errorToSymbol.default
-			);
-			reasons.push(err);
-		}
-	}
-
-	if (reasons.length > 0)
-		return {
-			success: false,
-			errorSymbols,
-			reasons,
-		};
-	else
-		return {
-			success: true,
-			result: Object.fromEntries(
-				keys.map((key, index) => [key, contents[index].toString()])
-			),
-		};
-};
+): Promise<TesterTaskResult<Record<number, string>>> =>
+	fs.promises
+		.readdir(dirPath)
+		.then((filePaths) => {
+			return {
+				success: true as const,
+				result: Object.fromEntries(
+					filePaths.map((filePath) => [
+						parseIntWithError(path.parse(filePath).name),
+						path.join(dirPath, filePath),
+					])
+				),
+			};
+		})
+		.catch((err) => {
+			return {
+				success: false,
+				reasons: {
+					[(
+						{
+							ENOENT: errorToSymbol.accessError,
+							EACCES: errorToSymbol.accessError,
+						} as Record<string, string | undefined>
+					)[err.code] ?? errorToSymbol.default]: err,
+				},
+			};
+		});
 // Assert type
-readFiles as TesterInitTask<Record<number, string>>;
-export default readFiles;
+readDir as TesterInitTask<Record<number, string>>;
+export default readDir;

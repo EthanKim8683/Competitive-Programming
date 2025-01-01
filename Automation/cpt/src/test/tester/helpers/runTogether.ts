@@ -1,4 +1,4 @@
-import TesterRunResult from "../types/TesterRunResult";
+import TesterTaskResult from "../types/TesterTaskResult";
 import TesterRunTask from "../types/TesterRunTask";
 
 // Short circuits Promise.all when a task completes with error(s), while
@@ -8,9 +8,10 @@ class HandledError<T> extends Error {
 		super();
 	}
 }
+// Assumes tasks are dependent. Analogous to `Promise.all`.
 export default async <T extends any[]>(tasks: {
 	[K in keyof T]: ReturnType<TesterRunTask<T[K]>>;
-}): Promise<TesterRunResult<T>> =>
+}): Promise<TesterTaskResult<T>> =>
 	Promise.all(
 		tasks.map((task) =>
 			task.promise.then((result) => {
@@ -19,9 +20,9 @@ export default async <T extends any[]>(tasks: {
 			})
 		)
 	)
+		.then((result) => ({ success: true, result: result as T }))
 		.catch((err) => {
 			for (const task of tasks) task.kill();
 			if (!(err instanceof HandledError)) throw err;
 			return err.result;
-		})
-		.then((result) => ({ success: true, result: result as T }));
+		});

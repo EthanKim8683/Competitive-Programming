@@ -3,7 +3,7 @@ import TestCaseResult from "./TestCaseResult";
 type TestSetResult =
 	| {
 			success: false;
-			reasons: Record<string, Error | Error[]>;
+			reasons: Record<string, Error | string | (Error | string)[]>;
 	  }
 	| {
 			success: true;

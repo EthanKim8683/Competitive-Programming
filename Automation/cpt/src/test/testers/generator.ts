@@ -54,14 +54,14 @@ export default async (
 			const runResult = await runTogether([
 				runRunner(
 					generator.run({ stdin: Readable.from(`${key}`), stdout: input }),
-					{ default: "?(G)", runtimeError: "RE(G)" }
+					{ default: "?E(G)", runtimeError: "RE(G)" }
 				),
 				runRunner(checker.run({ stdin: checkerInput, stderr: checkerOutput }), {
-					default: "?(G)",
+					default: "?E(G)",
 					runtimeError: "RE(C)",
 				}),
 				runRunner(solution.run({ stdin: input, stdout: checkerInput }), {
-					default: "?",
+					default: "?E",
 					runtimeError: "RE",
 				}),
 			]);

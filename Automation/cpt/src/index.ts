@@ -1,10 +1,11 @@
+import { inspect } from "util";
 import generator from "./test/testers/generator";
 import GeneratorTestSet from "./test/types/GeneratorTestSet";
 
 (async () => {
-	const solutionPath: string = "sol.cpp";
 	const generatorPath: string = "gen.cpp";
 	const checkerPath: string = "check.cpp";
+	const solutionPath: string = "sol.cpp";
 	const generatorTestSet: GeneratorTestSet = {
 		name: "demo!! 🤞🤞",
 		config: {
@@ -15,26 +16,69 @@ import GeneratorTestSet from "./test/types/GeneratorTestSet";
 		},
 	};
 
-	console.log(await generator(solutionPath, generatorTestSet));
+	console.log(
+		inspect(await generator(solutionPath, generatorTestSet), { depth: null })
+	);
 })();
 
-// import interactor from "./test/testers/interactor";
-// import InteractorTestSet from "./test/types/InteractorTestSet";
-//
-// (async () => {
-// 	const solutionPath: string = "sol.cpp";
-// 	const interactorPath: string = "interact.cpp";
-// 	const interactorTestSet: InteractorTestSet = {
-// 		name: "demo!! 🤞🤞",
-// 		config: {
-// 			interactor: interactorPath,
-// 			n: 10,
-// 			keys: [1337, 6969, 420],
-// 		},
-// 	};
-//
-// 	console.log(await interactor(solutionPath, interactorTestSet));
-// })();
+// import { inspect } from "util";
+import interactor from "./test/testers/interactor";
+import InteractorTestSet from "./test/types/InteractorTestSet";
+
+(async () => {
+	const interactorPath: string = "interact.cpp";
+	const solutionPath: string = "sol.cpp";
+	const interactorTestSet: InteractorTestSet = {
+		name: "demo!! 🤞🤞",
+		config: {
+			interactor: interactorPath,
+			n: 10,
+			keys: [1337, 6969, 420],
+		},
+	};
+
+	console.log(
+		inspect(await interactor(solutionPath, interactorTestSet), { depth: null })
+	);
+})();
+
+// import { inspect } from "util";
+import samples from "./test/testers/samples";
+import SamplesTestSet from "./test/types/SamplesTestSet";
+
+(async () => {
+	const checkerPath: string = "check.cpp";
+	const solutionPath: string = "sol.cpp";
+	const samplesTestSet: SamplesTestSet = {
+		name: "demo!! 🤞🤞",
+		config: {
+			samples: true,
+			checker: checkerPath,
+		},
+	};
+
+	console.log(
+		inspect(await samples(solutionPath, samplesTestSet), { depth: null })
+	);
+})();
+
+// import { inspect } from "util";
+// import samples from "./test/testers/samples";
+// import SamplesTestSet from "./test/types/SamplesTestSet";
+
+(async () => {
+	const solutionPath: string = "sol.cpp";
+	const samplesTestSet: SamplesTestSet = {
+		name: "demo!! 🤞🤞",
+		config: {
+			samples: true,
+		},
+	};
+
+	console.log(
+		inspect(await samples(solutionPath, samplesTestSet), { depth: null })
+	);
+})();
 
 // import { PassThrough, Readable } from "stream";
 // import Runner from "./run/Runner";
@@ -109,3 +153,9 @@ import GeneratorTestSet from "./test/types/GeneratorTestSet";
 //
 // 	console.log(await runner.run());
 // })().catch(() => {});
+
+// import fs from "fs";
+//
+// (async () => {
+// 	const stream = fs.createReadStream("file");
+// })();

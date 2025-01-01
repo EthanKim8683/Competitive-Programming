@@ -1,6 +1,6 @@
 import RunnerRun from "../../../run/types/RunnerRun";
 import RunnerRuntimeError from "../../../run/types/RunnerRuntimeError";
-import TesterRunResult from "../types/TesterRunResult";
+import TesterTaskResult from "../types/TesterTaskResult";
 import TesterRunTask from "../types/TesterRunTask";
 
 const runRunner = (
@@ -9,9 +9,12 @@ const runRunner = (
 		default: string;
 		runtimeError?: string;
 	}
-): { promise: Promise<TesterRunResult<undefined>>; kill: () => void } => ({
+): { promise: Promise<TesterTaskResult<undefined>>; kill: () => void } => ({
 	promise: run.promise
-		.then(() => ({ success: true as const, result: undefined }))
+		.then(() => ({
+			success: true as const,
+			result: undefined,
+		}))
 		.catch((err) => {
 			if (!(err instanceof RunnerRuntimeError)) throw err;
 			return {
@@ -19,7 +22,7 @@ const runRunner = (
 				reasons: { [errorToSymbol.runtimeError ?? errorToSymbol.default]: err },
 			};
 		}),
-	kill: run.kill,
+	kill: () => run.kill(),
 });
 // Assert type
 runRunner as TesterRunTask<undefined>;

@@ -47,10 +47,10 @@ export default async (
 						stdout: input,
 						stderr: interactorOutput,
 					}),
-					{ default: "?(I)", runtimeError: "RE(I)" }
+					{ default: "?E(I)", runtimeError: "RE(I)" }
 				),
 				runRunner(solution.run({ stdin: input, stdout: output }), {
-					default: "?",
+					default: "?E",
 					runtimeError: "RE",
 				}),
 			]);

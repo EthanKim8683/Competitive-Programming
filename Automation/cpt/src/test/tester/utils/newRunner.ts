@@ -1,6 +1,6 @@
 import Runner from "../../../run/Runner";
 import RunnerInitError from "../../../run/types/RunnerInitError";
-import TesterInitResult from "../types/TesterInitResult";
+import TesterTaskResult from "../types/TesterTaskResult";
 import TesterInitTask from "../types/TesterInitTask";
 
 const newRunner = async (
@@ -13,7 +13,7 @@ const newRunner = async (
 		languageEntryError?: string;
 		compilationError?: string;
 	}
-): Promise<TesterInitResult<Runner>> => {
+): Promise<TesterTaskResult<Runner>> => {
 	try {
 		return {
 			success: true,

@@ -1,7 +1,7 @@
-import TesterRunResult from "./TesterRunResult";
+import TesterTaskResult from "./TesterTaskResult";
 
 type TesterRunTask<T> = (...args: any[]) => {
-	promise: Promise<TesterRunResult<T>>;
+	promise: Promise<TesterTaskResult<T>>;
 	kill: () => void;
 };
 export default TesterRunTask;

@@ -1,28 +1,27 @@
-import { PassThrough, Readable } from "stream";
+import { PassThrough } from "stream";
+import WritableString from "../../stream/WritableString";
 import SamplesTestSet from "../types/SamplesTestSet";
 import initTogether from "../tester/helpers/initTogether";
 import runTogether from "../tester/helpers/runTogether";
 import testTogether from "../tester/helpers/testTogether";
-import WritableString from "../../stream/WritableString";
 import newRunner from "../tester/utils/newRunner";
-import readFiles from "../tester/utils/readFiles";
+import runRunner from "../tester/utils/runRunner";
+import readDir from "../tester/utils/readDir";
+import readFile from "../tester/utils/readFile";
+import TesterTaskResult from "../tester/types/TesterTaskResult";
 import TestCaseResult from "../types/TestCaseResult";
 import TestSetResult from "../types/TestSetResult";
-import TesterInitResult from "../tester/types/TesterInitResult";
 import diffChecker from "../tester/utils/diffChecker";
 
-// TODO: Rewrite this entire thing. It sucks.
 export default async (
 	solutionPath: string,
 	{ config: { checker: checkerPath } }: SamplesTestSet
 ): Promise<TestSetResult> => {
 	if (checkerPath) {
 		const initResult = await initTogether([
-			readFiles("inputs", {
-				default: "IE(I/i)",
-				dirAccessError: "DNE(I)",
-				fileAccessError: "DNE(i)",
-				fileNameError: "NE(i)",
+			readDir("inputs", {
+				default: "?E(I)",
+				accessError: "DNE(I)",
 			}),
 			newRunner([checkerPath], {
 				default: "IE(C)",
@@ -43,62 +42,50 @@ export default async (
 			Object.keys(inputs).map((key) => parseInt(key)),
 			async (key: number): Promise<TestCaseResult> => {
 				const checkerInput = new PassThrough();
-				const checkerStderr = new WritableString();
+				const checkerOutput = new WritableString();
+				const input = new PassThrough();
 
-				let result = await runTogether([
-					{
-						promise: checker.run({
-							stdin: checkerInput,
-							stderr: checkerStderr,
-						}),
-						runtimeErrorVerdictSymbol: "RE(I)",
-					},
-					{
-						promise: solution.run({
-							stdin: Readable.from(inputs[key]),
-							stderr: checkerInput,
-						}),
-						runtimeErrorVerdictSymbol: "RE",
-					},
+				input.pipe(checkerInput, { end: false });
+
+				const runResult = await runTogether([
+					readFile([inputs[key], input], {
+						default: "?E(I)",
+						accessError: "DNE(I)",
+					}),
+					runRunner(
+						checker.run({ stdin: checkerInput, stderr: checkerOutput }),
+						{ default: "?E(C)", runtimeError: "RE(C)" }
+					),
+					runRunner(solution.run({ stdin: input, stdout: checkerInput }), {
+						default: "?E",
+						runtimeError: "RE",
+					}),
 				]);
 
-				if (!result && checkerStderr.string) {
-					result = {
-						passed: false,
-						verdictSymbol: "WA",
-						reason: checkerStderr.string,
-					};
-				}
+				if (!runResult.success)
+					return { passed: false, reasons: runResult.reasons };
 
-				if (!result) {
-					result = {
-						passed: true,
-						verdictSymbol: "OK",
-					};
-				}
+				if (checkerOutput.string)
+					return { passed: false, reasons: { WA: checkerOutput.string } };
 
-				return result;
+				return { passed: true };
 			}
 		);
 	} else {
 		const initResult = await initTogether([
 			initTogether([
-				readFiles("inputs", {
-					default: "IE(I/i)",
-					dirAccessError: "DNE(I)",
-					fileAccessError: "DNE(i)",
-					fileNameError: "NE(i)",
+				readDir("inputs", {
+					default: "?E(I)",
+					accessError: "DNE(I)",
 				}),
-				readFiles("outputs", {
-					default: "IE(O/o)",
-					dirAccessError: "DNE(O)",
-					fileAccessError: "DNE(o)",
-					fileNameError: "NE(o)",
+				readDir("outputs", {
+					default: "?E(O)",
+					accessError: "DNE(O)",
 				}),
 			]).then(
 				(
 					initResult
-				): TesterInitResult<
+				): TesterTaskResult<
 					[Record<number, string>, Record<number, string>]
 				> => {
 					if (!initResult.success) return initResult;
@@ -112,9 +99,7 @@ export default async (
 
 					return {
 						success: false,
-						reasons: {
-							"KE(I/O)": new Error("Input and output cases' keys do not match"),
-						},
+						reasons: { "KE(I/O)": "Input and output cases' keys do not match" },
 					};
 				}
 			),
@@ -131,35 +116,39 @@ export default async (
 		return testTogether(
 			Object.keys(inputs).map((key) => parseInt(key)),
 			async (key: number): Promise<TestCaseResult> => {
+				const expectedOutput = new WritableString();
+				const input = new PassThrough();
 				const output = new WritableString();
 
-				let result = await runTogether([
-					{
-						promise: solution.run({
-							stdin: Readable.from(inputs[key]),
-							stderr: output,
+				const runResult = await runTogether([
+					readFile([inputs[key], input], {
+						default: "?E(I)",
+						accessError: "DNE(I)",
+					}),
+					readFile([outputs[key], expectedOutput], {
+						default: "?E(O)",
+						accessError: "DNE(O)",
+					}),
+					runRunner(
+						solution.run({
+							stdin: input,
+							stdout: output,
 						}),
-						runtimeErrorVerdictSymbol: "RE",
-					},
+						{ default: "?E", runtimeError: "RE" }
+					),
 				]);
 
-				if (!result) {
-					const diffCheck = diffChecker(output.string, outputs[key]);
-					if (diffCheck)
-						result = {
-							passed: false,
-							verdictSymbol: "WA",
-							reason: diffCheck,
-						};
-				}
+				if (!runResult.success)
+					return { passed: false, reasons: runResult.reasons };
 
-				if (!result)
-					result = {
-						passed: true,
-						verdictSymbol: "OK",
-					};
+				const diffCheckerOutput = diffChecker(
+					output.string,
+					expectedOutput.string
+				);
+				if (diffCheckerOutput)
+					return { passed: false, reasons: { WA: diffCheckerOutput } };
 
-				return result;
+				return { passed: true };
 			}
 		);
 	}
