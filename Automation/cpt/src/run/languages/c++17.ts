@@ -6,6 +6,7 @@ const languageEntry: LanguageEntry = (filePath) => {
 	const { name: exePath } = tmp.fileSync();
 	return {
 		compileArgs: [
+			// "ccache",
 			"/opt/homebrew/bin/g++-14",
 			"-o",
 			exePath,

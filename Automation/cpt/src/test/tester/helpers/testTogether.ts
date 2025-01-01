@@ -5,12 +5,9 @@ export default async (
 	keys: number[],
 	test: (key: number) => Promise<TestCaseResult>
 ): Promise<TestSetResult> =>
-	Promise.all(keys.map((key) => test(key))).then((testCaseResults) => ({
+	Promise.all(keys.map((key) => test(key))).then((results) => ({
 		success: true,
-		testCaseResults: Object.fromEntries(
-			testCaseResults.map((testCaseResult, index) => [
-				keys[index],
-				testCaseResult,
-			])
+		results: Object.fromEntries(
+			results.map((testCaseResult, index) => [keys[index], testCaseResult])
 		),
 	}));

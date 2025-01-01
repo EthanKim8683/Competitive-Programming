@@ -7,6 +7,6 @@ type TestSetResult =
 	  }
 	| {
 			success: true;
-			testCaseResults: Record<number, TestCaseResult>;
+			results: Record<number, TestCaseResult>;
 	  };
 export default TestSetResult;
