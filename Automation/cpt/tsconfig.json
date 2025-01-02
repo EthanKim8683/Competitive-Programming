@@ -1,12 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "outDir": "./dist"
-  },
-  "include": ["./src/**/*.ts"],
-  "exclude": ["./node_modules"]
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"outDir": "./dist",
+		"types": ["node"]
+	},
+	"include": ["./src/**/*.ts"],
+	"exclude": ["./node_modules"]
 }

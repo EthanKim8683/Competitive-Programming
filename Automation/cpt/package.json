@@ -1,36 +1,24 @@
 {
-  "name": "cpt",
-  "version": "1.0.0",
-  "description": "competitive programming tools",
-  "main": "src/index.ts",
-  "scripts": {
-    "start": "node dist/index.js",
-    "dev": " npx tsx src/index.ts",
-    "build": "tsc",
-    "test": "mocha"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "chai": "^5.1.2",
-    "chai-as-promised": "^8.0.1",
-    "glob": "^11.0.0",
-    "ini": "^5.0.0",
-    "is-valid-path": "^0.1.1",
-    "mocha": "^11.0.1",
-    "tmp": "^0.2.3",
-    "tmp-promise": "^3.0.3",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@types/ini": "^4.1.1",
-    "@types/is-valid-path": "^0.1.2",
-    "@types/node": "^22.10.2",
-    "@types/tmp": "^0.2.6",
-    "nodemon": "^3.1.9",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
-  }
+	"name": "cpt",
+	"version": "1.0.0",
+	"description": "competitive programming tools",
+	"main": "src/index.ts",
+	"scripts": {
+		"dev": "TSX=true tsx src/index.ts",
+		"build": "tsc",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@types/tmp": "^0.2.6",
+		"tmp": "^0.2.3",
+		"tmp-promise": "^3.0.3",
+		"zod": "^3.24.1"
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.3",
+		"tsc-alias": "^1.8.10"
+	}
 }
