@@ -10,6 +10,19 @@ export type OmitFirstParameter<T> = T extends (
 	? (...args: P) => R
 	: never;
 
+// https://stackoverflow.com/a/49285826/19662543
+type OneOfImpl<
+	T,
+	V extends any[],
+	NK extends keyof V = Exclude<keyof V, keyof any[]>,
+> = { [K in NK]: T extends V[K] ? V[K] : never }[NK];
+export type OneOf<T, V extends any[]> = OneOfImpl<T, V>;
+
+export type ElementType<T extends any[]> = T extends (infer E)[] ? E : never;
+
+// https://stackoverflow.com/a/69328045/19662543
+export type Require<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export function quote(string: string): string {
 	// Most similar to how quote-containing strings are printed in Node.js.
 	for (const char of [..."'`\""])

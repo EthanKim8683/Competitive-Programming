@@ -1,6 +1,6 @@
 import cp, { ExecOptions } from "child_process";
 
-// Sanitization and spawn-like syntax.
+// Basic sanitization and spawn-like syntax.
 export const exec = (
 	command: string,
 	args: string[],

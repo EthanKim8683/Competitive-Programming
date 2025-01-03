@@ -1,8 +1,8 @@
-import { RunnerOptions } from "../base";
-import CppRunner from "./cpp";
+import { EntryInterface, InitOptions } from "../base";
+import { CppIniter } from "./cpp";
 
-export default class Cpp17Runner extends CppRunner {
-	constructor(filePath: string, options?: RunnerOptions) {
-		super(filePath, { ...options, cppStd: "c++17" });
-	}
-}
+const cpp17Entry: EntryInterface = (
+	filePath: string,
+	options?: InitOptions
+): CppIniter => new CppIniter(filePath, { ...options, cppStd: "c++17" });
+export default cpp17Entry;

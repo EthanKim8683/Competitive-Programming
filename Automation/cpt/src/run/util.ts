@@ -1,11 +1,14 @@
 import path from "path";
 import fs from "fs";
 
-import { RunnerInterface, RunnerOptions } from "./base";
 import { quote, tj } from "../util";
+import { EntryInterface, InitOptions } from "./base";
 
 export function getLanguage(filePath: string): string | undefined {
 	let language: string | undefined;
+
+	// For directories
+	language ??= /(?:^|\/)[^\/.]+$/.test(filePath) ? "dir" : undefined;
 
 	// For files that specify language via filename (name.language.ext).
 	language ??= /(?<=[^./]*\.)[^./]*(?=\.[^./]*$)/.exec(filePath)?.[0];
@@ -18,10 +21,8 @@ export function getLanguage(filePath: string): string | undefined {
 	return language;
 }
 
-const memo: Record<string, typeof RunnerInterface> = {};
-export function getConstructor(
-	language: string
-): typeof RunnerInterface | undefined {
+const memo: Record<string, EntryInterface> = {};
+export function getEntry(language: string): EntryInterface | undefined {
 	if (memo.hasOwnProperty(language)) return memo[language];
 
 	const runnersPath = path.join(__dirname, "runners"),
@@ -53,7 +54,7 @@ class CreateRunnerError extends Error {
 
 export function createRunner(
 	filePath: string,
-	{ language, ...options }: { language?: string } & RunnerOptions = {}
+	{ language, ...options }: { language?: string } & InitOptions = {}
 ) {
 	language ??= getLanguage(filePath);
 	if (!language)
@@ -62,12 +63,12 @@ export function createRunner(
 			`Could not infer language of file: ${quote(filePath)}`
 		);
 
-	const Runner = getConstructor(language);
-	if (!Runner)
+	const entry = getEntry(language);
+	if (!entry)
 		throw new CreateRunnerError(
 			CreateRunnerError.Code.UNSUPPORTED_LANGUAGE,
 			`Could not find runner for language: ${quote(language)}`
 		);
 
-	return new Runner(filePath, options);
+	return entry(filePath, options);
 }

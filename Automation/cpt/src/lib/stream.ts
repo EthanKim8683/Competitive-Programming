@@ -1,14 +1,14 @@
 import { Writable, WritableOptions } from "stream";
 
 export class WritableString extends Writable {
-	#string: string = "";
+	private _string: string = "";
 
 	constructor(options?: WritableOptions) {
 		super(options);
 	}
 
 	get string() {
-		return this.#string;
+		return this._string;
 	}
 
 	_write(
@@ -16,7 +16,7 @@ export class WritableString extends Writable {
 		encoding: BufferEncoding | "buffer",
 		callback: (error?: Error | null) => void
 	): void {
-		this.#string += chunk.toString(
+		this._string += chunk.toString(
 			encoding === "buffer" ? undefined : encoding
 		);
 		callback();
