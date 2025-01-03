@@ -1,59 +1,60 @@
-import z from "zod";
-import { promiseSchema } from "./node";
+import { isPromise } from "util/types";
 
 export interface KillablePromise<T> {
 	readonly promise: Promise<T>;
-
-	kill(): void;
+	readonly kill: () => void;
 }
 
-export const killablePromiseSchema = z.object({
-	promise: promiseSchema,
-	kill: z.function().args().returns(z.void()),
-});
-
-export function isKillablePromise(
-	value: any | KillablePromise<any>
-): value is KillablePromise<any> {
-	return killablePromiseSchema.safeParse(value).success;
-}
+type Resolvable<T> = T | Promise<T> | KillablePromise<T>;
 
 type AwaitedKillablePromise<T> = T extends KillablePromise<infer S> ? S : never;
+
 type AwaitedKillablePromises<T> = {
 	[K in keyof T]: AwaitedKillablePromise<T[K]>;
 };
+
 type SettledKillablePromise<T> =
 	T extends KillablePromise<infer S>
 		? { status: "fulfilled"; value: S } | { status: "rejected"; reason: any }
 		: never;
+
 type SettledKillablePromises<T> = {
 	[K in keyof T]: SettledKillablePromise<T[K]>;
 };
-export const KillablePromise = {
-	all<T extends (any | KillablePromise<any>)[]>(
+
+export class KillablePromise<T> implements KillablePromise<T> {
+	constructor(
+		readonly promise: Promise<T>,
+		readonly kill: () => void = () => {}
+	) {}
+
+	static all<T extends Resolvable<any>[]>(
 		values: T
 	): KillablePromise<AwaitedKillablePromises<T>> {
 		const kill = (): void => values.forEach((value) => value.kill?.());
 
 		const promise = Promise.all(
-			values.map((value) => {
+			values.map((value) =>
 				KillablePromise.resolve(value).promise.catch((err) => {
 					kill();
 					throw err;
-				});
-			})
+				})
+			)
 		);
 
-		return { promise: promise as Promise<AwaitedKillablePromises<T>>, kill };
-	},
+		return new KillablePromise(
+			promise as Promise<AwaitedKillablePromises<T>>,
+			kill
+		);
+	}
 
-	allSettled<T extends (any | KillablePromise<any>)[]>(
+	static allSettled<T extends Resolvable<any>[]>(
 		values: T
 	): KillablePromise<SettledKillablePromises<T>> {
 		const kill = (): void => values.forEach((value) => value?.kill());
 
 		const promise = Promise.all(
-			values.map((value: any | KillablePromise<any>) =>
+			values.map((value: Resolvable<any>) =>
 				KillablePromise.resolve(value).promise.then(
 					(value) => ({ status: "fulfilled" as const, value }),
 					(reason) => ({ status: "rejected" as const, reason })
@@ -61,17 +62,28 @@ export const KillablePromise = {
 			)
 		);
 
-		return { promise: promise as Promise<SettledKillablePromises<T>>, kill };
-	},
+		return new KillablePromise(
+			promise as Promise<SettledKillablePromises<T>>,
+			kill
+		);
+	}
 
-	reject<T>(reason: T): KillablePromise<T> {
-		return { promise: Promise.reject<T>(reason), kill: (): void => {} };
-	},
+	static reject<T>(reason: T): KillablePromise<T> {
+		return new KillablePromise(Promise.reject<T>(reason));
+	}
 
-	resolve<T>(value: T | KillablePromise<T>): KillablePromise<T> {
+	static resolve<T>(value: Resolvable<T>): KillablePromise<T> {
 		if (isKillablePromise(value)) return value;
-		else return { promise: Promise.resolve<T>(value), kill: (): void => {} };
-	},
+		else return new KillablePromise(Promise.resolve<T>(value));
+	}
+}
 
-	// TODO: any, race, try, withResolvers
-};
+export const isKillablePromise = (
+	value: unknown
+): value is KillablePromise<unknown> =>
+	typeof value === "object" &&
+	value !== null &&
+	"promise" in value &&
+	isPromise(value.promise) &&
+	"kill" in value &&
+	typeof value.kill === "function";

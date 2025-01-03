@@ -1,32 +1,15 @@
-import { ExecOptions, SpawnOptions } from "child_process";
+import { Readable, Writable } from "stream";
+import { ExecOptions, spawn, SpawnOptions } from "child_process";
 
-import { KillablePromise } from "../base";
+import { KillablePromise } from "../lib/KillablePromise";
+import { NullReadable, NullWritable } from "../lib/stream";
 
-// Options for a variety of initers or runners can be provided and the instance
-// will pick which ones to interpret.
-export type InitOptions = {
-	// If init uses exec:
-	execOptions?: ExecOptions;
-	// If initer is CppIniter-like:
-	cppOptions?: {
-		// g++-14 -std= option (defaults to c++20):
-		std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
-	};
-};
-export type RunOptions = {
-	// If run uses spawn:
-	spawnOptions?: SpawnOptions;
-	// If runner is DirRunner:
-	dirOptions?: {
-		// Name of file, excluding dirname:
-		// If the basename cannot be found, /dev/null is read instead.
-		basename?: string;
-	};
-};
+export interface Initer extends KillablePromise<Invoker> {}
 
+// Custom errors help distinguish handled errors.
 export class InitError extends Error {
 	constructor(
-		readonly initer: IniterInterface,
+		readonly initer: Initer,
 		message: string,
 		options?: ErrorOptions
 	) {
@@ -34,18 +17,103 @@ export class InitError extends Error {
 	}
 }
 
-export interface IniterInterface extends KillablePromise<RunnerInterface> {
-	readonly filePath: string;
+export interface Invoker {
+	readonly initer: Initer;
+
+	invoke(...args: any[]): any;
 }
 
-export interface RunnerInterface {
-	readonly initer: IniterInterface;
-
-	run(options?: RunOptions): ProcessInterface;
+export class InvokeError extends Error {
+	constructor(
+		readonly invoker: Invoker,
+		message: string,
+		options?: ErrorOptions
+	) {
+		super(message, options);
+	}
 }
 
-export interface ProcessInterface extends KillablePromise<ProcessInterface> {}
+// Refer to shell processes:
+export interface Process extends KillablePromise<void> {
+	readonly invoker: Invoker;
+	readonly stdin: Writable;
+	readonly stdout: Readable;
+	readonly stderr: Readable;
+}
 
-export interface EntryInterface {
-	(filePath: string, options?: InitOptions): IniterInterface;
+export class ProcessError extends Error {
+	constructor(
+		readonly process: Process,
+		message: string,
+		options?: ErrorOptions
+	) {
+		super(message, options);
+	}
+}
+
+export interface ProgramIniter extends Initer {
+	readonly promise: Promise<ProgramInvoker>;
+	readonly programPath: string;
+}
+
+export type ProgramInitOptions = {
+	execOptions?: ExecOptions;
+	cppOptions?: {
+		std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
+	};
+};
+
+export interface ProgramInvoker extends Invoker {
+	readonly initer: ProgramIniter;
+
+	invoke(options?: ProgramInvokeOptions): Process;
+}
+
+export type ProgramInvokeOptions = {
+	spawnOptions?: SpawnOptions;
+};
+
+export class ProgramProcess implements Process, KillablePromise<void> {
+	readonly promise;
+	readonly child;
+	readonly stdin;
+	readonly stdout;
+	readonly stderr;
+	private _abortController = new AbortController();
+
+	constructor(
+		readonly invoker: Invoker,
+		command: string,
+		args: string[] = [],
+		{ spawnOptions = {} }: ProgramInvokeOptions = {}
+	) {
+		const { promise, resolve, reject } = Promise.withResolvers<void>();
+		this.promise = promise;
+
+		this.child = spawn(command, args, {
+			...spawnOptions,
+			signal: this._abortController.signal,
+		});
+
+		this.stdin = this.child.stdin ?? new NullWritable();
+		this.stdout = this.child.stdout ?? new NullReadable();
+		this.stderr = this.child.stderr ?? new NullReadable();
+
+		this.child.on("exit", () => resolve());
+
+		this.child.on("error", (err) => {
+			// AbortErrors aren't real errors. We already know the process has been
+			// aborted because we aborted it.
+			if (err.name === "AbortError") return;
+			reject(err);
+		});
+	}
+
+	kill(): void {
+		this._abortController.abort();
+	}
+}
+
+export interface ProgramModule {
+	(programPath: string, options?: ProgramInitOptions): ProgramIniter;
 }

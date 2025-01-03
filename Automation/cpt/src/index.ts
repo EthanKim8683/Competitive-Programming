@@ -1,49 +1,22 @@
-import assert from "assert";
+import program from "./run/program";
+import { KillablePromise } from "./lib/KillablePromise";
 
-import { createRunner } from "./run/util";
-import { KillablePromise } from "./base";
-import { ReadStreamProcess, SpawnProcess } from "./run/impl";
+(async () => {
+	const [g, c, s] = await KillablePromise.all([
+		program("gen.cpp"),
+		program("check.cpp"),
+		program("sol.cpp"),
+	] as const).promise;
 
-// KillablePromise.all([
-// 	createRunner("inputs"),
-// 	createRunner("check.cpp"),
-// 	createRunner("sol.cpp"),
-// ]).promise.then(([inputs, check, sol]) => {
-// 	const inputsProc = inputs.run({ dirOptions: { basename: "1.txt" } });
-// 	const checkProc = check.run({ spawnOptions: { stdio: ["pipe", "inherit"] } });
-// 	const solProc = sol.run();
-//
-// 	assert(inputsProc instanceof ReadStreamProcess);
-// 	assert(checkProc instanceof SpawnProcess);
-// 	assert(solProc instanceof SpawnProcess);
-//
-// 	inputsProc.stream.pipe(checkProc.child.stdin!, { end: false });
-// 	inputsProc.stream.pipe(solProc.child.stdin!);
-// 	solProc.child.stdout!.pipe(checkProc.child.stdin!);
-//
-// 	KillablePromise.all([inputsProc, checkProc, solProc]);
-// });
+	const gp = g.invoke();
+	const cp = c.invoke({ spawnOptions: { stdio: ["pipe", "inherit"] } });
+	const sp = s.invoke();
 
-// KillablePromise.all([
-// 	createRunner("gen.cpp"),
-// 	createRunner("check.cpp"),
-// 	createRunner("sol.cpp"),
-// ]).promise.then(([gen, check, sol]) => {
-// 	const genProc = gen.run();
-// 	const checkProc = check.run({ spawnOptions: { stdio: ["pipe", "inherit"] } });
-// 	const solProc = sol.run();
-//
-// 	assert(genProc instanceof SpawnProcess);
-// 	assert(checkProc instanceof SpawnProcess);
-// 	assert(solProc instanceof SpawnProcess);
-//
-// 	genProc.child.stdout!.pipe(checkProc.child.stdin!, { end: false });
-// 	genProc.child.stdout!.pipe(solProc.child.stdin!);
-// 	solProc.child.stdout!.pipe(checkProc.child.stdin!);
-//
-// 	KillablePromise.all([genProc, checkProc, solProc]);
-// });
+	gp.stdout.pipe(sp.stdin);
+	gp.stdout.pipe(cp.stdin, { end: false });
+	sp.stdout.pipe(cp.stdin);
 
-createRunner("inputs").promise.then((i) =>
-	i.run({ dirOptions: { basename: "1.tx" } })
-);
+	await KillablePromise.all([gp, cp, sp] as const).promise;
+
+	console.log("Done!");
+})();
