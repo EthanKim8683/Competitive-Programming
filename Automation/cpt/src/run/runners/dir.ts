@@ -36,7 +36,7 @@ class DirRunner implements RunnerInterface {
 		readonly basenames: string[]
 	) {}
 
-	run({ dirBasename: basename }: RunOptions = {}): ReadStreamProcess {
+	run({ dirOptions: { basename } = {} }: RunOptions = {}): ReadStreamProcess {
 		const filePath =
 			basename !== undefined
 				? path.join(this.initer.filePath, basename)

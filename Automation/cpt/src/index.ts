@@ -2,50 +2,46 @@ import assert from "assert";
 
 import { createRunner } from "./run/util";
 import { KillablePromise } from "./base";
-import { isDirRunner } from "./run/runners/dir";
-import { SpawnProcess } from "./run/impl";
+import { ReadStreamProcess, SpawnProcess } from "./run/impl";
 
 // KillablePromise.all([
 // 	createRunner("inputs"),
 // 	createRunner("check.cpp"),
 // 	createRunner("sol.cpp"),
 // ]).promise.then(([inputs, check, sol]) => {
-// 	assert(isDirRunner(inputs));
-//
-// 	const inputsRun = inputs.run({ dirBasename: "1.txt" });
-// 	const checkRun = check.run({
+// 	const inputsProc = inputs.run({ dirOptions: { basename: "1.txt" } });
+// 	const checkProc = check.run({
 // 		spawnOptions: { stdio: [undefined, "inherit"] },
 // 	});
-// 	const solRun = sol.run();
+// 	const solProc = sol.run();
 //
-// 	assert(checkRun instanceof SpawnProcess);
-// 	assert(solRun instanceof SpawnProcess);
+// 	assert(inputsProc instanceof ReadStreamProcess);
+// 	assert(checkProc instanceof SpawnProcess);
+// 	assert(solProc instanceof SpawnProcess);
 //
-// 	inputsRun.stream.pipe(checkRun.child.stdin!, { end: false });
-// 	inputsRun.stream.pipe(solRun.child.stdin!);
-// 	solRun.child.stdout!.pipe(checkRun.child.stdin!);
+// 	inputsProc.stream.pipe(checkProc.child.stdin!, { end: false });
+// 	inputsProc.stream.pipe(solProc.child.stdin!);
+// 	solProc.child.stdout!.pipe(checkProc.child.stdin!);
 //
-// 	KillablePromise.all([inputsRun, checkRun, solRun]);
+// 	KillablePromise.all([inputsProc, checkProc, solProc]);
 // });
 
 KillablePromise.all([
 	createRunner("gen.cpp"),
 	createRunner("check.cpp"),
 	createRunner("sol.cpp"),
-]).promise.then(([inputs, check, sol]) => {
-	const genRun = inputs.run();
-	const checkRun = check.run({
-		spawnOptions: { stdio: [undefined, "inherit"] },
-	});
-	const solRun = sol.run();
+]).promise.then(([gen, check, sol]) => {
+	const genProc = gen.run();
+	const checkProc = check.run({ spawnOptions: { stdio: ["pipe", "inherit"] } });
+	const solProc = sol.run();
 
-	assert(genRun instanceof SpawnProcess);
-	assert(checkRun instanceof SpawnProcess);
-	assert(solRun instanceof SpawnProcess);
+	assert(genProc instanceof SpawnProcess);
+	assert(checkProc instanceof SpawnProcess);
+	assert(solProc instanceof SpawnProcess);
 
-	genRun.child.stdout!.pipe(checkRun.child.stdin!, { end: false });
-	genRun.child.stdout!.pipe(solRun.child.stdin!);
-	solRun.child.stdout!.pipe(checkRun.child.stdin!);
+	genProc.child.stdout!.pipe(checkProc.child.stdin!, { end: false });
+	genProc.child.stdout!.pipe(solProc.child.stdin!);
+	solProc.child.stdout!.pipe(checkProc.child.stdin!);
 
-	KillablePromise.all([genRun, checkRun, solRun]);
+	KillablePromise.all([genProc, checkProc, solProc]);
 });

@@ -22,7 +22,7 @@ export class CppIniter implements IniterInterface {
 
 	constructor(
 		readonly filePath: string,
-		{ cppStd: std = "c++20", execOptions = {} }: InitOptions = {}
+		{ cppOptions: { std = "c++20" } = {}, execOptions = {} }: InitOptions = {}
 	) {
 		const { promise, resolve, reject } = Promise.withResolvers<CppRunner>();
 		this.promise = promise;

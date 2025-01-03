@@ -2,15 +2,28 @@ import { ExecOptions, SpawnOptions } from "child_process";
 
 import { KillablePromise } from "../base";
 
-// Remember, language-specific options should be prefixed by the name of the
-// corresponding language (e.g. cppStd).
+// Options for a variety of initers or runners can be provided and the instance
+// will pick which ones to interpret.
+//
+// For further control over InitOptions, use instanceof to determine the
+// relevant class first.
 export type InitOptions = {
+	// If init uses exec:
 	execOptions?: ExecOptions;
-	cppStd?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
+	// If initer is CppIniter-like:
+	cppOptions?: {
+		// g++-14 -std= option:
+		std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
+	};
 };
 export type RunOptions = {
+	// If run uses spawn:
 	spawnOptions?: SpawnOptions;
-	dirBasename?: string;
+	// If runner is DirRunner:
+	dirOptions?: {
+		// Name of file, excluding dirname:
+		basename?: string;
+	};
 };
 
 export class InitError extends Error {
