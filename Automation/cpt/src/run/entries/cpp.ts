@@ -13,8 +13,7 @@ import { exec } from "../../lib/child_process";
 import { ChildProcess } from "child_process";
 import { SpawnProcess } from "../impl";
 
-// Avoid using this class outside this file.
-export class CppIniter implements IniterInterface {
+class CppIniter implements IniterInterface {
 	readonly promise: Promise<CppRunner>;
 	readonly compilerArgs: string[];
 	readonly child: ChildProcess;
@@ -58,8 +57,8 @@ export class CppIniter implements IniterInterface {
 						new InitError(
 							this,
 							exitCode
-								? `compiler exited with non-zero exit code: ${exitCode}`
-								: `compilation terminated with signal: '${signalCode}'`
+								? `Compiler exited with non-zero exit code: ${exitCode}`
+								: `Compilation terminated with signal: '${signalCode}'`
 						)
 					);
 
@@ -79,8 +78,7 @@ export class CppIniter implements IniterInterface {
 	}
 }
 
-// Avoid using this class outside this file.
-export class CppRunner implements RunnerInterface {
+class CppRunner implements RunnerInterface {
 	constructor(
 		readonly initer: CppIniter,
 		readonly executablePath: string,

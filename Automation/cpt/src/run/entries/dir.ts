@@ -4,6 +4,7 @@ import path from "path";
 import {
 	EntryInterface,
 	IniterInterface,
+	InitError,
 	InitOptions,
 	RunnerInterface,
 	RunOptions,
@@ -21,7 +22,8 @@ class DirIniter implements IniterInterface {
 		this.promise = promise;
 
 		fs.readdir(filePath, (err, files) => {
-			if (err) reject(err);
+			if (err)
+				reject(new InitError(this, "Could not read directory", { cause: err }));
 			else resolve(new DirRunner(this, files));
 		});
 	}
@@ -37,12 +39,10 @@ class DirRunner implements RunnerInterface {
 	) {}
 
 	run({ dirOptions: { basename } = {} }: RunOptions = {}): ReadStreamProcess {
-		const filePath =
-			basename !== undefined
-				? path.join(this.initer.filePath, basename)
-				: "/dev/null";
+		if (basename === undefined || !this.basenames.hasOwnProperty(basename))
+			return new ReadStreamProcess(undefined);
 
-		return new ReadStreamProcess(filePath);
+		return new ReadStreamProcess(path.join(this.initer.filePath, basename));
 	}
 }
 

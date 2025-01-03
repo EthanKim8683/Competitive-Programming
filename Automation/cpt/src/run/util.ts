@@ -1,8 +1,8 @@
 import path from "path";
-import fs from "fs";
 
-import { quote, tj } from "../util";
+import { quote } from "../util";
 import { EntryInterface, InitOptions } from "./base";
+import entries from "./entries";
 
 export function getLanguage(filePath: string): string | undefined {
 	let language: string | undefined;
@@ -21,19 +21,8 @@ export function getLanguage(filePath: string): string | undefined {
 	return language;
 }
 
-const memo: Record<string, EntryInterface> = {};
 export function getEntry(language: string): EntryInterface | undefined {
-	if (memo.hasOwnProperty(language)) return memo[language];
-
-	const runnersPath = path.join(__dirname, "runners"),
-		runnerPath = path.resolve(path.join(runnersPath, `${language}.${tj}s`));
-
-	// existsSync probably isn't slow enough to necessitate this function being
-	// asynchronous.
-	if (path.dirname(runnerPath) != runnersPath || !fs.existsSync(runnerPath))
-		return;
-
-	return (memo[language] = require(runnerPath).default);
+	if (entries.hasOwnProperty(language)) return entries[language];
 }
 
 enum Code {

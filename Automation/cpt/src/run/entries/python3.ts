@@ -3,6 +3,7 @@ import fs from "fs";
 import {
 	EntryInterface,
 	IniterInterface,
+	InitError,
 	InitOptions,
 	RunnerInterface,
 	RunOptions,
@@ -23,7 +24,8 @@ class Python3Initer implements IniterInterface {
 		// Is the non-existence of the program a compile-time or runtime error if
 		// the program is interpreted?
 		fs.access(filePath, fs.constants.R_OK, (err) => {
-			if (err) reject(err);
+			if (err)
+				reject(new InitError(this, "Could not access program", { cause: err }));
 			else resolve(new Python3Runner(this));
 		});
 	}

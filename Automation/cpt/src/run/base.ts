@@ -4,15 +4,12 @@ import { KillablePromise } from "../base";
 
 // Options for a variety of initers or runners can be provided and the instance
 // will pick which ones to interpret.
-//
-// For further control over InitOptions, use instanceof to determine the
-// relevant class first.
 export type InitOptions = {
 	// If init uses exec:
 	execOptions?: ExecOptions;
 	// If initer is CppIniter-like:
 	cppOptions?: {
-		// g++-14 -std= option:
+		// g++-14 -std= option (defaults to c++20):
 		std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
 	};
 };
@@ -22,6 +19,7 @@ export type RunOptions = {
 	// If runner is DirRunner:
 	dirOptions?: {
 		// Name of file, excluding dirname:
+		// If the basename cannot be found, /dev/null is read instead.
 		basename?: string;
 	};
 };
