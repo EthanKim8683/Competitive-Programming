@@ -1,4 +1,5 @@
-import { ExecOptions, spawn, SpawnOptions } from "child_process";
+import { ChildProcess, ExecOptions, spawn, SpawnOptions } from "child_process";
+import { Readable, Writable } from "stream";
 
 import { Initer, Invoker, Process, ProcessError } from "../base";
 import { NullReadable, NullWritable } from "../../lib/stream";
@@ -27,10 +28,10 @@ export type ProgramInvokeOptions = {
 };
 
 export class ProgramProcess extends Process implements Process {
-	readonly child;
-	readonly stdin;
-	readonly stdout;
-	readonly stderr;
+	readonly child: ChildProcess;
+	readonly stdin: Writable;
+	readonly stdout: Readable;
+	readonly stderr: Readable;
 	private _abortController = new AbortController();
 
 	constructor(
@@ -64,6 +65,7 @@ export class ProgramProcess extends Process implements Process {
 	}
 }
 
-export interface ProgramModule {
-	(programPath: string, options?: ProgramInitOptions): ProgramIniter;
-}
+export type ProgramModule = (
+	programPath: string,
+	options?: ProgramInitOptions
+) => ProgramIniter;

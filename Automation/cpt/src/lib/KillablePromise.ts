@@ -1,3 +1,4 @@
+// Promises that you can kill. For processes and more.
 export interface KillablePromise<T> {
 	readonly promise: Promise<T>;
 	readonly kill: () => void;
@@ -5,18 +6,15 @@ export interface KillablePromise<T> {
 
 type Resolvable<T> = T | Promise<T> | KillablePromise<T>;
 
-type AwaitedKillablePromise<T> = T extends KillablePromise<infer S> ? S : never;
-
-type AwaitedKillablePromises<T> = {
+export type AwaitedKillablePromise<T> =
+	T extends KillablePromise<infer S> ? S : never;
+export type AwaitedKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: AwaitedKillablePromise<T[K]>;
 };
 
-type SettledKillablePromise<T> =
-	T extends KillablePromise<infer S>
-		? { status: "fulfilled"; value: S } | { status: "rejected"; reason: any }
-		: never;
-
-type SettledKillablePromises<T> = {
+export type SettledKillablePromise<T> =
+	T extends KillablePromise<infer S> ? PromiseSettledResult<S> : never;
+export type SettledKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: SettledKillablePromise<T[K]>;
 };
 
@@ -49,7 +47,7 @@ export class KillablePromise<T> implements KillablePromise<T> {
 		promise.then(() => KillablePromise._livingPromises.delete(this));
 	}
 
-	static all<T extends Resolvable<any>[]>(
+	static all<T extends readonly Resolvable<any>[]>(
 		values: T
 	): KillablePromise<AwaitedKillablePromises<T>> {
 		const kill = (): void => values.forEach((value) => value.kill?.());
@@ -69,19 +67,12 @@ export class KillablePromise<T> implements KillablePromise<T> {
 		);
 	}
 
-	static allSettled<T extends Resolvable<any>[]>(
+	static allSettled<T extends readonly Resolvable<any>[]>(
 		values: T
 	): KillablePromise<SettledKillablePromises<T>> {
 		const kill = (): void => values.forEach((value) => value?.kill());
 
-		const promise = Promise.all(
-			values.map((value: Resolvable<any>) =>
-				KillablePromise.resolve(value).promise.then(
-					(value) => ({ status: "fulfilled" as const, value }),
-					(reason) => ({ status: "rejected" as const, reason })
-				)
-			)
-		);
+		const promise = Promise.allSettled(values.map((value) => value.promise));
 
 		return new KillablePromise(
 			promise as Promise<SettledKillablePromises<T>>,

@@ -29,7 +29,7 @@ export class WritableString extends Writable {
 		super(options);
 	}
 
-	get string() {
+	get string(): string {
 		return this._string;
 	}
 
