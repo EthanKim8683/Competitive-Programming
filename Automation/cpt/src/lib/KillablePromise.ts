@@ -1,5 +1,3 @@
-import { isPromise } from "util/types";
-
 export interface KillablePromise<T> {
 	readonly promise: Promise<T>;
 	readonly kill: () => void;
@@ -23,10 +21,33 @@ type SettledKillablePromises<T> = {
 };
 
 export class KillablePromise<T> implements KillablePromise<T> {
+	private static _livingPromises = (() => {
+		const livingPromises = new Set<KillablePromise<any>>();
+
+		let sigintedRecently = false;
+		process.on("SIGINT", () => {
+			// Force exit if two SIGINTs are sent in quick succession.
+			if (sigintedRecently) process.exit(0);
+
+			// Otherwise, kill all living promises.
+			for (const livingPromise of livingPromises) livingPromise.kill();
+
+			sigintedRecently = true;
+			setTimeout(() => {
+				sigintedRecently = false;
+			}, 100);
+		});
+
+		return livingPromises;
+	})();
+
 	constructor(
 		readonly promise: Promise<T>,
 		readonly kill: () => void = () => {}
-	) {}
+	) {
+		KillablePromise._livingPromises.add(this);
+		promise.then(() => KillablePromise._livingPromises.delete(this));
+	}
 
 	static all<T extends Resolvable<any>[]>(
 		values: T
@@ -73,17 +94,7 @@ export class KillablePromise<T> implements KillablePromise<T> {
 	}
 
 	static resolve<T>(value: Resolvable<T>): KillablePromise<T> {
-		if (isKillablePromise(value)) return value;
+		if (value instanceof KillablePromise) return value;
 		else return new KillablePromise(Promise.resolve<T>(value));
 	}
 }
-
-export const isKillablePromise = (
-	value: unknown
-): value is KillablePromise<unknown> =>
-	typeof value === "object" &&
-	value !== null &&
-	"promise" in value &&
-	isPromise(value.promise) &&
-	"kill" in value &&
-	typeof value.kill === "function";

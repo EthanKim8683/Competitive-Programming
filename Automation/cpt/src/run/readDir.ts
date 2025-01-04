@@ -11,32 +11,28 @@ import {
 } from "./base";
 import { NullReadable, NullWritable } from "../lib/stream";
 
-class ReadDirIniter implements Initer {
-	readonly promise;
-
+class ReadDirIniter extends Initer implements Initer {
 	constructor(readonly dirPath: string) {
 		const { promise, resolve, reject } =
 			Promise.withResolvers<ReadDirInvoker>();
-		this.promise = promise;
+		super(promise);
 
-		fs.readdir(dirPath, (err, files) => {
-			if (err) {
-				if (
-					err.syscall === "scandir" &&
-					(err.code === "ENOENT" || err.code === "EACCES")
+		fs.readdir(dirPath, { withFileTypes: true }, (err, dirents) => {
+			if (err)
+				return reject(
+					new InitError(this, "Could not read directory", { cause: err })
+				);
+
+			resolve(
+				new ReadDirInvoker(
+					this,
+					dirents
+						.filter((dirent) => dirent.isFile())
+						.map((dirent) => dirent.name)
 				)
-					reject(
-						new InitError(this, "Could not read directory", { cause: err })
-					);
-
-				return reject(err);
-			}
-
-			resolve(new ReadDirInvoker(this, files));
+			);
 		});
 	}
-
-	kill(): void {}
 }
 
 class ReadDirInvoker implements Invoker {
@@ -48,7 +44,7 @@ class ReadDirInvoker implements Invoker {
 	invoke(fileBasename: string): ReadFileProcess {
 		if (!this.fileBasenames.includes(fileBasename))
 			throw new InvokeError(this, "Could not find file in directory", {
-				cause: { fileBasename, fileBasenames: this.fileBasenames },
+				cause: { fileBasename, knownFileBasenames: this.fileBasenames },
 			});
 
 		return new ReadFileProcess(
@@ -58,8 +54,7 @@ class ReadDirInvoker implements Invoker {
 	}
 }
 
-class ReadFileProcess implements Process {
-	readonly promise;
+class ReadFileProcess extends Process implements Process {
 	readonly stream;
 	readonly stdin;
 	readonly stdout;
@@ -71,7 +66,7 @@ class ReadFileProcess implements Process {
 		filePath: string
 	) {
 		const { promise, resolve, reject } = Promise.withResolvers<void>();
-		this.promise = promise;
+		super(promise, () => this._abortController.abort());
 
 		this.stream = fs.createReadStream(filePath, {
 			signal: this._abortController.signal,
@@ -84,22 +79,15 @@ class ReadFileProcess implements Process {
 		this.stream.on("close", () => resolve());
 
 		this.stream.on("error", (err: NodeJS.ErrnoException) => {
-			if (err.name === "AbortError") return;
-
-			if (
-				err.syscall === "open" &&
-				(err.code === "ENOENT" || err.code === "EACCESS")
-			)
+			if (err.name === "AbortError")
 				return reject(
-					new ProcessError(this, "Could not open file", { cause: err })
+					new ProcessError(this, "Process aborted", { cause: err })
 				);
 
-			reject(err);
+			return reject(
+				new ProcessError(this, "Could not open file", { cause: err })
+			);
 		});
-	}
-
-	kill(): void {
-		this._abortController.abort();
 	}
 }
 

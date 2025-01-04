@@ -1,51 +1,41 @@
 import fs from "fs";
 
+import { InitError } from "../base";
 import {
-	InitError,
-	Process,
 	ProgramIniter,
 	ProgramInitOptions,
 	ProgramInvokeOptions,
 	ProgramInvoker,
 	ProgramModule,
 	ProgramProcess,
-} from "../base";
+} from "./base";
 
-class Python3Initer implements ProgramIniter {
-	readonly promise;
-
+class Python3Initer extends ProgramIniter implements ProgramIniter {
 	constructor(
 		readonly programPath: string,
 		_options?: ProgramInitOptions
 	) {
 		const { promise, resolve, reject } =
 			Promise.withResolvers<Python3Invoker>();
-		this.promise = promise;
+		super(promise);
 
+		// No compilation needed, so just make sure everything's ready to go while
+		// we have time.
 		fs.access(programPath, fs.constants.R_OK, (err) => {
-			if (err) {
-				if (
-					err.syscall === "access" &&
-					(err.code === "ENOENT" || err.code === "EACCES")
-				)
-					return reject(
-						new InitError(this, "Could not access program", { cause: err })
-					);
-
-				return reject(err);
-			}
+			if (err)
+				return reject(
+					new InitError(this, "Could not access program", { cause: err })
+				);
 
 			resolve(new Python3Invoker(this));
 		});
 	}
-
-	kill(): void {}
 }
 
 class Python3Invoker implements ProgramInvoker {
 	constructor(readonly initer: Python3Initer) {}
 
-	invoke(options?: ProgramInvokeOptions): Process {
+	invoke(options?: ProgramInvokeOptions): ProgramProcess {
 		return new ProgramProcess(
 			this,
 			"/opt/homebrew/bin/python3",

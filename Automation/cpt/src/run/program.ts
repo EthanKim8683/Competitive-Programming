@@ -1,6 +1,6 @@
 import path from "path";
 
-import { ProgramIniter, ProgramInitOptions } from "./base";
+import { ProgramIniter, ProgramInitOptions } from "./program/base";
 import cpp from "./program/cpp";
 import cpp17 from "./program/cpp17";
 import cpp20 from "./program/cpp20";

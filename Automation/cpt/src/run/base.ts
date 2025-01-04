@@ -1,9 +1,13 @@
 import { Readable, Writable } from "stream";
-import { ExecOptions, spawn, SpawnOptions } from "child_process";
 
 import { KillablePromise } from "../lib/KillablePromise";
-import { NullReadable, NullWritable } from "../lib/stream";
 
+// Classes implementing interfaces extending other classes do not retain
+// implementation details.
+//
+// A workaround is to define a dummy class of the same name as the interface
+// and extend the dummy class while implementing the interface.
+export class Initer extends KillablePromise<Invoker> {}
 export interface Initer extends KillablePromise<Invoker> {}
 
 // Custom errors help distinguish handled errors.
@@ -33,7 +37,8 @@ export class InvokeError extends Error {
 	}
 }
 
-// Refer to shell processes:
+// Based on shell processes.
+export class Process extends KillablePromise<void> {}
 export interface Process extends KillablePromise<void> {
 	readonly invoker: Invoker;
 	readonly stdin: Writable;
@@ -49,71 +54,4 @@ export class ProcessError extends Error {
 	) {
 		super(message, options);
 	}
-}
-
-export interface ProgramIniter extends Initer {
-	readonly promise: Promise<ProgramInvoker>;
-	readonly programPath: string;
-}
-
-export type ProgramInitOptions = {
-	execOptions?: ExecOptions;
-	cppOptions?: {
-		std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
-	};
-};
-
-export interface ProgramInvoker extends Invoker {
-	readonly initer: ProgramIniter;
-
-	invoke(options?: ProgramInvokeOptions): Process;
-}
-
-export type ProgramInvokeOptions = {
-	spawnOptions?: SpawnOptions;
-};
-
-export class ProgramProcess implements Process, KillablePromise<void> {
-	readonly promise;
-	readonly child;
-	readonly stdin;
-	readonly stdout;
-	readonly stderr;
-	private _abortController = new AbortController();
-
-	constructor(
-		readonly invoker: Invoker,
-		command: string,
-		args: string[] = [],
-		{ spawnOptions = {} }: ProgramInvokeOptions = {}
-	) {
-		const { promise, resolve, reject } = Promise.withResolvers<void>();
-		this.promise = promise;
-
-		this.child = spawn(command, args, {
-			...spawnOptions,
-			signal: this._abortController.signal,
-		});
-
-		this.stdin = this.child.stdin ?? new NullWritable();
-		this.stdout = this.child.stdout ?? new NullReadable();
-		this.stderr = this.child.stderr ?? new NullReadable();
-
-		this.child.on("exit", () => resolve());
-
-		this.child.on("error", (err) => {
-			// AbortErrors aren't real errors. We already know the process has been
-			// aborted because we aborted it.
-			if (err.name === "AbortError") return;
-			reject(err);
-		});
-	}
-
-	kill(): void {
-		this._abortController.abort();
-	}
-}
-
-export interface ProgramModule {
-	(programPath: string, options?: ProgramInitOptions): ProgramIniter;
 }

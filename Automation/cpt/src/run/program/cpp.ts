@@ -1,22 +1,19 @@
 import path from "path";
-import os from "os";
 import { ChildProcess } from "child_process";
-import crypto from "crypto";
 
 import { exec } from "../../lib/child_process";
+import { InitError } from "../base";
 import {
-	InitError,
-	Process,
 	ProgramIniter,
 	ProgramInitOptions,
 	ProgramInvokeOptions,
 	ProgramInvoker,
 	ProgramModule,
 	ProgramProcess,
-} from "../base";
+} from "./base";
+import { absolute } from "../../lib/path";
 
-class CppIniter implements ProgramIniter {
-	readonly promise: Promise<CppInvoker>;
+class CppIniter extends ProgramIniter implements ProgramIniter {
 	readonly child: ChildProcess;
 	readonly compilerArgs: string[];
 	private _compilerStderr: string | undefined = undefined;
@@ -24,17 +21,17 @@ class CppIniter implements ProgramIniter {
 
 	constructor(
 		readonly programPath: string,
-		{ cppOptions: { std = "c++20" } = {} }: ProgramInitOptions = {}
+		{ execOptions, cppOptions: { std = "c++20" } = {} }: ProgramInitOptions = {}
 	) {
 		const { promise, resolve, reject } = Promise.withResolvers<CppInvoker>();
-		this.promise = promise;
+		super(promise, () => this._abortController.abort());
 
-		const fileName = path.parse(programPath).name,
-			randomHex = crypto.randomBytes(6).toString("hex"),
-			executablePath = path.relative(
-				process.cwd(),
-				path.join(os.tmpdir(), `${fileName}-${randomHex}`)
-			);
+		const { dir, name } = path.parse(
+			path.relative(process.cwd(), absolute(programPath))
+		);
+		// Prefixing the executablePath with "./" ensures it will always be seen as
+		// a relative path.
+		const executablePath = "./" + path.join(dir, name);
 
 		this.compilerArgs = [
 			"/opt/homebrew/bin/g++-14",
@@ -45,35 +42,41 @@ class CppIniter implements ProgramIniter {
 			`-std=${std}`,
 			"-DETHANKIM8683",
 		];
+
 		this.child = exec(
 			this.compilerArgs[0],
 			this.compilerArgs.slice(1),
-			{ signal: this._abortController.signal },
-			// _error represents all errors, even those thrown by the process itself,
-			// which don't indicate anything on CPT's end.
-			(_error, _stdout, stderr) => {
-				this._compilerStderr = stderr.toString("utf-8") || undefined;
+			{ ...execOptions, signal: this._abortController.signal },
+			(error, _stdout, stderr) => {
+				this._compilerStderr = stderr.toString("utf8") || undefined;
 
-				const { exitCode, signalCode } = this.child;
-				if (exitCode)
-					return reject(
-						new InitError(this, "Compiler exited with non-zero exit code")
-					);
-				else if (signalCode)
-					return reject(new InitError(this, "Compilation terminated"));
+				if (error) {
+					if (error.name === "AbortError")
+						return reject(
+							new InitError(this, "Compilation aborted", { cause: error })
+						);
+
+					// If the process doesn't exit gracefully, exec treats it as an error.
+					const { exitCode, signalCode } = this.child;
+					if (exitCode)
+						return reject(
+							new InitError(this, "Compiler exited with non-zero exit code", {
+								cause: error,
+							})
+						);
+					if (signalCode)
+						return reject(
+							new InitError(this, "Compilation terminated", {
+								cause: error,
+							})
+						);
+
+					return reject(error);
+				}
 
 				resolve(new CppInvoker(this, executablePath));
 			}
 		);
-
-		this.child.on("error", (err) => {
-			if (err.name === "AbortError") return;
-			reject(err);
-		});
-	}
-
-	kill(): void {
-		this._abortController.abort();
 	}
 
 	get compilerStderr(): string | undefined {
@@ -87,7 +90,7 @@ class CppInvoker implements ProgramInvoker {
 		readonly executablePath: string
 	) {}
 
-	invoke(options?: ProgramInvokeOptions): Process {
+	invoke(options?: ProgramInvokeOptions): ProgramProcess {
 		return new ProgramProcess(this, this.executablePath, [], options);
 	}
 }

@@ -2,11 +2,15 @@ import program from "./run/program";
 import { KillablePromise } from "./lib/KillablePromise";
 
 (async () => {
+	console.log("Initing");
+
 	const [g, c, s] = await KillablePromise.all([
 		program("gen.cpp"),
 		program("check.cpp"),
 		program("sol.cpp"),
 	] as const).promise;
+
+	console.log("Invoking!");
 
 	const gp = g.invoke();
 	const cp = c.invoke({ spawnOptions: { stdio: ["pipe", "inherit"] } });

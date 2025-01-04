@@ -1,4 +1,4 @@
-import { ProgramInitOptions, ProgramModule } from "../base";
+import { ProgramInitOptions, ProgramModule } from "./base";
 import cpp from "./cpp";
 
 const cpp23: ProgramModule = (
