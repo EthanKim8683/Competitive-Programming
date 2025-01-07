@@ -41,32 +41,21 @@ export type Context = {
 	solutionLanguage?: string;
 };
 
-export type TestCaseResult = {
-	key: number | string;
-	passed: boolean;
+export type InitResult = {
 	verdict: string;
-	reason?: string;
+	reason?: any;
 };
 
-// An "Errorlet" is an Error with a symbol. A TestSetError can contain multiple
-// Errorlets for each error that occurred while initing.
-export class TestSetErrorlet extends Error {
-	// symbol and error are aliased to message and cause, respectively.
-	constructor(symbol: string, error: Error) {
-		super(symbol, { cause: error });
-	}
-}
-export class TestSetError extends Error {
-	// errorlets is aliased to cause.
-	constructor(errorlets: TestSetErrorlet[]) {
-		super(errorlets.map((errorlet) => errorlet.name).join(", "), {
-			cause: errorlets,
-		});
-	}
-}
+export type TestCaseResult = {
+	verdict: string;
+	reason?: any;
+};
 
 export type TestSetResult = {
-	testCases: TestCaseResult[];
+	initResults: Record<string, InitResult>;
+	// For cases with generated input, the corresponding key must be integer-
+	// parsable to seed the generator.
+	caseResults?: Record<string, TestCaseResult>;
 };
 
 export type TesterModule<T extends TestSet> = (

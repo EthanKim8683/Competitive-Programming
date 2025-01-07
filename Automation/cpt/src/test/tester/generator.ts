@@ -1,13 +1,15 @@
-import { allFulfilled } from "../../lib/js";
-import { KillablePromise } from "../../lib/KillablePromise";
+import { Readable } from "stream";
+import { randomUnsigneds } from "../../lib/js";
+import { WritableString } from "../../lib/stream";
 import program from "../../run/program";
 import {
 	Context,
 	GeneratorTestSet,
+	TestCaseResult,
 	TesterModule,
 	TestSetResult,
 } from "../types";
-import { throwErrorlets } from "./util";
+import { initTogether, processTogether, testTogether } from "./util";
 
 const generator: TesterModule<GeneratorTestSet> = async (
 	{ solutionPath, solutionLanguage }: Context,
@@ -16,19 +18,91 @@ const generator: TesterModule<GeneratorTestSet> = async (
 		generatorLanguage,
 		checkerPath,
 		checkerLanguage,
+		randomKeys = 0,
+		keys = [],
 	}: GeneratorTestSet
 ): Promise<TestSetResult> => {
-	// Maybe write a util that pairs initers with symbols so that the lengths of
-	// the two arrays must matcb?
-	const [solutionInvoker, generatorInvoker, checkerInvoker] =
-		await KillablePromise.allSettled([
-			program(solutionPath, { language: solutionLanguage }),
-			program(generatorPath, { language: generatorLanguage }),
-			program(checkerPath, { language: checkerLanguage }),
-		])
-			.promise.then(allFulfilled)
-			.catch(throwErrorlets(["CE", "CE(G)", "CE(C)"]));
+	const initTogetherResult = await initTogether([
+		{
+			initer: program(solutionPath, solutionLanguage),
+			symbol: "s",
+			errorVerdict: "CE",
+			warningVerdict: "CW",
+		},
+		{
+			initer: program(generatorPath, generatorLanguage),
+			symbol: "g",
+			errorVerdict: "CE",
+			warningVerdict: "CW",
+		},
+		{
+			initer: program(checkerPath, checkerLanguage),
+			symbol: "c",
+			errorVerdict: "CE",
+			warningVerdict: "CW",
+		},
+	] as const);
 
-	throw "Not implemented";
+	const { initResults, success } = initTogetherResult;
+	if (!success) return { initResults };
+	const [solutionInvoker, generatorInvoker, checkerInvoker] =
+		initTogetherResult.invokers;
+
+	async function runTestCase(key: number): Promise<TestCaseResult> {
+		const solutionProcess = solutionInvoker.invoke(),
+			generatorProcess = generatorInvoker.invoke(),
+			checkerProcess = checkerInvoker.invoke(),
+			checkerWritable = new WritableString();
+
+		Readable.from(`${key}`).pipe(generatorProcess.stdin);
+		checkerProcess.stderr.pipe(checkerWritable);
+
+		// { end: false } prevents checkerProcess.stdin from closing when
+		// generatorProcess.stdout does.
+		generatorProcess.stdout.pipe(checkerProcess.stdin, { end: false });
+		generatorProcess.stdout.pipe(solutionProcess.stdin);
+
+		let testCaseResult = await processTogether([
+			{
+				process: generatorProcess,
+				symbol: "g",
+				errorVerdict: "RE",
+			},
+		] as const);
+
+		solutionProcess.stdout.pipe(checkerProcess.stdin);
+		// Separate generator output from solution output in checker input.
+		checkerProcess.stdin.write("\n");
+
+		testCaseResult ??= await processTogether([
+			{
+				process: solutionProcess,
+				symbol: "s",
+				errorVerdict: "RE",
+			},
+			{
+				process: checkerProcess,
+				symbol: "c",
+				errorVerdict: "RE",
+			},
+		] as const);
+
+		if (testCaseResult) return testCaseResult;
+
+		if (checkerWritable.string)
+			return { verdict: "WA", reason: checkerWritable.string };
+
+		return { verdict: "OK" };
+	}
+
+	const caseResults = await testTogether(
+		[...keys, ...randomUnsigneds(randomKeys)],
+		runTestCase
+	);
+
+	return {
+		initResults,
+		caseResults,
+	};
 };
 export default generator;

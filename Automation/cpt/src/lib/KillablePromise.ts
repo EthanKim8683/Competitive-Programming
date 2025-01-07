@@ -1,24 +1,24 @@
-// Promises that you can kill. For processes and more.
-export interface KillablePromise<T> {
-	readonly promise: Promise<T>;
-	readonly kill: () => void;
-}
-
 type Resolvable<T> = T | Promise<T> | KillablePromise<T>;
 
+export type KillablePromises<T extends readonly any[]> = {
+	[K in keyof T]: KillablePromise<T[K]>;
+};
+
 export type AwaitedKillablePromise<T> =
-	T extends KillablePromise<infer S> ? S : never;
+	T extends KillablePromise<infer S> ? S : T extends Promise<infer U> ? U : T;
 export type AwaitedKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: AwaitedKillablePromise<T[K]>;
 };
 
-export type SettledKillablePromise<T> =
-	T extends KillablePromise<infer S> ? PromiseSettledResult<S> : never;
+export type SettledKillablePromise<T> = PromiseSettledResult<
+	AwaitedKillablePromise<T>
+>;
 export type SettledKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: SettledKillablePromise<T[K]>;
 };
 
-export class KillablePromise<T> implements KillablePromise<T> {
+// Promises that you can kill. For processes and more.
+export class KillablePromise<T> {
 	private static _livingPromises = (() => {
 		const livingPromises = new Set<KillablePromise<any>>();
 
@@ -40,11 +40,24 @@ export class KillablePromise<T> implements KillablePromise<T> {
 	})();
 
 	constructor(
-		readonly promise: Promise<T>,
+		private _promise: Promise<T>,
 		readonly kill: () => void = () => {}
 	) {
+		// If .catch() is chained after the promise rejects, it doesn't catch the
+		// error. This can result in .promise throwing before it can be handled
+		// post-construction.
+		//
+		// To fix this, we catch, but not replace .promise, effectively putting it
+		// in a dormant state, and resolve entirely new instances, active states,
+		// when getting .promise.
+		const dormant = _promise.catch(() => {});
+
 		KillablePromise._livingPromises.add(this);
-		promise.then(() => KillablePromise._livingPromises.delete(this));
+		dormant.finally(() => KillablePromise._livingPromises.delete(this));
+	}
+
+	get promise() {
+		return Promise.resolve(this._promise);
 	}
 
 	static all<T extends readonly Resolvable<any>[]>(

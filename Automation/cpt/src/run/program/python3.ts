@@ -3,18 +3,17 @@ import fs from "fs";
 import { InitError } from "../base";
 import {
 	ProgramIniter,
-	ProgramInitOptions,
-	ProgramInvokeOptions,
 	ProgramInvoker,
 	ProgramModule,
 	ProgramProcess,
 } from "./base";
+import { SpawnOptions } from "child_process";
 
-class Python3Initer extends ProgramIniter implements ProgramIniter {
-	constructor(
-		readonly programPath: string,
-		_options?: ProgramInitOptions
-	) {
+class Python3Initer
+	extends ProgramIniter<Python3Invoker>
+	implements ProgramIniter<Python3Invoker>
+{
+	constructor(readonly programPath: string) {
 		const { promise, resolve, reject } =
 			Promise.withResolvers<Python3Invoker>();
 		super(promise);
@@ -33,9 +32,11 @@ class Python3Initer extends ProgramIniter implements ProgramIniter {
 }
 
 class Python3Invoker implements ProgramInvoker {
+	readonly warning: string | undefined = undefined;
+
 	constructor(readonly initer: Python3Initer) {}
 
-	invoke(options?: ProgramInvokeOptions): ProgramProcess {
+	invoke(options?: SpawnOptions): ProgramProcess {
 		return new ProgramProcess(
 			this,
 			"/opt/homebrew/bin/python3",
@@ -53,8 +54,10 @@ export function isPython3Invoker(value: any): value is Python3Invoker {
 	return value instanceof Python3Invoker;
 }
 
-const python3: ProgramModule = (
-	programPath: string,
-	options?: ProgramInitOptions
-): ProgramIniter => new Python3Initer(programPath, options);
+interface Python3Module extends ProgramModule {
+	(programPath: string): Python3Initer;
+}
+
+const python3: Python3Module = (programPath: string): Python3Initer =>
+	new Python3Initer(programPath);
 export default python3;

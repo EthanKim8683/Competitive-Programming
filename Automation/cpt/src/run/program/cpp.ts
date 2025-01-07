@@ -1,27 +1,31 @@
 import path from "path";
-import { ChildProcess } from "child_process";
+import { ChildProcess, SpawnOptions } from "child_process";
 
 import { exec } from "../../lib/child_process";
 import { InitError } from "../base";
 import {
 	ProgramIniter,
-	ProgramInitOptions,
-	ProgramInvokeOptions,
 	ProgramInvoker,
 	ProgramModule,
 	ProgramProcess,
 } from "./base";
 import { absolute } from "../../lib/path";
 
-class CppIniter extends ProgramIniter implements ProgramIniter {
+type CppOptions = {
+	std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
+};
+
+class CppIniter
+	extends ProgramIniter<CppInvoker>
+	implements ProgramIniter<CppInvoker>
+{
 	readonly child: ChildProcess;
-	readonly compilerArgs: string[];
-	private _compilerStderr: string | undefined = undefined;
+	readonly args: string[];
 	private _abortController = new AbortController();
 
 	constructor(
 		readonly programPath: string,
-		{ execOptions, cppOptions: { std = "c++20" } = {} }: ProgramInitOptions = {}
+		{ std = "c++20" }: CppOptions = {}
 	) {
 		const { promise, resolve, reject } = Promise.withResolvers<CppInvoker>();
 		super(promise, () => this._abortController.abort());
@@ -33,7 +37,7 @@ class CppIniter extends ProgramIniter implements ProgramIniter {
 		// a relative path.
 		const executablePath = "./" + path.join(dir, name);
 
-		this.compilerArgs = [
+		this.args = [
 			"/opt/homebrew/bin/g++-14",
 			"-o",
 			executablePath,
@@ -44,12 +48,10 @@ class CppIniter extends ProgramIniter implements ProgramIniter {
 		];
 
 		this.child = exec(
-			this.compilerArgs[0],
-			this.compilerArgs.slice(1),
-			{ ...execOptions, signal: this._abortController.signal },
+			this.args[0],
+			this.args.slice(1),
+			{ signal: this._abortController.signal },
 			(error, _stdout, stderr) => {
-				this._compilerStderr = stderr.toString("utf8") || undefined;
-
 				if (error) {
 					if (error.name === "AbortError")
 						return reject(
@@ -74,23 +76,21 @@ class CppIniter extends ProgramIniter implements ProgramIniter {
 					return reject(error);
 				}
 
-				resolve(new CppInvoker(this, executablePath));
+				const warning = stderr.toString("utf8") || undefined;
+				resolve(new CppInvoker(this, executablePath, warning));
 			}
 		);
-	}
-
-	get compilerStderr(): string | undefined {
-		return this._compilerStderr;
 	}
 }
 
 class CppInvoker implements ProgramInvoker {
 	constructor(
 		readonly initer: CppIniter,
-		readonly executablePath: string
+		readonly executablePath: string,
+		readonly warning: string | undefined
 	) {}
 
-	invoke(options?: ProgramInvokeOptions): ProgramProcess {
+	invoke(options?: SpawnOptions): ProgramProcess {
 		return new ProgramProcess(this, this.executablePath, [], options);
 	}
 }
@@ -103,8 +103,12 @@ export function isCppInvoker(value: any): value is CppInvoker {
 	return value instanceof CppInvoker;
 }
 
-const cpp: ProgramModule = (
+interface CppModule extends ProgramModule {
+	(programPath: string, cppOptions?: CppOptions): CppIniter;
+}
+
+const cpp: CppModule = (
 	programPath: string,
-	options?: ProgramInitOptions
-): ProgramIniter => new CppIniter(programPath, options);
+	cppOptions?: CppOptions
+): CppIniter => new CppIniter(programPath, cppOptions);
 export default cpp;

@@ -7,13 +7,14 @@ import { KillablePromise } from "../lib/KillablePromise";
 //
 // A workaround is to define a dummy class of the same name as the interface
 // and extend the dummy class while implementing the interface.
-export class Initer extends KillablePromise<Invoker> {}
-export interface Initer extends KillablePromise<Invoker> {}
+export class Initer<T extends Invoker = Invoker> extends KillablePromise<T> {}
+export interface Initer<T extends Invoker = Invoker>
+	extends KillablePromise<T> {}
 
 // Custom errors help distinguish handled errors.
 export class InitError extends Error {
 	constructor(
-		readonly initer: Initer,
+		readonly initer: Initer<any>,
 		message: string,
 		options?: ErrorOptions
 	) {
@@ -23,6 +24,7 @@ export class InitError extends Error {
 
 export interface Invoker {
 	readonly initer: Initer;
+	readonly warning: string | undefined;
 
 	invoke(...args: any[]): any;
 }
@@ -38,13 +40,18 @@ export class InvokeError extends Error {
 }
 
 // Based on shell processes.
-export class Process extends KillablePromise<void> {}
-export interface Process extends KillablePromise<void> {
+export class Process extends KillablePromise<ExitStatus> {}
+export interface Process extends KillablePromise<ExitStatus> {
 	readonly invoker: Invoker;
 	readonly stdin: Writable;
 	readonly stdout: Readable;
 	readonly stderr: Readable;
 }
+
+export type ExitStatus = {
+	exitCode: number | null;
+	signalCode: NodeJS.Signals | null;
+};
 
 export class ProcessError extends Error {
 	constructor(

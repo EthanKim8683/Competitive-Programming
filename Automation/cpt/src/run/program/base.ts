@@ -1,31 +1,22 @@
-import { ChildProcess, ExecOptions, spawn, SpawnOptions } from "child_process";
+import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Readable, Writable } from "stream";
 
-import { Initer, Invoker, Process, ProcessError } from "../base";
+import { ExitStatus, Initer, Invoker, Process } from "../base";
 import { NullReadable, NullWritable } from "../../lib/stream";
 
-export class ProgramIniter extends Initer {}
-export interface ProgramIniter extends Initer {
-	readonly promise: Promise<ProgramInvoker>;
+export class ProgramIniter<
+	T extends ProgramInvoker = ProgramInvoker,
+> extends Initer<T> {}
+export interface ProgramIniter<T extends ProgramInvoker = ProgramInvoker>
+	extends Initer<T> {
 	readonly programPath: string;
 }
-
-export type ProgramInitOptions = {
-	execOptions?: ExecOptions;
-	cppOptions?: {
-		std?: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | "c++23";
-	};
-};
 
 export interface ProgramInvoker extends Invoker {
 	readonly initer: ProgramIniter;
 
-	invoke(options?: ProgramInvokeOptions): ProgramProcess;
+	invoke(options?: SpawnOptions): ProgramProcess;
 }
-
-export type ProgramInvokeOptions = {
-	spawnOptions?: SpawnOptions;
-};
 
 export class ProgramProcess extends Process implements Process {
 	readonly child: ChildProcess;
@@ -38,13 +29,13 @@ export class ProgramProcess extends Process implements Process {
 		readonly invoker: ProgramInvoker,
 		command: string,
 		args: string[] = [],
-		{ spawnOptions = {} }: ProgramInvokeOptions = {}
+		options: SpawnOptions = {}
 	) {
-		const { promise, resolve, reject } = Promise.withResolvers<void>();
+		const { promise, resolve, reject } = Promise.withResolvers<ExitStatus>();
 		super(promise, () => this._abortController.abort());
 
 		this.child = spawn(command, args, {
-			...spawnOptions,
+			...options,
 			signal: this._abortController.signal,
 		});
 
@@ -52,20 +43,19 @@ export class ProgramProcess extends Process implements Process {
 		this.stdout = this.child.stdout ?? new NullReadable();
 		this.stderr = this.child.stderr ?? new NullReadable();
 
-		this.child.on("exit", () => resolve());
+		this.child.on("exit", (exitCode, signalCode) =>
+			resolve({ exitCode, signalCode })
+		);
 
 		this.child.on("error", (err) => {
 			if (err.name === "AbortError")
-				return reject(
-					new ProcessError(this, "Process aborted", { cause: err })
-				);
+				return resolve({ exitCode: null, signalCode: "SIGABRT" });
 
 			reject(err);
 		});
 	}
 }
 
-export type ProgramModule = (
-	programPath: string,
-	options?: ProgramInitOptions
-) => ProgramIniter;
+export interface ProgramModule {
+	(programPath: string): ProgramIniter;
+}

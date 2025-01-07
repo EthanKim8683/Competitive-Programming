@@ -2,16 +2,19 @@ import fs from "fs";
 import path from "path";
 
 import {
+	ExitStatus,
 	Initer,
 	InitError,
 	InvokeError,
 	Invoker,
 	Process,
-	ProcessError,
 } from "./base";
 import { NullReadable, NullWritable } from "../lib/stream";
 
-class ReadDirIniter extends Initer implements Initer {
+class ReadDirIniter
+	extends Initer<ReadDirInvoker>
+	implements Initer<ReadDirInvoker>
+{
 	constructor(readonly dirPath: string) {
 		const { promise, resolve, reject } =
 			Promise.withResolvers<ReadDirInvoker>();
@@ -36,6 +39,8 @@ class ReadDirIniter extends Initer implements Initer {
 }
 
 class ReadDirInvoker implements Invoker {
+	warning: string | undefined = undefined;
+
 	constructor(
 		readonly initer: ReadDirIniter,
 		readonly fileBasenames: string[]
@@ -65,7 +70,7 @@ class ReadFileProcess extends Process implements Process {
 		readonly invoker: Invoker,
 		filePath: string
 	) {
-		const { promise, resolve, reject } = Promise.withResolvers<void>();
+		const { promise, resolve, reject } = Promise.withResolvers<ExitStatus>();
 		super(promise, () => this._abortController.abort());
 
 		this.stream = fs.createReadStream(filePath, {
@@ -76,17 +81,16 @@ class ReadFileProcess extends Process implements Process {
 		this.stdout = this.stream;
 		this.stderr = new NullReadable();
 
-		this.stream.on("close", () => resolve());
+		this.stream.on("close", () => resolve({ exitCode: 0, signalCode: null }));
 
-		this.stream.on("error", (err: NodeJS.ErrnoException) => {
+		this.stream.on("error", (err) => {
 			if (err.name === "AbortError")
-				return reject(
-					new ProcessError(this, "Process aborted", { cause: err })
-				);
+				return resolve({ exitCode: null, signalCode: "SIGABRT" });
 
-			return reject(
-				new ProcessError(this, "Could not open file", { cause: err })
-			);
+			// I don't know enough about the kinds of errors ReadStreams can throw
+			// to handle them thoroughly.
+			// TODO: Research ReadStream errors and handle appropriately.
+			reject(err);
 		});
 	}
 }

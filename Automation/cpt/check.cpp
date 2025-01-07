@@ -11,7 +11,7 @@ int main() {
 	cin >> c;
 
 	if (a + b != c)
-		cout << a << " + " << b << " != " << c;
+		cerr << a << " + " << b << " != " << c;
 	else
 		cout << "AC";
 }
