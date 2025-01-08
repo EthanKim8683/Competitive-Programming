@@ -1,11 +1,7 @@
 import path from "path";
+import fs from "fs";
 
-import { ProgramIniter, ProgramInvoker } from "./program/base";
-import cpp from "./program/cpp";
-import cpp17 from "./program/cpp17";
-import cpp20 from "./program/cpp20";
-import cpp23 from "./program/cpp23";
-import python3 from "./program/python3";
+import { ProgramIniter, ProgramInvoker, ProgramModule } from "./program/base";
 import { InitError } from "./base";
 
 export function getLanguage(programPath: string): string | undefined {
@@ -20,6 +16,22 @@ export function getLanguage(programPath: string): string | undefined {
 	}[path.extname(programPath)];
 
 	return language;
+}
+
+const cache: Record<string, ProgramModule> = {};
+export function getProgramModule(language: string): ProgramModule | undefined {
+	if (cache.hasOwnProperty(language)) return cache[language];
+
+	const programDirPath = path.join(__dirname, "program"),
+		programModulePath = path.join(programDirPath, `${language}.ts`);
+	if (
+		path.normalize(programDirPath) !==
+			path.normalize(path.dirname(programModulePath)) ||
+		!fs.existsSync(programModulePath)
+	)
+		return;
+
+	return (cache[language] = require(programModulePath));
 }
 
 class ErrorProgramIniter extends ProgramIniter implements ProgramIniter {
@@ -46,18 +58,12 @@ const program = (
 			{ cause: { filename: programPath } }
 		);
 
-	const program = {
-		cpp,
-		cpp17,
-		cpp20,
-		cpp23,
-		python3,
-	}[language];
-	if (!program)
+	const programModule = getProgramModule(language);
+	if (!programModule)
 		return new ErrorProgramIniter(programPath, "Unsupported language", {
 			cause: { language },
 		});
 
-	return program(programPath);
+	return programModule(programPath);
 };
 export default program;

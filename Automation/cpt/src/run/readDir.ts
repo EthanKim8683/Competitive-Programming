@@ -8,6 +8,7 @@ import {
 	InvokeError,
 	Invoker,
 	Process,
+	ProcessError,
 } from "./base";
 import { NullReadable, NullWritable } from "../lib/stream";
 
@@ -39,7 +40,7 @@ class ReadDirIniter
 }
 
 class ReadDirInvoker implements Invoker {
-	warning: string | undefined = undefined;
+	readonly warning: string | undefined = undefined;
 
 	constructor(
 		readonly initer: ReadDirIniter,
@@ -87,9 +88,9 @@ class ReadFileProcess extends Process implements Process {
 			if (err.name === "AbortError")
 				return resolve({ exitCode: null, signalCode: "SIGABRT" });
 
-			// I don't know enough about the kinds of errors ReadStreams can throw
-			// to handle them thoroughly.
-			// TODO: Research ReadStream errors and handle appropriately.
+			if (err.hasOwnProperty("syscall"))
+				return new ProcessError(this, "Could not open file", { cause: err });
+
 			reject(err);
 		});
 	}
