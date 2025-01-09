@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# CLI command for cnr.sh
+# CLI for cnr.sh
 # $1 = program path
 # $2 = language (optional)
+
+# TODO: Interface
 
 cpdir="$HOME/Desktop/Competitive-Programming"
 ( [ -z "$1" ] || [[ "$(realpath "$1")" != "$cpdir"/* ]] ) \

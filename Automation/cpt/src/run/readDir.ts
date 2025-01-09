@@ -1,100 +1,89 @@
-import fs from "fs";
+import fs, { ReadStream } from "fs";
 import path from "path";
 
-import {
-	ExitStatus,
-	Initer,
-	InitError,
-	InvokeError,
-	Invoker,
-	Process,
-	ProcessError,
-} from "./base";
-import { NullReadable, NullWritable } from "../lib/stream";
+import { KillablePromise } from "../utils/KillablePromise";
+import { ContextfulError, isSystemError, Result } from "../utils/errors";
 
-class ReadDirIniter
-	extends Initer<ReadDirInvoker>
-	implements Initer<ReadDirInvoker>
-{
+class ReadingDir extends KillablePromise<Result<ReadFile>> {
+	private _fileNames?: string[];
+
 	constructor(readonly dirPath: string) {
 		const { promise, resolve, reject } =
-			Promise.withResolvers<ReadDirInvoker>();
+			Promise.withResolvers<Result<ReadFile>>();
 		super(promise);
 
-		fs.readdir(dirPath, { withFileTypes: true }, (err, dirents) => {
-			if (err)
-				return reject(
-					new InitError(this, "Could not read directory", { cause: err })
-				);
+		fs.readdir(dirPath, (err, files) => {
+			if (err) {
+				if (err.syscall === "scandir")
+					return resolve({
+						success: false,
+						error: new ContextfulError(
+							"Could not read directory",
+							{ dirPath },
+							{ cause: err }
+						),
+					});
 
-			resolve(
-				new ReadDirInvoker(
-					this,
-					dirents
-						.filter((dirent) => dirent.isFile())
-						.map((dirent) => dirent.name)
-				)
-			);
-		});
-	}
-}
+				return reject(err);
+			}
 
-class ReadDirInvoker implements Invoker {
-	readonly warning: string | undefined = undefined;
+			this._fileNames = files;
+			resolve({
+				success: true,
+				result: (fileName: string): Result<ReadingFile> => {
+					if (!files.includes(fileName))
+						return {
+							success: false,
+							error: new ContextfulError(
+								"Provided file name is not among those present in directory",
+								{ fileName, allowedFileNames: files }
+							),
+						};
 
-	constructor(
-		readonly initer: ReadDirIniter,
-		readonly fileBasenames: string[]
-	) {}
-
-	invoke(fileBasename: string): ReadFileProcess {
-		if (!this.fileBasenames.includes(fileBasename))
-			throw new InvokeError(this, "Could not find file in directory", {
-				cause: { fileBasename, knownFileBasenames: this.fileBasenames },
+					return { success: true, result: new ReadingFile(this, fileName) };
+				},
 			});
+		});
+	}
 
-		return new ReadFileProcess(
-			this,
-			path.join(this.initer.dirPath, fileBasename)
-		);
+	get fileNames() {
+		return this._fileNames;
 	}
 }
 
-class ReadFileProcess extends Process implements Process {
-	readonly stream;
-	readonly stdin;
-	readonly stdout;
-	readonly stderr;
-	private _abortController = new AbortController();
+type ReadFile = (fileName: string) => Result<ReadingFile>;
 
-	constructor(
-		readonly invoker: Invoker,
-		filePath: string
-	) {
-		const { promise, resolve, reject } = Promise.withResolvers<ExitStatus>();
-		super(promise, () => this._abortController.abort());
+class ReadingFile extends KillablePromise<Result<void>> {
+	readonly stream: ReadStream;
 
+	constructor(readingDir: ReadingDir, fileName: string) {
+		const { promise, resolve, reject } = Promise.withResolvers<Result<void>>();
+		const abortController = new AbortController();
+		super(promise, () => abortController.abort());
+
+		const filePath = path.join(readingDir.dirPath, fileName);
 		this.stream = fs.createReadStream(filePath, {
-			signal: this._abortController.signal,
+			signal: abortController.signal,
 		});
 
-		this.stdin = new NullWritable();
-		this.stdout = this.stream;
-		this.stderr = new NullReadable();
-
-		this.stream.on("close", () => resolve({ exitCode: 0, signalCode: null }));
+		this.stream.on("close", () =>
+			resolve({ success: true, result: undefined })
+		);
 
 		this.stream.on("error", (err) => {
-			if (err.name === "AbortError")
-				return resolve({ exitCode: null, signalCode: "SIGABRT" });
-
-			if (err.hasOwnProperty("syscall"))
-				return new ProcessError(this, "Could not open file", { cause: err });
+			if (isSystemError(err) && err.syscall === "open")
+				return resolve({
+					success: false,
+					error: new ContextfulError(
+						"Could not open file",
+						{ filePath },
+						{ cause: err }
+					),
+				});
 
 			reject(err);
 		});
 	}
 }
 
-const readDir = (dirPath: string): ReadDirIniter => new ReadDirIniter(dirPath);
-export default readDir;
+export default (dirPath: string) => new ReadingDir(dirPath);

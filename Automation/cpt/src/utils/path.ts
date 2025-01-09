@@ -1,7 +1,7 @@
 import os from "os";
 import path from "path";
 
-// Works for zsh.
+// Works for zsh
 export function absolute(pathString: string): string {
 	if (pathString.length < 1) return pathString;
 

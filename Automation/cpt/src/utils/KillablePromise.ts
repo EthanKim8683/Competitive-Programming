@@ -17,7 +17,6 @@ export type SettledKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: SettledKillablePromise<T[K]>;
 };
 
-// Promises that you can kill. For processes and more.
 export class KillablePromise<T> {
 	private static _livingPromises = (() => {
 		const livingPromises = new Set<KillablePromise<any>>();

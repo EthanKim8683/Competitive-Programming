@@ -1,69 +1,123 @@
+import { Readable, Writable } from "stream";
+import { spawn, SpawnOptions } from "child_process";
 import path from "path";
-import fs from "fs";
 
-import { ProgramIniter, ProgramInvoker, ProgramModule } from "./program/base";
-import { InitError } from "./base";
+import { KillablePromise } from "../utils/KillablePromise";
+import { exec } from "../utils/child_process";
+import { absolute } from "../utils/path";
+import { NullReadable, NullWritable } from "../utils/stream";
+import { ContextfulError, Result } from "../utils/errors";
 
-export function getLanguage(programPath: string): string | undefined {
-	let language: string | undefined;
+const compilePath = path.join(__dirname, "../../../cnr/compile.sh");
+class Compilation extends KillablePromise<Result<Runner>> {
+	private _executablePath?: string;
+	private _compilerWarning?: string;
 
-	// For files that specify language via filename (name.language.ext).
-	language ??= /(?<=[^./]*\.)[^./]*(?=\.[^./]*$)/.exec(programPath)?.[0];
-
-	language ??= {
-		".cpp": "cpp",
-		".py": "python3",
-	}[path.extname(programPath)];
-
-	return language;
-}
-
-const cache: Record<string, ProgramModule> = {};
-export function getProgramModule(language: string): ProgramModule | undefined {
-	if (cache.hasOwnProperty(language)) return cache[language];
-
-	const programDirPath = path.join(__dirname, "program"),
-		programModulePath = path.join(programDirPath, `${language}.ts`);
-	if (
-		path.normalize(programDirPath) !==
-			path.normalize(path.dirname(programModulePath)) ||
-		!fs.existsSync(programModulePath)
-	)
-		return;
-
-	return (cache[language] = require(programModulePath));
-}
-
-class ErrorProgramIniter extends ProgramIniter implements ProgramIniter {
 	constructor(
 		readonly programPath: string,
-		message: string,
-		options?: ErrorOptions
+		language?: string
 	) {
-		const { promise, reject } = Promise.withResolvers<ProgramInvoker>();
-		super(promise);
-		reject(new InitError(this, message, options));
+		const { promise, resolve, reject } =
+			Promise.withResolvers<Result<Runner>>();
+		const abortController = new AbortController();
+		super(promise, () => abortController.abort());
+
+		const { dir, name } = path.parse(absolute(programPath));
+		const executablePath = path.join(dir, name);
+
+		const args = [programPath, executablePath];
+		if (language) args.push(language);
+
+		const child = exec(
+			compilePath,
+			args,
+			{ signal: abortController.signal },
+			(error, _stdout, stderr) => {
+				if (error) {
+					if (error.name === "AbortError")
+						return resolve({
+							success: false,
+							error: new Error("Compilation aborted", { cause: error }),
+						});
+
+					if (child.exitCode !== 0)
+						return resolve({
+							success: false,
+							error: new ContextfulError(
+								"Compilation exited with non-zero exit code",
+								{ exitCode: child.exitCode }
+							),
+						});
+
+					if (child.signalCode !== null)
+						return resolve({
+							success: false,
+							error: new ContextfulError("Compilation terminated", {
+								signalCode: child.signalCode,
+							}),
+						});
+
+					return reject(error);
+				}
+
+				this._executablePath = executablePath;
+				this._compilerWarning = stderr.toString("utf8");
+				resolve({
+					success: true,
+					result: (options: SpawnOptions = {}) => new Process(this, options),
+				});
+			}
+		);
+	}
+
+	get executablePath() {
+		return this._executablePath;
+	}
+
+	get compilerWarning() {
+		return this._compilerWarning;
 	}
 }
 
-const program = (
-	programPath: string,
-	language?: string
-): ProgramIniter<ProgramInvoker> => {
-	language ??= getLanguage(programPath);
-	if (!language)
-		return new ErrorProgramIniter(
-			programPath,
-			"Could not infer language from filename",
-			{ cause: { filename: programPath } }
-		);
+type Runner = (options?: SpawnOptions) => Process;
 
-	const programModule = getProgramModule(language);
-	if (!programModule)
-		return new ErrorProgramIniter(programPath, "Unsupported language", {
-			cause: { language },
+// Based on shell processes
+class Process extends KillablePromise<ExitStatus> {
+	readonly stdin: Writable;
+	readonly stdout: Readable;
+	readonly stderr: Readable;
+
+	constructor(compilation: Compilation, options: SpawnOptions = {}) {
+		const { promise, resolve, reject } = Promise.withResolvers<ExitStatus>();
+		const abortController = new AbortController();
+		super(promise, () => abortController.abort());
+
+		const child = spawn(compilation.executablePath!, [], {
+			...options,
+			signal: abortController.signal,
 		});
 
-	return programModule(programPath);
+		this.stdin = child.stdin ?? new NullWritable();
+		this.stdout = child.stdout ?? new NullReadable();
+		this.stderr = child.stderr ?? new NullReadable();
+
+		child.on("exit", (exitCode, signalCode) =>
+			resolve({ exitCode, signalCode })
+		);
+
+		child.on("error", (err) => {
+			if (err.name === "AbortError")
+				return resolve({ exitCode: null, signalCode: "SIGABRT" });
+
+			reject(err);
+		});
+	}
+}
+
+type ExitStatus = {
+	exitCode: number | null;
+	signalCode: NodeJS.Signals | null;
 };
-export default program;
+
+export default (programPath: string, language?: string) =>
+	new Compilation(programPath, language);

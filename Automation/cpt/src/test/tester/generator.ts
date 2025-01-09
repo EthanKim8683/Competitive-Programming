@@ -49,9 +49,9 @@ const generator: TesterModule<GeneratorTestSet> = async (
 		initTogetherResult.invokers;
 
 	async function runTestCase(key: number): Promise<TestCaseResult> {
-		const solutionProcess = solutionInvoker.invoke(),
-			generatorProcess = generatorInvoker.invoke(),
-			checkerProcess = checkerInvoker.invoke(),
+		const solutionProcess = solutionInvoker(),
+			generatorProcess = generatorInvoker(),
+			checkerProcess = checkerInvoker(),
 			checkerWritable = new WritableString();
 
 		Readable.from(`${key}`).pipe(generatorProcess.stdin);

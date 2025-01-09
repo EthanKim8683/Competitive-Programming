@@ -6,6 +6,13 @@ import samples from "./test/tester/samples";
 import { inspect } from "util";
 
 // (async () => {
+// 	const s = await program("hello.cpp").promise;
+// 	const sp = s({ stdio: "inherit" });
+// 	const se = await sp.promise;
+// 	console.log(se);
+// })();
+
+// (async () => {
 // 	console.log("Initing!");
 //
 // 	const [g, c, s] = await KillablePromise.all([

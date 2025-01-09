@@ -1,6 +1,6 @@
 #!/opt/homebrew/bin/bash
 
-# Compiles otherwise compiled or interpreted programs into executables
+# Compiles programs into executables
 # $1 = program path
 # $2 = executable path
 # $3 = language (optional)
@@ -31,7 +31,6 @@ function compile_cpp {
 
 	g++-14 -o "$2" "$1" "$std_arg" -O2 -DETHANKIM8683 \
 		|| exit 1
-	exit 0
 }
 
 # $1 = program path
@@ -47,12 +46,12 @@ function compile_python3 {
 		|| ( echo "could not write to file '$2'" 1>&2 && exit 1 )
 	chmod u+x "$2" \
 		|| ( echo "could not mark file '$2' as executable" 1>&2 && exit 1 )
-	exit "$?"
 }
 
 [ -z "$3" ] \
 	&& lang="$(infer_language_using_filename "$1")" \
 	|| lang="$3"
+
 case "$lang" in
 	cpp) compile_cpp "$1" "$2" ;;
 	cpp17) compile_cpp "$1" "$2" "c++17" ;;

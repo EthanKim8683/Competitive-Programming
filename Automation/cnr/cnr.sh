@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Compiles and executes otherwise compiled or interpreted programs
+# Compiles and runs programs
 # $1 = program path
 # $2 = language (optional)
 
