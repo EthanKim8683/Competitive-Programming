@@ -18,7 +18,7 @@ function infer_language_using_filename {
 		py) echo "python3" && return ;;
 	esac
 
-	echo "could not infer language of file '$1'" 1>&2
+	echo "Could not infer language of file '$1'" 1>&2
 	exit 1
 }
 
@@ -37,15 +37,15 @@ function compile_cpp {
 # $2 = executable path
 function compile_python3 {
 	[ ! -r "$1" ] \
-		&& echo "file '$1' is not readable" 1>&2 && exit 1
+		&& echo "File '$1' is not readable" 1>&2 && exit 1
 	[ -f "$2" ] && [ ! -w "$2" ] \
-		&& echo "file '$2' is not writable" 1>&2 && exit 1
+		&& echo "File '$2' is not writable" 1>&2 && exit 1
 
 	printf $"#!/opt/homebrew/bin/python3\n\n" > "$2" \
 		&& cat "$1" >> "$2" \
-		|| ( echo "could not write to file '$2'" 1>&2 && exit 1 )
+		|| ( echo "Could not write to file '$2'" 1>&2 && exit 1 )
 	chmod u+x "$2" \
-		|| ( echo "could not mark file '$2' as executable" 1>&2 && exit 1 )
+		|| ( echo "Could not mark file '$2' as executable" 1>&2 && exit 1 )
 }
 
 [ -z "$3" ] \
@@ -58,5 +58,5 @@ case "$lang" in
 	cpp20) compile_cpp "$1" "$2" "c++20" ;;
 	cpp23) compile_cpp "$1" "$2" "c++23" ;;
 	python3) compile_python3 "$1" "$2" ;;
-	*) echo "unknown language '$lang'" && exit 1 ;;
+	*) echo "Unknown language '$lang'" && exit 1 ;;
 esac

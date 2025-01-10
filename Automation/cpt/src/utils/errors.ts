@@ -32,7 +32,7 @@ export function isSystemError(value: any): value is SystemError {
 // https://medium.com/with-orus/the-5-commandments-of-clean-error-handling-in-ty
 // pescript-93a9cbdf1af5
 
-// Required to implement commandment #4:
+// Commandment #4:
 export class ContextfulError extends Error {
 	constructor(
 		message: string,

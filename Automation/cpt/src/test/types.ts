@@ -42,21 +42,17 @@ export type Context = {
 	solutionLanguage?: string;
 };
 
-export type TestCaseResult = {
-	verdict: string;
+export type Verdict = {
+	symbol: string;
 	reason?: any;
 };
 
 export type TestSetResult = {
-	initResults: Record<string, ResultWithVerdict<any>>;
-	// For cases with generated input, the corresponding key must be integer-
-	// parsable to seed the generator.
-	caseResults?: Record<string, TestCaseResult>;
+	initVerdicts: [string, Verdict][];
+	caseVerdicts?: [string, Verdict][] | [number, Verdict][];
 };
 
 export type TesterModule<T extends TestSet> = (
 	context: Context,
 	testSet: T
 ) => Promise<TestSetResult>;
-
-export type ResultWithVerdict<T> = Result<T> & { verdict: string };

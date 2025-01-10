@@ -4,12 +4,12 @@ import path from "path";
 import { KillablePromise } from "../utils/KillablePromise";
 import { ContextfulError, isSystemError, Result } from "../utils/errors";
 
-class ReadingDir extends KillablePromise<Result<ReadFile>> {
+export class Indexer extends KillablePromise<Result<ReaderCallable>> {
 	private _fileNames?: string[];
 
 	constructor(readonly dirPath: string) {
 		const { promise, resolve, reject } =
-			Promise.withResolvers<Result<ReadFile>>();
+			Promise.withResolvers<Result<ReaderCallable>>();
 		super(promise);
 
 		fs.readdir(dirPath, (err, files) => {
@@ -30,7 +30,7 @@ class ReadingDir extends KillablePromise<Result<ReadFile>> {
 			this._fileNames = files;
 			resolve({
 				success: true,
-				result: (fileName: string): Result<ReadingFile> => {
+				result: (fileName: string): Result<Reader> => {
 					if (!files.includes(fileName))
 						return {
 							success: false,
@@ -40,7 +40,7 @@ class ReadingDir extends KillablePromise<Result<ReadFile>> {
 							),
 						};
 
-					return { success: true, result: new ReadingFile(this, fileName) };
+					return { success: true, result: new Reader(this, fileName) };
 				},
 			});
 		});
@@ -51,17 +51,17 @@ class ReadingDir extends KillablePromise<Result<ReadFile>> {
 	}
 }
 
-type ReadFile = (fileName: string) => Result<ReadingFile>;
+export type ReaderCallable = (fileName: string) => Result<Reader>;
 
-class ReadingFile extends KillablePromise<Result<void>> {
+export class Reader extends KillablePromise<Result<void>> {
 	readonly stream: ReadStream;
 
-	constructor(readingDir: ReadingDir, fileName: string) {
+	constructor(indexer: Indexer, fileName: string) {
 		const { promise, resolve, reject } = Promise.withResolvers<Result<void>>();
 		const abortController = new AbortController();
 		super(promise, () => abortController.abort());
 
-		const filePath = path.join(readingDir.dirPath, fileName);
+		const filePath = path.join(indexer.dirPath, fileName);
 		this.stream = fs.createReadStream(filePath, {
 			signal: abortController.signal,
 		});
@@ -86,4 +86,4 @@ class ReadingFile extends KillablePromise<Result<void>> {
 	}
 }
 
-export default (dirPath: string) => new ReadingDir(dirPath);
+export default (dirPath: string) => new Indexer(dirPath);

@@ -6,6 +6,7 @@ export type KillablePromises<T extends readonly any[]> = {
 
 export type AwaitedKillablePromise<T> =
 	T extends KillablePromise<infer S> ? S : T extends Promise<infer U> ? U : T;
+
 export type AwaitedKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: AwaitedKillablePromise<T[K]>;
 };
@@ -13,6 +14,7 @@ export type AwaitedKillablePromises<T extends readonly any[]> = {
 export type SettledKillablePromise<T> = PromiseSettledResult<
 	AwaitedKillablePromise<T>
 >;
+
 export type SettledKillablePromises<T extends readonly any[]> = {
 	[K in keyof T]: SettledKillablePromise<T[K]>;
 };

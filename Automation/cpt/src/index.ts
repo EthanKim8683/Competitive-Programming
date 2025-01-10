@@ -1,6 +1,4 @@
 import program from "./run/program";
-import { KillablePromise, KillablePromises } from "./lib/KillablePromise";
-import { allFulfilled } from "./lib/js";
 import generator from "./test/tester/generator";
 import samples from "./test/tester/samples";
 import { inspect } from "util";
@@ -36,6 +34,15 @@ import { inspect } from "util";
 // 	console.log("Done!");
 // })();
 
+// (async () => {
+// 	const result = await program("sol.cpp").promise;
+// 	if (result.success) {
+// 		console.log("Success! Running...");
+// 		const callable = result.result;
+// 		await callable({ stdio: "inherit" }).promise;
+// 	}
+// })();
+
 (async () => {
 	const r = await generator(
 		{ solutionPath: "sol.cpp" },
@@ -47,7 +54,7 @@ import { inspect } from "util";
 		}
 	);
 
-	console.log(r);
+	console.log(inspect(r, { depth: 5 }));
 })();
 
 // (async () => {

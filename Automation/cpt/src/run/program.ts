@@ -9,7 +9,7 @@ import { NullReadable, NullWritable } from "../utils/stream";
 import { ContextfulError, Result } from "../utils/errors";
 
 const compilePath = path.join(__dirname, "../../../cnr/compile.sh");
-class Compilation extends KillablePromise<Result<Runner>> {
+export class Compiler extends KillablePromise<Result<ProcessCallable>> {
 	private _executablePath?: string;
 	private _compilerWarning?: string;
 
@@ -18,7 +18,7 @@ class Compilation extends KillablePromise<Result<Runner>> {
 		language?: string
 	) {
 		const { promise, resolve, reject } =
-			Promise.withResolvers<Result<Runner>>();
+			Promise.withResolvers<Result<ProcessCallable>>();
 		const abortController = new AbortController();
 		super(promise, () => abortController.abort());
 
@@ -33,6 +33,8 @@ class Compilation extends KillablePromise<Result<Runner>> {
 			args,
 			{ signal: abortController.signal },
 			(error, _stdout, stderr) => {
+				stderr = stderr.toString("utf8");
+
 				if (error) {
 					if (error.name === "AbortError")
 						return resolve({
@@ -45,7 +47,7 @@ class Compilation extends KillablePromise<Result<Runner>> {
 							success: false,
 							error: new ContextfulError(
 								"Compilation exited with non-zero exit code",
-								{ exitCode: child.exitCode }
+								{ exitCode: child.exitCode, compilerError: stderr }
 							),
 						});
 
@@ -54,6 +56,7 @@ class Compilation extends KillablePromise<Result<Runner>> {
 							success: false,
 							error: new ContextfulError("Compilation terminated", {
 								signalCode: child.signalCode,
+								compilerError: stderr,
 							}),
 						});
 
@@ -61,7 +64,7 @@ class Compilation extends KillablePromise<Result<Runner>> {
 				}
 
 				this._executablePath = executablePath;
-				this._compilerWarning = stderr.toString("utf8");
+				this._compilerWarning = stderr;
 				resolve({
 					success: true,
 					result: (options: SpawnOptions = {}) => new Process(this, options),
@@ -79,20 +82,20 @@ class Compilation extends KillablePromise<Result<Runner>> {
 	}
 }
 
-type Runner = (options?: SpawnOptions) => Process;
+export type ProcessCallable = (options?: SpawnOptions) => Process;
 
 // Based on shell processes
-class Process extends KillablePromise<ExitStatus> {
+export class Process extends KillablePromise<ExitStatus> {
 	readonly stdin: Writable;
 	readonly stdout: Readable;
 	readonly stderr: Readable;
 
-	constructor(compilation: Compilation, options: SpawnOptions = {}) {
+	constructor(compiler: Compiler, options: SpawnOptions = {}) {
 		const { promise, resolve, reject } = Promise.withResolvers<ExitStatus>();
 		const abortController = new AbortController();
 		super(promise, () => abortController.abort());
 
-		const child = spawn(compilation.executablePath!, [], {
+		const child = spawn(compiler.executablePath!, [], {
 			...options,
 			signal: abortController.signal,
 		});
@@ -114,10 +117,10 @@ class Process extends KillablePromise<ExitStatus> {
 	}
 }
 
-type ExitStatus = {
+export type ExitStatus = {
 	exitCode: number | null;
 	signalCode: NodeJS.Signals | null;
 };
 
 export default (programPath: string, language?: string) =>
-	new Compilation(programPath, language);
+	new Compiler(programPath, language);
