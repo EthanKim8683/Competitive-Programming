@@ -4,14 +4,13 @@ import path from "path";
 
 import { KillablePromise } from "../utils/KillablePromise";
 import { exec } from "../utils/child_process";
-import { absolute } from "../utils/path";
 import { NullReadable, NullWritable } from "../utils/stream";
 import { ContextfulError, Result } from "../utils/errors";
 
-const compilePath = path.join(__dirname, "../../../cnr/compile.sh");
+const compilePath = path.join(__dirname, "../../../cnr/cached_compile.sh");
 export class Compiler extends KillablePromise<Result<ProcessCallable>> {
-	private _executablePath?: string;
 	private _compilerWarning?: string;
+	private _executablePath?: string;
 
 	constructor(
 		readonly programPath: string,
@@ -22,17 +21,15 @@ export class Compiler extends KillablePromise<Result<ProcessCallable>> {
 		const abortController = new AbortController();
 		super(promise, () => abortController.abort());
 
-		const { dir, name } = path.parse(absolute(programPath));
-		const executablePath = path.join(dir, name);
-
-		const args = [programPath, executablePath];
+		const args = [programPath];
 		if (language) args.push(language);
 
 		const child = exec(
 			compilePath,
 			args,
 			{ signal: abortController.signal },
-			(error, _stdout, stderr) => {
+			(error, stdout, stderr) => {
+				stdout = stdout.toString("utf8");
 				stderr = stderr.toString("utf8");
 
 				if (error) {
@@ -63,7 +60,7 @@ export class Compiler extends KillablePromise<Result<ProcessCallable>> {
 					return reject(error);
 				}
 
-				this._executablePath = executablePath;
+				this._executablePath = stdout;
 				this._compilerWarning = stderr;
 				resolve({
 					success: true,

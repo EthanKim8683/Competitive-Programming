@@ -4,4 +4,6 @@
 # $1 = program path
 # $2 = language (optional)
 
-"$(./cached_compile.sh "$1" "$2")"
+dir=$(dirname "$0")
+
+"$("$dir/cached_compile.sh" "$1" "$2")"

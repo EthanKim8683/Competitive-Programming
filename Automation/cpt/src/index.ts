@@ -4,10 +4,13 @@ import samples from "./test/tester/samples";
 import { inspect } from "util";
 
 // (async () => {
-// 	const s = await program("hello.cpp").promise;
-// 	const sp = s({ stdio: "inherit" });
-// 	const se = await sp.promise;
-// 	console.log(se);
+// 	const result = await program("hello.cpp").promise;
+// 	if (result.success) {
+// 		const s = result.result;
+// 		const sp = s({ stdio: "inherit" });
+// 		const se = await sp.promise;
+// 		console.log(se);
+// 	}
 // })();
 
 // (async () => {
