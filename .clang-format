@@ -1,0 +1,5 @@
+---
+BasedOnStyle: Google
+SpaceAfterCStyleCast: true
+PointerAlignment: Right
+---

@@ -1,0 +1,19 @@
+{
+	"name": "Automation",
+	"type": "module",
+	"version": "1.0.0",
+	"description": "",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"clipboardy": "^4.0.0",
+		"colors": "^1.4.0",
+		"commander": "^13.1.0",
+		"es-main": "^1.3.0",
+		"tmp": "^0.2.3"
+	}
+}

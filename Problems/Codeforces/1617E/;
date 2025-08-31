@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int INF = 1e9;
+
+int main() {
+  cin.tie(0)->sync_with_stdio(0);
+
+  int N;
+  cin >> N;
+
+  vector<int> A(N);
+  for (auto &e : A) cin >> e;
+
+  map<int, pair<int, int>> seen;
+  int ans = INF;
+  for (int i = 0; i < N; i++) {
+    map<int, int> S;
+    auto insert = [&](int x, int d) -> void {
+      if (S == S) {
+        for (int j = 0; j <= 30; j++) {
+          cerr << (x >> j & 1);
+        }
+        cerr << ' ' << d << endl;
+      }
+      if (S.contains(x) and d >= S[x]) return;
+      S[x] = d;
+    };
+    for (int j = 0; j <= 30; j++) {
+      int x1 = A[i], x2 = x1 & ((1 << j) - 1);
+      insert(x2, __builtin_popcount((x1 ^ x2) ^ (x1 ^ x2) << 1));
+    }
+    int k = __lg(2 * A[i] - 1);
+    for (int j = 0; j <= k; j++) {
+      int x1 = (1 << k) - A[i], x2 = x1 & ((1 << j) - 1);
+      insert(x2, 1 + __builtin_popcount((x1 ^ x2) ^ (x1 ^ x2) << 1));
+    }
+    for (int j = k + 1; j <= 30; j++) {
+      int x2 = (1 << j) - A[i];
+      insert(x2, 1);
+    }
+    cerr << '\n';
+
+    for (auto [x, d] : S) {
+      if (!seen.contains(x)) continue;
+      ans = min(ans, seen[x].second + d);
+    }
+
+    for (auto [x, d] : S) {
+      if (seen.contains(x)) {
+        seen[x] = {d, A[i]};
+      } else {
+        seen[x] = min(seen[x], {d, A[i]});
+      }
+    }
+  }
+  cout << ans;
+}

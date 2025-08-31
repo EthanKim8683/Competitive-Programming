@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+  cin.tie(0)->sync_with_stdio(0);
+
+  int N, M;
+  cin >> N >> M;
+
+  vector<vector<int>> factors(1000 + 1);
+  for (int i = 2; i <= 1000; i++) {
+    if (factors[i].size() > 0) continue;
+    for (int j = i; j <= 1000; j += i) {
+      factors[j].push_back(i);
+    }
+    reverse(factors[i].begin(), factors[i].end());
+  }
+
+  auto query = [&](int h, int w, int i1, int j1, int i2, int j2) -> bool {
+    cout << "? " << h << ' ' << w << ' ' << i1 + 1 << ' ' << j1 + 1 << ' '
+         << i2 + 1 << ' ' << j2 + 1 << endl;
+    int rv;
+    cin >> rv;
+    return rv;
+  };
+
+  auto answer = [&](int x) -> void {
+    cout << "! " << x << endl;
+    exit(0);
+  };
+
+  auto solve = [&](int N, auto query) -> int {
+    vector<bool> ok(N + 1);
+    ok[N] = true;
+    for (int d = N;; d /= 2) {
+      if (d % 2 == 1) break;
+      ok[d / 2] = ok[d] and query(d / 2, 0, d / 2);
+    }
+    for (auto f : factors[N]) {
+      if (ok[f]) continue;
+      auto rec = [&](auto self, int n, int x) -> bool {
+        if (n / x % 2 == 1) {
+          int k = n / x / 2;
+          return query(k * x, 0, k * x) and query(k * x, 0, (k + 1) * x);
+        } else {
+          return ok[n / 2] and self(self, n / 2, x);
+        }
+      };
+      ok[f] = rec(rec, N, f);
+      for (int d = f; d <= N; d += f) {
+        ok[d] = ok[d] or ok[f];
+      }
+    }
+    int rv = 0;
+    for (int i = 1; i <= N; i++) {
+      rv += ok[i] and N % i == 0;
+    }
+    return rv;
+  };
+  answer(solve(N, [&](int h, int i1,
+                      int i2) { return query(h, M, i1, 0, i2, 0); }) *
+         solve(M, [&](int w, int j1, int j2) {
+           return query(N, w, 0, j1, 0, j2);
+         }));
+}
