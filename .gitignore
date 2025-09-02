@@ -1,10 +1,2 @@
-.venv
-.ccls
-.ccls-cache
 .DS_Store
-**/node_modules
-**/dist
-**/.env
-**/.env.*.local
-**/.env.local
-**/pnpm-lock.yaml
+compile_flags.txt

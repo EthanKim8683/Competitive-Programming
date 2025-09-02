@@ -1,0 +1,6 @@
+CompileFlags:
+  Add: [
+    -ILibraries/cpp,
+    -DETHANKIM8683,
+    -std=c++23
+  ]
