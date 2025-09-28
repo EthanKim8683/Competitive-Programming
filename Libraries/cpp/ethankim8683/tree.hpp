@@ -1,5 +1,5 @@
-#ifndef ETHANKIM8683_TREES
-#define ETHANKIM8683_TREES 1
+#ifndef ETHANKIM8683_TREE
+#define ETHANKIM8683_TREE 1
 
 #include <assert.h>
 
@@ -370,4 +370,4 @@ T tree_hash(const std::vector<std::vector<int>> &adj) {
   return rv;
 }
 
-#endif  // ETHANKIM8683_TREES
+#endif  // ETHANKIM8683_TREE

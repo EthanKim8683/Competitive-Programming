@@ -1,5 +1,5 @@
-#ifndef ETHANKIM8683_GRAPHS
-#define ETHANKIM8683_GRAPHS 1
+#ifndef ETHANKIM8683_GRAPH
+#define ETHANKIM8683_GRAPH 1
 
 #include <assert.h>
 
@@ -149,4 +149,4 @@ std::vector<std::pair<int, int>> find_bridges(
   return rv;
 }
 
-#endif  // ETHANKIM8683_GRAPHS
+#endif  // ETHANKIM8683_GRAPH

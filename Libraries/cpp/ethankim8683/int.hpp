@@ -1,5 +1,5 @@
-#ifndef ETHANKIM8683_INT_UTILS
-#define ETHANKIM8683_INT_UTILS 1
+#ifndef ETHANKIM8683_INT
+#define ETHANKIM8683_INT 1
 
 #include <assert.h>
 
@@ -151,4 +151,4 @@ std::ostream &operator<<(std::ostream &out, __int128 n) {
   return out;
 }
 
-#endif  // ETHANKIM8683_INT_UTILS
+#endif  // ETHANKIM8683_INT

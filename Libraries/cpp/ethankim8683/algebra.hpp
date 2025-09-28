@@ -1,3 +1,6 @@
+#include <numeric>
+
+#include "ethankim8683/type_traits.hpp"
 #ifndef ETHANKIM8683_ALGEBRA
 #define ETHANKIM8683_ALGEBRA 1
 
