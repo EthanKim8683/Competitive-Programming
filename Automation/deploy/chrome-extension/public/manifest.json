@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Competitive Programming Browser Adapter",
+  "version": "0.1.0",
+  "description": "Browser Adapter for Competitive Programming Automation CLI",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Chrome Extension",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_idle",
+      "js": ["contentScript.js"]
+    }
+  ]
+}
