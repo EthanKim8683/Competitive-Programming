@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "noEmit": true,
+    "sourceMap": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "types": ["@types/chrome"]
