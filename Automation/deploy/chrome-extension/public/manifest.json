@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Competitive Programming Browser Adapter",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Browser Adapter for Competitive Programming Automation CLI",
   "background": {
     "service_worker": "background.js"
