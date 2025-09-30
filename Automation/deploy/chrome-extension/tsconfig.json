@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "checkJs": true,
     "sourceMap": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",

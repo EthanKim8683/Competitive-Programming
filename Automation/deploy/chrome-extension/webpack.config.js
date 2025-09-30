@@ -7,7 +7,7 @@ const src = path.join(__dirname, "src");
 module.exports = {
   entry: Object.fromEntries(
     fs
-      .globSync("**/*.{js,ts}", {
+      .globSync("**/*.ts", {
         cwd: src,
         exclude: ["node_modules"],
       })
@@ -23,7 +23,7 @@ module.exports = {
     clean: true,
   },
   resolve: {
-    extensions: [".js", ".ts"],
+    extensions: [".ts"],
   },
   module: {
     rules: [

@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Competitive Programming Browser Adapter",
+  "name": "Competitive Programming Browser Interface",
   "version": "0.0.1",
-  "description": "Browser Adapter for Competitive Programming Automation CLI",
+  "description": "Browser Interface for Competitive Programming Automation CLI",
   "background": {
     "service_worker": "service-worker.js"
   },
   "action": {
-    "default_title": "Competitive Programming Browser Adapter"
+    "default_title": "Competitive Programming Browser Interface"
   },
   "host_permissions": ["ws://127.0.0.1:8684/*"],
   "content_scripts": [

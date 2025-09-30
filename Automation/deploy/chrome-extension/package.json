@@ -1,7 +1,7 @@
 {
   "name": "chrome-extension",
   "version": "0.0.1",
-  "description": "Browser Adapter for Competitive Programming Automation CLI",
+  "description": "Browser Interface for Competitive Programming Automation CLI",
   "private": true,
   "scripts": {
     "dev": "webpack --mode=development --watch",
