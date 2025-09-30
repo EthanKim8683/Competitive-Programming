@@ -4,6 +4,7 @@
     "noEmit": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "types": ["chrome-types"]
-  }
+    "types": ["@types/chrome"]
+  },
+  "include": ["src/**/*"]
 }
