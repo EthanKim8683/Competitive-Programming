@@ -4,19 +4,15 @@ import "github.com/EthanKim8683/Competitive-Programming/Automation/cmd/internal/
 
 type CppAdapter struct {
 	CppBundler
-	CppCompiler
-	CppExecutor
-	CppMetadataExtractor
+	CppInitializer
 }
 
 var _ language.Adapter = (*CppAdapter)(nil)
 
 func NewCppAdapter() language.Adapter {
 	return &CppAdapter{
-		CppBundler:           CppBundler{},
-		CppCompiler:          CppCompiler{},
-		CppExecutor:          CppExecutor{},
-		CppMetadataExtractor: CppMetadataExtractor{},
+		CppBundler:     CppBundler{},
+		CppInitializer: CppInitializer{},
 	}
 }
 

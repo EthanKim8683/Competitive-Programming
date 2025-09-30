@@ -1,7 +1,7 @@
 package judge
 
 type Adapter interface {
-	Scraper
+	Initializer
 	Submitter
 }
 

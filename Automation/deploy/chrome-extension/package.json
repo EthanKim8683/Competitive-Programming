@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "chrome-types": "^0.1.379"
+  },
+  "dependencies": {
+    "@nats-io/nats-core": "^3.2.0"
+  }
+}

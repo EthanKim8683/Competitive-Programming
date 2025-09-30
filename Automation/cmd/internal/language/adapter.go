@@ -2,9 +2,7 @@ package language
 
 type Adapter interface {
 	Bundler
-	Compiler
-	Executor
-	MetadataExtractor
+	Initializer
 }
 
 type NewAdapterFunc func() Adapter

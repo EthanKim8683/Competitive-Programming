@@ -267,7 +267,7 @@ std::vector<T> factorize(T n) {
 }
 
 // https://cp-algorithms.com/algebra/extended-euclid-algorithm.html
-// Finds solutions to ax + by = gcd(a, b)
+// Finds solutions to ax + by = gcd(a, b) for non-negative a, b
 template <typename T,
           std::enable_if<std::is_integral<T>::value and
                          std::is_unsigned<T>::value>::type * = nullptr>
@@ -275,11 +275,65 @@ std::tuple<T, T, T> eegcd(T a, T b) {
   T x = 1, y = 0, z = 0, w = 1;
   while (b) {
     T q = a / b;
-    tie(x, z) = make_tuple(z, x - q * z);
-    tie(y, w) = make_tuple(w, y - q * w);
-    tie(a, b) = make_tuple(b, a - q * b);
+    std::tie(x, z) = std::make_pair(z, x - q * z);
+    std::tie(y, w) = std::make_pair(w, y - q * w);
+    std::tie(a, b) = std::make_pair(b, a - q * b);
   }
   return {a, x, y};
+}
+
+// https://cp-algorithms.com/algebra/linear-diophantine-equation.html#algorithmic-solution
+// Finds solutions to ax + by = c
+template <typename T,
+          std::enable_if<std::is_integral<T>::value>::type * = nullptr>
+struct diop_linear_sol {
+ private:
+  T xi, yi, a, b;
+
+ public:
+  diop_linear_sol(T _xi, T _yi, T _a, T _b) : xi(_xi), yi(_yi), a(_a), b(_b) {}
+
+  T x() { return xi; }
+  T y() { return yi; }
+
+  diop_linear_sol kth_succ(T k) {
+    return diop_linear_sol(xi + k * b, yi - k * a, a, b);
+  }
+
+  diop_linear_sol min_nonneg_sol_for_x() {
+    int k = xi / b;
+    if (xi + k * b < 0) {
+      k += (xi > 0) - (xi < 0);
+    }
+    return kth_succ(-k);
+  }
+
+  diop_linear_sol min_nonneg_sol_for_y() {
+    int k = yi / b;
+    if (yi - k * b < 0) {
+      k += (yi < 0) - (yi > 0);
+    }
+    return kth_succ(k);
+  }
+};
+template <typename T,
+          std::enable_if<std::is_integral<T>::value>::type * = nullptr>
+diop_linear_sol<T> diop_linear(T a, T b, T c) {
+  using U = std::make_unsigned<T>::type;
+
+  T g, x0, y0;
+  std::tie(g, x0, y0) = eegcd((U) abs(a), (U) abs(b));
+  assert(c % g == 0);
+
+  x0 *= c / g;
+  y0 *= c / g;
+  if (a < 0) {
+    x0 = -x0;
+  }
+  if (b < 0) {
+    y0 = -y0;
+  }
+  return diop_linear_sol<T>(x0, y0, a, b);
 }
 
 template <typename T,
