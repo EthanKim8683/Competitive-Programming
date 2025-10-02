@@ -1,4 +1,4 @@
-const fs = require("fs");
+const glob = require("glob");
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
@@ -6,10 +6,10 @@ const src = path.join(__dirname, "src");
 
 module.exports = {
   entry: Object.fromEntries(
-    fs
-      .globSync("**/*.ts", {
+    glob
+      .sync("**/*.ts", {
         cwd: src,
-        exclude: ["node_modules"],
+        ignore: ["node_modules"],
       })
       .map((file) => {
         const { name } = path.parse(file);

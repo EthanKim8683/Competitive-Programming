@@ -36,6 +36,10 @@
 // For actions, it looks at the tab the action was made on and looks for the
 // appropriate action and executes it
 
-chrome.action.onClicked.addListener((_tab) => {
-  console.log("CLICKED!!");
+chrome.action.onClicked.addListener(async (_tab) => {
+  const tabs = await chrome.tabs.query({});
+  const response = await Promise.any(
+    tabs.map((tab) => chrome.tabs.sendMessage(tab.id, "Marco!"))
+  );
+  console.log(response);
 });

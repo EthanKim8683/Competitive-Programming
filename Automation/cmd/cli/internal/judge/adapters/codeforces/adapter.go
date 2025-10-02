@@ -1,6 +1,6 @@
 package codeforces
 
-import "github.com/EthanKim8683/Competitive-Programming/Automation/cmd/internal/judge"
+import "github.com/EthanKim8683/Competitive-Programming/Automation/cmd/cli/internal/judge"
 
 type CFAdapter struct {
 	CFInitializer

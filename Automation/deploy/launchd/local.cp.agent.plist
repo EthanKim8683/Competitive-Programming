@@ -6,13 +6,7 @@
 		<key>WorkingDirectory</key>
 		<string>/Users/ethankim8683/Desktop/Competitive-Programming/Automation</string>
 		<key>Label</key>
-		<string>local.cp.nats-server.plist</string>
-		<key>Program</key>
-		<array>
-			<string>/opt/homebrew/bin/nats-server</string>
-			<string>-config</string>
-			<string>configs/nats-server.conf</string>
-		</array>
+		<string>local.cp.agent.plist</string>
 		<key>RunAtLoad</key>
 		<true />
 		<key>KeepAlive</key>

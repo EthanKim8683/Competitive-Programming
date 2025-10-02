@@ -1,6 +1,6 @@
 package cpp
 
-import "github.com/EthanKim8683/Competitive-Programming/Automation/cmd/internal/language"
+import "github.com/EthanKim8683/Competitive-Programming/Automation/cmd/cli/internal/language"
 
 type CppAdapter struct {
 	CppBundler

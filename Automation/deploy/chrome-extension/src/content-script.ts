@@ -1,3 +1,5 @@
 "use strict";
 
-console.log(window.location.href);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  sendResponse(`Polo! (${window.location.href})`);
+});
