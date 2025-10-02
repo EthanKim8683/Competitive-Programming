@@ -1,7 +1,5 @@
 #include <bits/stdc++.h>
 
-#include <algorithm>
-
 using namespace std;
 
 const int INF = 1e9;

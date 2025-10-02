@@ -5,7 +5,7 @@ import "github.com/EthanKim8683/Competitive-Programming/Automation/cmd/internal/
 type CFInitializer struct {
 }
 
-func (*CFInitializer) Initialize(problemID string) (string, error) {
+func (*CFInitializer) Initialize(id string) (string, error) {
 	return "", nil
 }
 

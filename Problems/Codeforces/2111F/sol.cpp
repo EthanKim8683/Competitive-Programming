@@ -15,6 +15,10 @@ int main() {
     int P, S;
     cin >> P >> S;
 
+    int g = gcd(S, P);
+    S /= g;
+    P /= g;
+
     int x = 1, s, p, w, h;
     bool found = false;
     for (; x * S <= MAXK; x++) {

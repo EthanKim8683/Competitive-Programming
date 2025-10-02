@@ -8,8 +8,8 @@
 void viz(const std::function<void()> &draw) {
   static bool init = true;
   if (init) {
-    SetTargetFPS(30);
     SetTraceLogLevel(LOG_NONE);
+    SetTargetFPS(30);
     init = false;
   }
 

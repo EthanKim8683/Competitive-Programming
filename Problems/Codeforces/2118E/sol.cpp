@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 
-#include "ethankim8683/viz"
+// #include "ethankim8683/viz"
 
 using namespace std;
 
@@ -128,8 +128,8 @@ int main() {
       i % 2 == 0 ? grow_w() : grow_h();
     }
     for (auto &[x, y] : ans) {
-      x += (N - 1) / 2;
-      y += (M - 1) / 2;
+      x += (N - 1) / 2 + 1;
+      y += (M - 1) / 2 + 1;
     }
 
     for (auto [x, y] : ans) {

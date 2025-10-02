@@ -18,7 +18,7 @@
 // Essentially, for each task, we:
 //  1. Announce the task to anyone
 //  2. First worker that responds gets the task
-//  3. Accounce the task to just that worker
+//  3. Announce the task to just that worker
 //  4. Reply to NATS with the response
 //
 // In addition to tasks, clicking the extension should trigger an action

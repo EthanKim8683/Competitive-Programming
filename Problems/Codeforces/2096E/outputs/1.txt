@@ -1,0 +1,3 @@
+4 B's, 4 P's
+  PPBBBBPP: 4
+  BBPPPPBB: 4

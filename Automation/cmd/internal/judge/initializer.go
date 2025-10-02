@@ -1,5 +1,5 @@
 package judge
 
 type Initializer interface {
-	Initialize(problemID string) (string, error)
+	Initialize(id string) (string, error)
 }
