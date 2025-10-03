@@ -9,7 +9,7 @@
 		<string>local.cp.nats-server.plist</string>
 		<key>Program</key>
 		<array>
-			<string>${CP_NATS_SERVER}</string>
+			<string>${CP_NATS_SERVER_BIN}</string>
 			<string>-config</string>
 			<string>configs/nats-server.conf</string>
 		</array>

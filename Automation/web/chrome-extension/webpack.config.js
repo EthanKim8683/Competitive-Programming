@@ -1,6 +1,7 @@
 const glob = require("glob");
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const DotenvWebpackPlugin = require("dotenv-webpack");
 
 const src = path.join(__dirname, "src");
 
@@ -9,7 +10,7 @@ module.exports = {
     glob
       .sync("**/*.ts", {
         cwd: src,
-        ignore: ["node_modules"],
+        ignore: ["node_modules", "**/*.d.ts"],
       })
       .map((file) => {
         const { dir, name } = path.parse(file);
@@ -41,6 +42,9 @@ module.exports = {
           context: "public",
         },
       ],
+    }),
+    new DotenvWebpackPlugin({
+      path: ".env",
     }),
   ],
 };

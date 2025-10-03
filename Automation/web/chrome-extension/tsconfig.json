@@ -2,8 +2,7 @@
   "compilerOptions": {
     "sourceMap": true,
     "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "types": ["@types/chrome"]
+    "moduleResolution": "nodenext"
   },
   "include": ["src/**/*"]
 }

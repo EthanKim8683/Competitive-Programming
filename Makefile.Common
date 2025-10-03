@@ -1,0 +1,9 @@
+CP_NATS_PORT ?= 8683
+CP_NATS_WS_PORT ?= 8684
+CP_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+CP_NATS_SERVER_BIN := $(shell which nats-server)
+
+export CP_NATS_PORT
+export CP_NATS_WS_PORT
+export CP_DIR
+export CP_NATS_SERVER_BIN

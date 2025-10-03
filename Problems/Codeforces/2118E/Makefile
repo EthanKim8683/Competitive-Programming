@@ -1,7 +1,7 @@
-.PHONY: test clean force_test
-
 INPUTS := $(wildcard inputs/*.txt)
 OUTPUTS := $(patsubst inputs/%.txt, outputs/%.txt, $(INPUTS))
+
+.PHONY: test clean force_test
 
 sol: sol.cpp
 	g++ -o sol sol.cpp \

@@ -46,8 +46,15 @@ chrome.action.onClicked.addListener(async (_tab) => {
   console.log(response);
 });
 
-function initNats() {
-  wsconnect({});
+async function initNats() {
+  const nc = await wsconnect({
+    servers: `ws://localhost:${process.env.CP_NATS_WS_PORT}`,
+  });
+  nc.publish("hello-world", "Hello, World!");
+  const sub = nc.subscribe("hello-world");
+  sub.callback = (_err, msg) => {
+    console.log(new TextDecoder("utf-8").decode(msg.data));
+  };
 }
 
 chrome.runtime.onInstalled.addListener(() => {
