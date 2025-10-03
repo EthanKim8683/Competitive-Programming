@@ -12,8 +12,8 @@ module.exports = {
         ignore: ["node_modules"],
       })
       .map((file) => {
-        const { name } = path.parse(file);
-        return [name, path.join(src, file)];
+        const { dir, name } = path.parse(file);
+        return [path.join(dir, name), path.join(src, file)];
       })
   ),
   devtool: "source-map",
@@ -23,14 +23,13 @@ module.exports = {
     clean: true,
   },
   resolve: {
-    extensions: [".ts"],
+    extensions: [".ts", ".js"],
   },
   module: {
     rules: [
       {
         test: /\.ts$/,
         use: "ts-loader",
-        exclude: /^node_modules$/,
       },
     ],
   },

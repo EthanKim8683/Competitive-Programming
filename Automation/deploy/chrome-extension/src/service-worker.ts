@@ -1,5 +1,7 @@
 "use strict";
 
+import { wsconnect } from "@nats-io/nats-core";
+
 // The judges live in the service worker, where they manage tabs and execute
 // stuff
 //
@@ -42,4 +44,16 @@ chrome.action.onClicked.addListener(async (_tab) => {
     tabs.map((tab) => chrome.tabs.sendMessage(tab.id, "Marco!"))
   );
   console.log(response);
+});
+
+function initNats() {
+  wsconnect({});
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  initNats();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  initNats();
 });

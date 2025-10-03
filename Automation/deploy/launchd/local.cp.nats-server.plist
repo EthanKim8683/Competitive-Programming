@@ -4,12 +4,12 @@
 <plist version="1.0">
 	<dict>
 		<key>WorkingDirectory</key>
-		<string>/Users/ethankim8683/Desktop/Competitive-Programming/Automation</string>
+		<string></string>
 		<key>Label</key>
 		<string>local.cp.nats-server.plist</string>
 		<key>Program</key>
 		<array>
-			<string>/opt/homebrew/bin/nats-server</string>
+			<string></string>
 			<string>-config</string>
 			<string>configs/nats-server.conf</string>
 		</array>
