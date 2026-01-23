@@ -1,5 +1,0 @@
-port: ${CP_NATS_PORT}
-websocket {
-  port: ${CP_NATS_WS_PORT}
-  no_tls: true
-}

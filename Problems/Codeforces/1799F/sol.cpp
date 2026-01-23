@@ -18,38 +18,31 @@ int main() {
 
     vector<int> A(N);
     for (auto &e : A) cin >> e;
-    sort(A.begin(), A.end());
+    sort(A.rbegin(), A.rend());
 
-    // Choose splits for the first operation
-    //
-    // Then brute force the second operation
-    //
-    // Maybe it'll work?
+    auto op1 = [&](int x) -> int { return (x + 1) / 2; };
+    auto op2 = [&](int x) -> int { return max(x - B, 0); };
 
-    int M = N;
-    for (; M > 0 and K1 > 0 and K2 > 0 and (A[M - 1] + 1) / 2 - B >= 0;
-         M--, K1--, K2--) {
-      A[M - 1] = (A[M - 1] + 1) / 2 - B;
+    vector<i64> ps1(N + 1), ps2(N + 1), ps3(N + 1);
+    for (int i = 0; i < N; i++) {
+      ps1[i + 1] = ps1[i] + op1(A[i]) - A[i];
+      ps2[i + 1] = ps2[i] + op2(A[i]) - A[i];
+      ps3[i + 1] = ps3[i] + op2(op1(A[i])) - A[i];
     }
+    auto query = [&](vector<i64> &ps, int l, int r) -> i64 {
+      l = clamp(l, 0, N);
+      r = clamp(r, l, N);
+      return ps[r] - ps[l];
+    };
 
-    i64 ans = INF;
-    for (int i = 0; i <= K1; i++) {
-      vector A_ = A;
-      for (int j = 0; j < i; j++) {
-        A_[M - 1 - j] = (A_[M - 1 - j] + 1) / 2;
+    i64 sum = accumulate(A.begin(), A.end(), 0ll), ans = INF;
+    for (int i = 0; i <= min(K1, K2); i++) {
+      for (int j = 0; j <= K1 - i; j++) {
+        int i1 = 0, i2 = i1 + i, i3 = i2 + j, i4 = i3 + K2 - i,
+            i5 = i4 + K1 - i - j;
+        ans = min(ans, sum + query(ps3, i1, i2) + query(ps1, i2, i3) +
+                           query(ps2, i3, i4) + query(ps1, i4, i5));
       }
-      for (int j = 0; j < K1 - i; j++) {
-        A_[j] = (A_[j] + 1) / 2;
-      }
-      sort(A_.begin(), A_.begin() + M);
-      for (int j = 0; j < K2; j++) {
-        A_[M - 1 - j] = max(A_[M - 1 - j] - B, 0);
-      }
-      i64 sum = 0;
-      for (auto e : A_) {
-        sum += e;
-      }
-      ans = min(ans, sum);
     }
     cout << ans << '\n';
   }

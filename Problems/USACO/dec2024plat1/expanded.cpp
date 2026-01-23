@@ -350,7 +350,7 @@ using is_modint_t = std::enable_if_t<is_modint<T>::value>;
 
 }  // namespace internal
 
-template <int m, std::enable_if_t<(1 <= m)>* = nullptr>
+template <int m, std::enable_if_t<(1 <= m)> * = nullptr>
 struct static_modint : internal::static_modint_base {
   using mint = static_modint;
 
@@ -363,25 +363,25 @@ struct static_modint : internal::static_modint_base {
   }
 
   static_modint() : _v(0) {}
-  template <class T, internal::is_signed_int_t<T>* = nullptr>
+  template <class T, internal::is_signed_int_t<T> * = nullptr>
   static_modint(T v) {
     long long x = (long long) (v % (long long) (umod()));
     if (x < 0) x += umod();
     _v = (unsigned int) (x);
   }
-  template <class T, internal::is_unsigned_int_t<T>* = nullptr>
+  template <class T, internal::is_unsigned_int_t<T> * = nullptr>
   static_modint(T v) {
     _v = (unsigned int) (v % umod());
   }
 
   unsigned int val() const { return _v; }
 
-  mint& operator++() {
+  mint &operator++() {
     _v++;
     if (_v == umod()) _v = 0;
     return *this;
   }
-  mint& operator--() {
+  mint &operator--() {
     if (_v == 0) _v = umod();
     _v--;
     return *this;
@@ -397,23 +397,23 @@ struct static_modint : internal::static_modint_base {
     return result;
   }
 
-  mint& operator+=(const mint& rhs) {
+  mint &operator+=(const mint &rhs) {
     _v += rhs._v;
     if (_v >= umod()) _v -= umod();
     return *this;
   }
-  mint& operator-=(const mint& rhs) {
+  mint &operator-=(const mint &rhs) {
     _v -= rhs._v;
     if (_v >= umod()) _v += umod();
     return *this;
   }
-  mint& operator*=(const mint& rhs) {
+  mint &operator*=(const mint &rhs) {
     unsigned long long z = _v;
     z *= rhs._v;
     _v = (unsigned int) (z % umod());
     return *this;
   }
-  mint& operator/=(const mint& rhs) { return *this = *this * rhs.inv(); }
+  mint &operator/=(const mint &rhs) { return *this = *this * rhs.inv(); }
 
   mint operator+() const { return *this; }
   mint operator-() const { return mint() - *this; }
@@ -439,22 +439,22 @@ struct static_modint : internal::static_modint_base {
     }
   }
 
-  friend mint operator+(const mint& lhs, const mint& rhs) {
+  friend mint operator+(const mint &lhs, const mint &rhs) {
     return mint(lhs) += rhs;
   }
-  friend mint operator-(const mint& lhs, const mint& rhs) {
+  friend mint operator-(const mint &lhs, const mint &rhs) {
     return mint(lhs) -= rhs;
   }
-  friend mint operator*(const mint& lhs, const mint& rhs) {
+  friend mint operator*(const mint &lhs, const mint &rhs) {
     return mint(lhs) *= rhs;
   }
-  friend mint operator/(const mint& lhs, const mint& rhs) {
+  friend mint operator/(const mint &lhs, const mint &rhs) {
     return mint(lhs) /= rhs;
   }
-  friend bool operator==(const mint& lhs, const mint& rhs) {
+  friend bool operator==(const mint &lhs, const mint &rhs) {
     return lhs._v == rhs._v;
   }
-  friend bool operator!=(const mint& lhs, const mint& rhs) {
+  friend bool operator!=(const mint &lhs, const mint &rhs) {
     return lhs._v != rhs._v;
   }
 
@@ -481,25 +481,25 @@ struct dynamic_modint : internal::modint_base {
   }
 
   dynamic_modint() : _v(0) {}
-  template <class T, internal::is_signed_int_t<T>* = nullptr>
+  template <class T, internal::is_signed_int_t<T> * = nullptr>
   dynamic_modint(T v) {
     long long x = (long long) (v % (long long) (mod()));
     if (x < 0) x += mod();
     _v = (unsigned int) (x);
   }
-  template <class T, internal::is_unsigned_int_t<T>* = nullptr>
+  template <class T, internal::is_unsigned_int_t<T> * = nullptr>
   dynamic_modint(T v) {
     _v = (unsigned int) (v % mod());
   }
 
   unsigned int val() const { return _v; }
 
-  mint& operator++() {
+  mint &operator++() {
     _v++;
     if (_v == umod()) _v = 0;
     return *this;
   }
-  mint& operator--() {
+  mint &operator--() {
     if (_v == 0) _v = umod();
     _v--;
     return *this;
@@ -515,21 +515,21 @@ struct dynamic_modint : internal::modint_base {
     return result;
   }
 
-  mint& operator+=(const mint& rhs) {
+  mint &operator+=(const mint &rhs) {
     _v += rhs._v;
     if (_v >= umod()) _v -= umod();
     return *this;
   }
-  mint& operator-=(const mint& rhs) {
+  mint &operator-=(const mint &rhs) {
     _v += mod() - rhs._v;
     if (_v >= umod()) _v -= umod();
     return *this;
   }
-  mint& operator*=(const mint& rhs) {
+  mint &operator*=(const mint &rhs) {
     _v = bt.mul(_v, rhs._v);
     return *this;
   }
-  mint& operator/=(const mint& rhs) { return *this = *this * rhs.inv(); }
+  mint &operator/=(const mint &rhs) { return *this = *this * rhs.inv(); }
 
   mint operator+() const { return *this; }
   mint operator-() const { return mint() - *this; }
@@ -550,22 +550,22 @@ struct dynamic_modint : internal::modint_base {
     return eg.second;
   }
 
-  friend mint operator+(const mint& lhs, const mint& rhs) {
+  friend mint operator+(const mint &lhs, const mint &rhs) {
     return mint(lhs) += rhs;
   }
-  friend mint operator-(const mint& lhs, const mint& rhs) {
+  friend mint operator-(const mint &lhs, const mint &rhs) {
     return mint(lhs) -= rhs;
   }
-  friend mint operator*(const mint& lhs, const mint& rhs) {
+  friend mint operator*(const mint &lhs, const mint &rhs) {
     return mint(lhs) *= rhs;
   }
-  friend mint operator/(const mint& lhs, const mint& rhs) {
+  friend mint operator/(const mint &lhs, const mint &rhs) {
     return mint(lhs) /= rhs;
   }
-  friend bool operator==(const mint& lhs, const mint& rhs) {
+  friend bool operator==(const mint &lhs, const mint &rhs) {
     return lhs._v == rhs._v;
   }
-  friend bool operator!=(const mint& lhs, const mint& rhs) {
+  friend bool operator!=(const mint &lhs, const mint &rhs) {
     return lhs._v != rhs._v;
   }
 
@@ -623,7 +623,7 @@ int main() {
   cin >> N >> K;
 
   vector<int> cows(N);
-  for (auto& e : cows) cin >> e;
+  for (auto &e : cows) cin >> e;
 
   vector<mint> fact(K + 1);
   fact[0] = 1;

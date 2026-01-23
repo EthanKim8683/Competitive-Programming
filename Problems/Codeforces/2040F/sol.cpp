@@ -8,8 +8,52 @@ using namespace atcoder;
 
 using mint = modint998244353;
 
+const int MAXD = 3e6;
+
 int main() {
   cin.tie(0)->sync_with_stdio(0);
+
+  vector<bool> is_prime(MAXD + 1, true);
+  vector<int> primes, mu(MAXD + 1);
+  mu[1] = 1;
+  for (int i = 2; i <= MAXD; i++) {
+    if (is_prime[i]) {
+      primes.push_back(i);
+      mu[i] = -1;
+    }
+
+    for (auto e : primes) {
+      if (i * e > MAXD) break;
+      is_prime[i * e] = false;
+
+      if (i % e == 0) {
+        mu[i * e] = 0;
+        break;
+      } else {
+        mu[i * e] = mu[i] * mu[e];
+      }
+    }
+  }
+
+  vector<int> sieve(MAXD + 1);
+  iota(sieve.begin(), sieve.end(), 0);
+  for (int i = 2; i * i <= MAXD; i++) {
+    if (sieve[i] != i) continue;
+    for (int j = i * i; j <= MAXD; j += i) {
+      sieve[j] = min(sieve[j], i);
+    }
+  }
+
+  vector<mint> sum(MAXD + 1, 0);
+  for (int i = 1; i <= MAXD; i++) {
+    mint contribution = (mint) mu[i] / i;
+    for (int j = i; j <= MAXD; j += i) {
+      sum[j] += contribution;
+    }
+    sum[i] *= i;
+  }
+
+  vector<mint> counts(MAXD + 1);
 
   int T;
   cin >> T;
@@ -21,34 +65,57 @@ int main() {
     vector<int> D(K);
     for (auto &e : D) cin >> e;
 
-    // Today I'm learning about Burnside's Lemma!
-    //
-    // For a long time, I was intimidated by the fancy math terms and algebra,
-    // but today I decided to bite the bullet and actually try to understand
-    // what's going on.
-    //
-    // Firstly, a group action is a group of actions, so functions that map from
-    // X to X, including the identity function and inverses.
-    //
-    // An orbit of an element of X is all the elements it can become after any
-    // group action is applied onto it. Notably (at least to me), it can become
-    // itself since the group of actions contains an identity.
-    //
-    // To understand what Burnside's Lemma is even saying, we can use these two
-    // facts to observe that if two elements can become eachother after some
-    // transformations, they'll be in eachother's orbits. So, the left hand term
-    // of Burnside's Lemma is basically counting the number of connected
-    // components of thingies (keyed by their orbits) that can become each
-    // other.
-    //
-    // The rest of the formula doesn't need as much interpretation, since
-    // formulas just are what they are, but I remember being confused about the
-    // fixed points, as in, "Is it equal to itself, like actually exactly equal,
-    // or is it equal after some transformations?" And the answer turns out to
-    // be the former: the element after the group action is literally itself.
-    //
-    // Lastly, the group action needs to contain all transformations. Remember,
-    // combining two actions needs to produce another action in the group, since
-    // it's a group.
+    int d = 0;
+    for (auto e : D) {
+      d = gcd(d, e);
+    }
+
+    auto divisors = [&](int x) -> vector<int> {
+      vector<pair<int, int>> primes;
+      for (int i = x; i > 1; i /= sieve[i]) {
+        if (primes.empty() or primes.back().first != sieve[i]) {
+          primes.emplace_back(sieve[i], 0);
+        }
+        primes.back().second++;
+      }
+
+      vector<int> rv;
+      auto dfs = [&](auto self, int i, int d) -> void {
+        if (i == primes.size()) {
+          rv.push_back(d);
+          return;
+        }
+
+        auto [p, count] = primes[i];
+        for (int j = 0; j <= count; j++) {
+          self(self, i + 1, d);
+          d *= p;
+        }
+      };
+      dfs(dfs, 0, 1);
+      return rv;
+    };
+
+    for (auto n : divisors(d)) {
+      counts[n] = fact<mint>(A * B * C / n);
+      for (auto e : D) {
+        counts[n] /= fact<mint>(e / n);
+      }
+    }
+
+    auto divisors1 = divisors(A), divisors2 = divisors(B),
+         divisors3 = divisors(C);
+    mint ans = 0;
+    for (auto a : divisors1) {
+      for (auto b : divisors2) {
+        for (auto c : divisors3) {
+          int n = lcm(a, lcm(b, c));
+          if (d % n != 0) continue;
+          ans += sum[a] * sum[b] * sum[c] * counts[n];
+        }
+      }
+    }
+    ans /= A * B * C;
+    cout << ans.val() << '\n';
   }
 }

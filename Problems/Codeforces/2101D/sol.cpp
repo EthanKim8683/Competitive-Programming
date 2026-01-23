@@ -2,7 +2,7 @@
 
 #include "atcoder/lazysegtree"
 #include "atcoder/segtree"
-#include "ethankim8683/viz"
+#include "ethankim8683/utils"
 
 using namespace std;
 using namespace atcoder;

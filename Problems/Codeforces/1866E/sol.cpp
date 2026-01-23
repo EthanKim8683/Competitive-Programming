@@ -64,7 +64,7 @@ int main() {
             for (int m = 0; m < 3; m++) {
               if (off[m]) continue;
               auto [j_, k_] = (array<int, 2>[]) {
-                  {E[1], E[2]}, {E[0], E[2]}, {E[0], E[1]}}[m];
+                {E[1], E[2]}, {E[0], E[2]}, {E[0], E[1]}}[m];
               chmin(dp[(i + 1) % 2][j_][k_][m],
                     dp[i % 2][j][k][l] +
                         (i64) st[m].prod(E[m], i + 1) * abs(u - pos[E[m]]) +

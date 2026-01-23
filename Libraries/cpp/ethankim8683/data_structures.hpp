@@ -14,71 +14,21 @@
 
 #include "ethankim8683/type_traits"
 
-// The top two elements of a map whose entries are ordered by value
-template <typename T, typename S>
-struct top_two {
- private:
-  struct element {
-    T val;
-    S from;
-  };
-
-  T nil_val;
-  S nil_from;
-  std::function<bool(T, T)> cmp;
-
- public:
-  element first, second;
-
-  top_two() {}
-  top_two(T _nil_val, S _nil_from, const std::function<bool(T, T)> &_cmp)
-      : nil_val(_nil_val),
-        nil_from(_nil_from),
-        cmp(_cmp),
-        first(nil_val, nil_from),
-        second(nil_val, nil_from) {}
-
-  bool put(T val, S from) {
-    if (cmp(val, first.val)) {
-      if (from != first.from) {
-        second = first;
-      }
-      first.val = val;
-      first.from = from;
-      return true;
-    }
-
-    if (from != first.from and cmp(val, second.val)) {
-      second.val = val;
-      second.from = from;
-      return true;
-    }
-
-    return false;
-  }
-
-  bool merge(const top_two<T, S> &that) {
-    bool f = put(that.first), s = put(that.second);
-    return f or s;
-  }
-};
-
-template <typename T>
+template <class S, auto op, auto e>
 struct sparse_table {
+  static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>,
+                "op must work as S(S, S)");
+  static_assert(std::is_convertible_v<decltype(e), std::function<S()>>,
+                "e must work as S()");
+
  private:
   int n;
-  T nil;
-  std::function<T(T, T)> op;
-  std::vector<std::vector<T>> table;
+  std::vector<std::vector<S>> table;
 
  public:
   sparse_table() {}
-  sparse_table(const std::vector<T> &v, T _nil,
-               const std::function<T(T, T)> &_op)
-      : n(v.size()),
-        nil(_nil),
-        op(_op),
-        table(std::__lg(n) + 1, std::vector<T>(n, nil)) {
+  sparse_table(const std::vector<S> &v)
+      : n(v.size()), table(std::__lg(n) + 1, std::vector<S>(n, e())) {
     std::copy(v.begin(), v.end(), table[0].begin());
     for (int i = 1; i < table.size(); i++) {
       for (int j = 0; j + (1 << i) <= n; j++) {
@@ -87,9 +37,8 @@ struct sparse_table {
     }
   }
 
-  T query(int l, int r) const {
-    if (l >= r) return nil;
-
+  S prod(int l, int r) const {
+    if (l >= r) return e();
     int d = std::__lg(r - l);
     return op(table[d][l], table[d][r - (1 << d)]);
   }
@@ -97,51 +46,52 @@ struct sparse_table {
 
 // https://atcoder.jp/contests/abc328/editorial/7664
 // DSU with edge voltages to measure node potentials
-template <typename T>
+template <class S, auto op, auto inv>
 struct dsu_with_potentials {
+  static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>,
+                "op must work as S(S, S)");
+  static_assert(std::is_convertible_v<decltype(inv), std::function<S(S)>>,
+                "inv must work as S(S)");
+
  private:
-  std::function<T(T, T)> op;
-  std::function<T(T)> inv;
-  std::vector<int> par;
-  std::vector<T> V;
+  std::vector<int> root;
+  std::vector<S> V;
 
  public:
   dsu_with_potentials() {}
-  dsu_with_potentials(int n, T nil, const std::function<T(T, T)> &_op,
-                      const std::function<T(T)> &_inv)
-      : op(_op), inv(_inv), par(n, -1), V(n, nil) {}
+  dsu_with_potentials(int n, S nil) : root(n, -1), V(n, nil) {}
 
   int leader(int a) {
-    if (par[a] < 0) return a;
-    int p = leader(par[a]);
-    V[a] = op(V[a], V[par[a]]);
-    return par[a] = p;
+    if (root[a] < 0) return a;
+    int p = leader(root[a]);
+    V[a] = op(V[a], V[root[a]]);
+    return root[a] = p;
   }
 
-  bool merge(int a, int b, T v) {
-    int a_ = leader(a), b_ = leader(b);
-    if (a_ == b_) return op(V[b], inv(V[a])) == v;
-    if (par[a_] > par[b_]) {
-      std::swap(a_, b_);
+  bool merge(int a, int b, S v) {
+    int a2 = leader(a), b2 = leader(b);
+    if (a2 == b2) return op(V[b], inv(V[a])) == v;
+    if (root[a2] > root[b2]) {
+      std::swap(a2, b2);
       std::swap(a, b);
       v = inv(v);
     }
-    par[a_] += par[b_];
-    par[b_] = a_;
-    V[b_] = op(op(v, V[a]), inv(V[b]));
+    root[a2] += root[b2];
+    root[b2] = a2;
+    V[b2] = op(op(v, V[a]), inv(V[b]));
     return true;
   }
 
   bool same(int a, int b) { return leader(a) == leader(b); }
 
-  int size(int a) { return -par[leader(a)]; }
+  int size(int a) { return -root[leader(a)]; }
 
-  T potential(int a) {
+  S potential(int a) {
     leader(a);
     return V[a];
   }
 
-  T voltage(int a, int b) { return op(potential(b), inv(potential(a))); }
+  S voltage(int a, int b) { return op(potential(b), inv(potential(a))); }
 };
 
 // https://usaco.guide/plat/RURQ#implementation
@@ -297,18 +247,18 @@ struct persistent_vector {
         check = push == false;
       }
 
-      node *a_ = new node(a->v);
-      a_->l = self(self, a->l, l, m - 1, false);
+      node *a2 = new node(a->v);
+      a2->l = self(self, a->l, l, m - 1, false);
       if (m >= i) {
-        a_->v = v;
+        a2->v = v;
         v = a->v;
       }
-      a_->r = self(self, a->r, m + 1, r, check);
+      a2->r = self(self, a->r, m + 1, r, check);
 
       if (push) {
-        return new node(v, a_, nullptr);
+        return new node(v, a2, nullptr);
       } else {
-        return a_;
+        return a2;
       }
     };
     return {n + 1, dfs(dfs, root, 0, n - 1, true)};
@@ -327,14 +277,14 @@ struct persistent_vector {
         return self(self, a->l, l, m - 1);
       }
 
-      node *a_ = new node(a->v);
-      a_->r = self(self, a->r, m + 1, r);
+      node *a2 = new node(a->v);
+      a2->r = self(self, a->r, m + 1, r);
       if (m >= i) {
-        a_->v = v;
+        a2->v = v;
         v = a->v;
       }
-      a_->l = self(self, a->l, l, m - 1);
-      return a_;
+      a2->l = self(self, a->l, l, m - 1);
+      return a2;
     };
     return {n - 1, dfs(dfs, root, 0, n - 1)};
   }
@@ -342,20 +292,19 @@ struct persistent_vector {
 
 // https://usaco.guide/adv/persistent#persistent-segment-tree
 // https://github.com/atcoder/ac-library/blob/master/atcoder/segtree.hpp
-// TODO: Implement min_left, min_right, etc.
-template <class T, auto op, auto e>
+template <class S, auto op, auto e>
 struct persistent_segtree {
-  static_assert(std::is_convertible_v<decltype(op), std::function<T(T, T)>>,
-                "op must work as T(T, T)");
-  static_assert(std::is_convertible_v<decltype(e), std::function<T()>>,
-                "e must work as T()");
+  static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>,
+                "op must work as S(S, S)");
+  static_assert(std::is_convertible_v<decltype(e), std::function<S()>>,
+                "e must work as S()");
 
  private:
   struct node {
-    T v;
+    S v;
     node *l, *r;
 
-    node(T _v) : v(_v), l(nullptr), r(nullptr) {}
+    node(S _v) : v(_v), l(nullptr), r(nullptr) {}
     node(node *_l, node *_r) : v(e()), l(_l), r(_r) {
       if (l != nullptr) {
         v = op(v, l->v);
@@ -373,7 +322,7 @@ struct persistent_segtree {
 
  public:
   persistent_segtree() {}
-  persistent_segtree(const std::vector<T> &v) : n(v.size()) {
+  persistent_segtree(const std::vector<S> &v) : n(v.size()) {
     auto dfs = [&](auto self, int l, int r) -> node * {
       if (r - l == 1) return new node(v[l]);
 
@@ -382,9 +331,9 @@ struct persistent_segtree {
     };
     root = dfs(dfs, 0, n);
   }
-  persistent_segtree(int _n) : persistent_segtree(std::vector<T>(_n, e())) {}
+  persistent_segtree(int _n) : persistent_segtree(std::vector<S>(_n, e())) {}
 
-  persistent_segtree<T, op, e> set(int i, T v) {
+  persistent_segtree<S, op, e> set(int i, S v) {
     auto dfs = [&](auto self, node *a, int l, int r) -> node * {
       if (r - l == 1) return new node(v);
 
@@ -398,7 +347,7 @@ struct persistent_segtree {
     return {n, dfs(dfs, root, 0, n)};
   }
 
-  T get(int i) const {
+  S get(int i) const {
     node *a = root;
     int l = 0, r = n;
     while (r - l > 1) {
@@ -414,52 +363,97 @@ struct persistent_segtree {
     return a->v;
   }
 
-  T prod(int l, int r) const {
-    auto dfs = [&](auto self, node *a, int l_, int r_) -> T {
-      if (r <= l_ or r_ <= l) return e();
-      if (l <= l_ and r_ <= r) return a->v;
+  S prod(int l, int r) const {
+    auto dfs = [&](auto self, node *a, int l2, int r2) -> S {
+      if (r <= l2 or r2 <= l) return e();
+      if (l <= l2 and r2 <= r) return a->v;
 
-      int m = l_ + (r_ - l_) / 2;
-      return op(self(self, a->l, l_, m), self(self, a->r, m, r_));
+      int m = l2 + (r2 - l2) / 2;
+      return op(self(self, a->l, l2, m), self(self, a->r, m, r2));
     };
     return dfs(dfs, root, 0, n);
   }
 
-  T all_prod() const { return root->v; }
+  S all_prod() const { return root->v; }
+
+  template <bool (*f)(S)>
+  int max_right(int l) const {
+    return max_right(l, [](S x) { return f(x); });
+  }
+
+  template <class F>
+  int max_right(int l, F f) const {
+    S v = e();
+    auto dfs = [&](auto self, node *a, int l2, int r2) -> int {
+      if (r2 <= l) return r2;
+      if (l <= l2 and f(op(v, a->v))) {
+        v = op(v, a->v);
+        return r2;
+      }
+      if (r2 - l2 == 1) return l2;
+
+      int m = l2 + (r2 - l2) / 2, r = self(self, a->l, l2, m);
+      if (r != m) return r;
+      return self(self, a->r, m, r2);
+    };
+    return dfs(dfs, root, 0, n);
+  }
+
+  template <bool (*f)(S)>
+  int min_left(int r) const {
+    return min_left(r, [](S x) { return f(x); });
+  }
+
+  template <class F>
+  int min_left(int r, F f) const {
+    S v = e();
+    auto dfs = [&](auto self, node *a, int l2, int r2) -> int {
+      if (r <= l2) return l2;
+      if (r2 <= r and f(op(a->v, v))) {
+        v = op(a->v, v);
+        return l2;
+      }
+      if (r2 - l2 == 1) return r2;
+
+      int m = l2 + (r2 - l2) / 2, l = self(self, a->r, m, r2);
+      if (l != m) return l;
+      return self(self, a->l, l2, m);
+    };
+    return dfs(dfs, root, 0, n);
+  }
 };
 
 // https://usaco.guide/adv/offline-del#dsu-with-rollback
 struct dsu_with_rollbacks {
  private:
-  std::vector<int> par;
+  std::vector<int> root, saves;
   std::vector<std::tuple<int, int, int>> history;
-  std::vector<int> saves;
 
  public:
   dsu_with_rollbacks() {}
-  dsu_with_rollbacks(int n) : par(n, -1), saves({0}) {}
+  dsu_with_rollbacks(int n) : root(n, -1), saves({0}) {}
 
   // https://codeforces.com/blog/entry/90340?#comment-787571
   // O(\log{N})
   int leader(int a) {
-    if (par[a] < 0) return a;
-    return leader(par[a]);
+    if (root[a] < 0) return a;
+    return leader(root[a]);
   }
 
   int merge(int a, int b) {
     if ((a = leader(a)) == (b = leader(b))) return a;
-    if (par[a] > par[b]) {
+    if (root[a] > root[b]) {
       std::swap(a, b);
     }
-    history.push_back({a, b, par[b]});
-    par[a] += par[b];
-    par[b] = a;
+    history.push_back({a, b, root[b]});
+    root[a] += root[b];
+    root[b] = a;
     return a;
   }
 
   bool same(int a, int b) { return leader(a) == leader(b); }
 
-  int size(int a) { return -par[leader(a)]; }
+  int size(int a) { return -root[leader(a)]; }
 
   void save() { saves.push_back(history.size()); }
 
@@ -467,20 +461,20 @@ struct dsu_with_rollbacks {
     while (history.size() > saves.back()) {
       auto [a, b, size] = history.back();
       history.pop_back();
-      par[a] -= size;
-      par[b] = size;
+      root[a] -= size;
+      root[b] = size;
     }
     saves.pop_back();
   }
 };
 
 // https://jilljenn.github.io/tryalgo/_modules/tryalgo/union_rectangles.html#union_rectangles
-template <typename T, typename S>
+template <typename S, typename T>
 struct cover_query {
  private:
   struct seg {
-    S c;
-    T s, w;
+    T c;
+    S s, w;
   };
 
   int n;
@@ -488,7 +482,7 @@ struct cover_query {
 
  public:
   cover_query() {}
-  cover_query(const std::vector<T> &l)
+  cover_query(const std::vector<S> &l)
       : n(1 << std::__lg(2 * l.size() - 1)), data(2 * n, {0, 0, 0}) {
     for (int i = 0; i < l.size(); i++) {
       data[n + i].w = l[i];
@@ -497,11 +491,11 @@ struct cover_query {
       data[i].w = data[i << 1].w + data[i << 1 | 1].w;
     }
   }
-  cover_query(int _n) : cover_query(std::vector<T>(_n, 1)) {}
+  cover_query(int _n) : cover_query(std::vector<S>(_n, 1)) {}
 
-  T cover() { return data[1].s; }
+  S cover() { return data[1].s; }
 
-  void add(int l, int r, S dc) {
+  void add(int l, int r, T dc) {
     auto dfs = [&](auto self, int i, int sl, int sr) -> void {
       if (sr <= l or r <= sl) return;
       if (l <= sl and sr <= r) {
@@ -548,10 +542,10 @@ struct implicit_treap {
 
   static node *safe_copy(node *a) {
     if (a == nullptr) return nullptr;
-    node *a_ = new node(*a);
-    a_->l = safe_copy(a->l);
-    a_->r = safe_copy(a->r);
-    return a_;
+    node *a2 = new node(*a);
+    a2->l = safe_copy(a->l);
+    a2->r = safe_copy(a->r);
+    return a2;
   }
 
   static void safe_free(node *a) {
@@ -680,6 +674,78 @@ struct implicit_treap {
 };
 template <typename T>
 std::mt19937 implicit_treap<T>::rng(time(nullptr));
+
+template <typename T>
+struct xor_basis {
+ private:
+  int n, m;
+  std::vector<T> basis;
+
+ public:
+  xor_basis(int _n) : n(_n), m(0), basis(n, 0) {}
+  xor_basis() : xor_basis(8 * sizeof(T)) {}
+
+  bool insert(T x) {
+    for (int i = n - 1; i >= 0; i--) {
+      if (~x >> i & 1) continue;
+      if (basis[i] == 0) {
+        for (int j = 0; j < i; j++) {
+          if (~x >> j & 1) continue;
+          x ^= basis[j];
+        }
+        basis[i] = x;
+        m++;
+        for (int j = i + 1; j < n; j++) {
+          if (~basis[j] >> i & 1) continue;
+          basis[j] ^= x;
+        }
+        return true;
+      }
+      x ^= basis[i];
+    }
+    return false;
+  }
+
+  T size() { return m; }
+
+  bool contains(T x) {
+    for (int i = 0; i < n; i++) {
+      if (~x >> i & 1) continue;
+      if (basis[i] == 0) return false;
+      x ^= basis[i];
+    }
+    return true;
+  }
+
+  T order_of_key(T x) {
+    int x2 = 0, j = m - 1, rv = 0;
+    for (int i = n - 1; i >= 0; i--) {
+      if (basis[i] == 0) continue;
+      if ((x2 ^ basis[i]) <= x) {
+        rv += 1 << j;
+        x2 ^= basis[i];
+      }
+      j--;
+    }
+    return rv;
+  }
+
+  T find_by_order(T k) {
+    int k2 = 0, j = m - 1, rv = 0;
+    for (int i = n - 1; i >= 0; i--) {
+      if (basis[i] == 0) continue;
+      if (k2 + (1 << j) <= k) {
+        rv ^= basis[i];
+        k2 += 1 << j;
+      }
+      j--;
+    }
+    return rv;
+  }
+};
+
+// https://eolymp.com/en/posts/7u074ngkv127l3fl0m33bf5gck
+// TODO: XOR basis with deletions
 
 // https://codeforces.com/blog/entry/11080
 template <typename T, typename Compare = std::less<T>>

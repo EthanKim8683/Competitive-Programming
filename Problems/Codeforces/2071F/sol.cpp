@@ -1,11 +1,21 @@
 #include <bits/stdc++.h>
 
-#include "ethankim8683/data_structures.hpp"
+#include "atcoder/lazysegtree.hpp"
 
 using namespace std;
+using namespace atcoder;
+
+const int MAXA = 1e9;
+const int INF = 1e9 + 2e5;
 
 int main() {
   cin.tie(0)->sync_with_stdio(0);
+
+  // binary search for p
+  // checker function tries each i
+  // as i increases, j > i become bad at most once
+  // store number of bad j for each i
+  // return whether there exists and i with no more than K bad j
 
   int T;
   cin >> T;
@@ -17,79 +27,65 @@ int main() {
     vector<int> A(N);
     for (auto &e : A) cin >> e;
 
-    // I just need min_left-ish method
+    auto check = [&](int p) -> bool {
+      auto solve_right = [&](vector<int> A) -> vector<int> {
+        using S = int;
+        auto op = [&](S a, S b) -> S { return min(a, b); };
+        auto e = [&]() -> S { return INF; };
+        using F = int;
+        auto mapping = [&](F f, S x) -> S {
+          if (x == INF) return x;
+          return f + x;
+        };
+        auto composition = [&](F f, F g) -> F { return f + g; };
+        auto id = [&]() -> F { return 0; };
+        lazy_segtree<S, op, e, F, mapping, composition, id> st(N);
+        for (int i = 0; i < N; i++) {
+          st.set(i, A[i] + i);
+        }
 
-    // vector<vector<int>> T(N);
-    // vector<int> S;
-    // for (int i = 0; i < N; i++) {
-    //   for (auto &e : S) {
-    //     if (e > A[i] - i) {
-    //       e--;
-    //     }
-    //   }
-    //   S.push_back(A[i] - i);
-    //   for (auto e : S) {
-    //     T[i].push_back(e + i);
-    //   }
-    // }
-    // S.clear();
-    // for (int i = N - 1; i >= 0; i--) {
-    //   for (auto &e : S) {
-    //     if (e > A[i] + i) {
-    //       e--;
-    //     }
-    //   }
-    //   for (auto e : S) {
-    //     T[i].push_back(e - i);
-    //   }
-    //   S.push_back(A[i] + i);
-    // }
-    // int ans = 0;
-    // for (auto r : T) {
-    //   sort(r.begin(), r.end());
-    //   ans = max(ans, r[K]);
-    // }
-    // cout << ans << '\n';
+        vector<int> rv(N, 0);
+        int count = 0;
+        for (int i = 0; i < N; i++) {
+          while (true) {
+            int j = st.max_right(i + 1, [&](S x) -> bool { return x >= p; });
+            if (j == N) break;
 
-    auto f = [&](auto &cut, int x) -> int {
-      return x - cut.order_of_key({x + 1, -1});
-    };
-    auto g = [&](auto &cut, int x) -> int {
-      int l = x, r = x + cut.size();
-      while (l < r) {
-        int m = l + (r - l) / 2;
-        f(cut, m) >= x ? r = m : l = m + 1;
+            st.set(j, INF);
+            st.apply(j + 1, N, -1);
+            count++;
+          }
+          rv[i] = count;
+
+          if (st.get(i) == INF) {
+            count--;
+          } else {
+            st.apply(i + 1, N, -1);
+          }
+        }
+        return rv;
+      };
+
+      auto cost1 = solve_right(A);
+
+      auto A2 = A;
+      reverse(A2.begin(), A2.end());
+      auto cost2 = solve_right(A2);
+      reverse(cost2.begin(), cost2.end());
+
+      for (int i = 0; i < N; i++) {
+        if (A[i] < p) continue;
+        if (cost1[i] + cost2[i] <= K) return true;
       }
-      return l;
+      return false;
     };
-
-    int t = 0;
-    ordered_set<pair<int, int>> cut, cost;
-    vector<pair<int, int>> cuts(N), costs(N);
-    for (int i = N - 1; i >= 0; i--) {
-      cut.insert(cuts[i] = {g(cut, A[i] + i) + 1, t++});
-      cost.insert(costs[i] = {g(cut, A[i] + i), t++});
+    auto A2 = A;
+    sort(A2.begin(), A2.end());
+    int l = A2[K], r = A2[K] + N;
+    while (l < r) {
+      int m = l + (r - l + 1) / 2;
+      check(m) ? l = m : r = m - 1;
     }
-
-    ordered_set<pair<int, int>> cut2, cost2;
-    int ans = 0;
-    for (int i = 0; i < N; i++) {
-      int l = 0, r = A[i];
-      while (l < r) {
-        int m = l + (r - l + 1) / 2;
-        cost.order_of_key({g(cut, m + i - 1), -1}) +
-                    cost2.order_of_key({g(cut2, m - i - 1), t}) <=
-                K
-            ? l = m
-            : r = m - 1;
-      }
-      ans = max(ans, l);
-
-      cut2.insert({g(cut2, A[i] - i) + 1, t++});
-      cost2.insert({g(cut2, A[i] - i), t++});
-      cut.erase(cuts[i]);
-      cost.erase(costs[i]);
-    }
-    cout << ans << '\n';
+    cout << l << '\n';
   }
 }

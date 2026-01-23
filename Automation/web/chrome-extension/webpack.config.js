@@ -10,7 +10,6 @@ module.exports = {
     glob
       .sync("**/*.ts", {
         cwd: src,
-        ignore: ["node_modules", "**/*.d.ts"],
       })
       .map((file) => {
         const { dir, name } = path.parse(file);

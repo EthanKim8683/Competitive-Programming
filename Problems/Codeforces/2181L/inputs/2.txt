@@ -1,0 +1,14 @@
+4
+4
+N E F <EOS>
+LLLL
+5
+N E R C <EOS>
+LLLLL
+6
+N E E R C <EOS>
+LLLLLL
+5
+I C P C <EOS>
+LLLLL
+

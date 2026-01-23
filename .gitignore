@@ -1,3 +1,6 @@
 **/.DS_Store
+**/.idea
+**/.vscode
 .env
 compile_flags.txt
+**/sol

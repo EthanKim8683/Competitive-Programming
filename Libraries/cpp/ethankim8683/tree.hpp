@@ -56,6 +56,11 @@ struct tree_utils {
 
   int get_depth(int a) const { return depth[a]; }
 
+  int get_parent(int a) const {
+    assert(a != r);
+    return anc[a][0];
+  }
+
   bool is_anc(int a, int b) const {
     return in[a] <= in[b] and out[a] >= out[b];
   }
@@ -220,11 +225,15 @@ std::pair<int, std::vector<std::vector<int>>> cartesian_tree(
 
   std::vector<int> domain(n);
   iota(domain.begin(), domain.end(), 0);
-  sparse_table<int> st(domain, -1, [&](int a, int b) -> int {
+
+  using S = int;
+  auto op = [&](S a, S b) -> S {
     if (a == -1) return b;
     if (b == -1) return a;
     return v[a] == v[b] ? std::min(a, b) : cmp(v[a], v[b]) ? a : b;
-  });
+  };
+  auto e = [&]() -> int { return -1; };
+  sparse_table<S, op, e> st(domain);
 
   std::vector<std::vector<int>> adj(n);
   auto dfs = [&](auto self, int l, int r) -> int {
@@ -300,18 +309,18 @@ std::pair<int, std::vector<std::vector<int>>> centroid_decomp(
     return a;
   };
 
-  std::vector<std::vector<int>> adj_(n);
+  std::vector<std::vector<int>> adj2(n);
   auto dfs_build = [&](auto self, int a) -> int {
     a = dfs_find(dfs_find, a, -1, dfs_size(dfs_size, a, -1));
     cut[a] = true;
     for (auto b : adj[a]) {
       if (cut[b]) continue;
-      adj_[a].push_back(self(self, b));
+      adj2[a].push_back(self(self, b));
     }
     return a;
   };
   int r = dfs_build(dfs_build, 0);
-  return {r, adj_};
+  return {r, adj2};
 }
 
 // https://rng-58.blogspot.com/2017/02/hashing-and-probability-of-collision.html
@@ -361,11 +370,17 @@ T tree_hash(const std::vector<std::vector<int>> &adj) {
 
   int n = adj.size();
 
-  static T base = std::mt19937_64(time(nullptr))() % MOD;
   auto roots = find_centroids(adj);
-  T rv = 0;
+  std::vector<T> hashes;
   for (auto r : roots) {
-    rv = ((T2) rv * base + tree_hash<T, MOD>(adj, r)) % MOD;
+    hashes.push_back(tree_hash<T, MOD>(adj, r));
+  }
+  sort(hashes.begin(), hashes.end());
+
+  static T base = std::mt19937_64(time(nullptr))() % MOD;
+  T rv = 0;
+  for (auto e : hashes) {
+    rv = ((T2) rv * base + e) % MOD;
   }
   return rv;
 }

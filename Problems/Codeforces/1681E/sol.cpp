@@ -83,8 +83,8 @@ int main() {
     auto t = st.prod(l1, l2 - 1);
     auto d1 = doors[l1], d2 = doors[l2 - 1];
     int t1[2] = {
-        is_top(x1, y1) ? abs(x1 - d1[0]) + 1 : l1 - y1 + l1 - d1[0] + 1,
-        is_right(x1, y1) ? abs(y1 - d1[3]) + 1 : l1 - x1 + l1 - d1[3] + 1};
+      is_top(x1, y1) ? abs(x1 - d1[0]) + 1 : l1 - y1 + l1 - d1[0] + 1,
+      is_right(x1, y1) ? abs(y1 - d1[3]) + 1 : l1 - x1 + l1 - d1[3] + 1};
     int t2[2] = {is_top(x2, y2) ? abs(x2 - d2[0]) : l2 - y2 + l2 - d2[0],
                  is_right(x2, y2) ? abs(y2 - d2[3]) : l2 - x2 + l2 - d2[3]};
     i64 ans = INF;

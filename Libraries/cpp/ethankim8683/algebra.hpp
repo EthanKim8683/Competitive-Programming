@@ -1,6 +1,3 @@
-#include <numeric>
-
-#include "ethankim8683/type_traits.hpp"
 #ifndef ETHANKIM8683_ALGEBRA
 #define ETHANKIM8683_ALGEBRA 1
 
@@ -428,7 +425,7 @@ std::vector<T> xor_convolution(std::vector<T> a, std::vector<T> b) {
 
 // https://ideone.com/JNRMsQ
 // Finds the maximum number of divisors of any number at most n and the number
-// itself
+// with the maximum number of divisors
 std::pair<unsigned long long, unsigned long long> max_num_divisors(
     unsigned long long n) {
   using T2 = double_width<unsigned long long>::type;
@@ -443,9 +440,9 @@ std::pair<unsigned long long, unsigned long long> max_num_divisors(
     if (i == std::size(primes)) return;
 
     for (int j = 1; j <= jmax; j++) {
-      T2 x_ = (T2) x * primes[i];
-      if (x_ > n) return;
-      x = x_;
+      T2 x2 = (T2) x * primes[i];
+      if (x2 > n) return;
+      x = x2;
       self(self, i + 1, j, x, count * (j + 1));
     }
   };

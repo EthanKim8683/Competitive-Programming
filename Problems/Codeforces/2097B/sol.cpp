@@ -2,7 +2,7 @@
 
 #include "atcoder/dsu"
 #include "atcoder/modint"
-#include "ethankim8683/viz"
+#include "ethankim8683/utils"
 
 using namespace std;
 using namespace atcoder;

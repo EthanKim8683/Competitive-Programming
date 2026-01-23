@@ -1,0 +1,16 @@
+4 5 8
+1 1 1 0
+2 0 2 0
+1 2
+2 3
+3 4
+4 1
+1 3
+check 2
+add 2 desk 1
+check 2
+add 1 monitor 3
+check 1
+check 2
+check 3
+check 4

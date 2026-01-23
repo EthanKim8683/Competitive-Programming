@@ -1,6 +1,7 @@
-CompileFlags:
-  Add: [-ILibraries/cpp, -I/opt/homebrew/include, -DETHANKIM8683, -std=c++23]
 InlayHints:
   ParameterNames: false
   DeducedTypes: false
   Designators: false
+Diagnostics:
+  Suppress:
+    - block_on_nonlocal

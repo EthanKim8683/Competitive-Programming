@@ -1,5 +1,6 @@
-#include "ethankim8683/euler_tour.hpp"
 #include <bits/stdc++.h>
+
+#include "ethankim8683/euler_tour.hpp"
 using namespace std;
 
 int main() {
@@ -13,8 +14,7 @@ int main() {
     cin >> N;
 
     vector<int> W(N);
-    for (auto &e : W)
-      cin >> e;
+    for (auto &e : W) cin >> e;
 
     vector<vector<int>> adj(N);
     for (int i = 0; i < N - 1; i++) {

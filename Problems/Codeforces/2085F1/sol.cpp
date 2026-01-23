@@ -2,6 +2,8 @@
 
 using namespace std;
 
+using i64 = long long;
+
 const int INF = 1e9;
 
 int main() {
@@ -15,64 +17,74 @@ int main() {
     cin >> N >> K;
 
     vector<int> A(N);
-    for (auto &e : A) cin >> e, e--;
-
-    vector<set<int>> indices(K);
-    for (int i = 0; i < N; i++) {
-      indices[A[i]].insert(i);
+    for (auto &e : A) {
+      cin >> e;
+      e--;
     }
 
-    auto chmin = [&](int &a, int b) -> void { a = min(a, b); };
-    int ans = INF;
+    vector<vector<int>> I(K);
+    for (int i = 0; i < N; i++) {
+      I[A[i]].push_back(i);
+    }
+
+    i64 ans = INF;
     for (int i = 0; i + K <= N; i++) {
-      vector<queue<int>> occs(K);
-      for (int j = i; j < i + K; j++) {
-        occs[A[j]].push(j);
-      }
-      int left = 0, cost = 0;
-      for (int j = i; j < i + K; j++) {
-        if (j != occs[A[j]].front()) {
-          cost += i + K - j;
+      vector<i64> costs1;
+      {
+        vector<bool> seen(K, false);
+        for (int j = i; j < i + K; j++) {
+          seen[A[j]] = true;
         }
-      }
-      vector<int> costs(K + 1, INF);
-      for (int j = i; j <= i + K; j++) {
-        chmin(costs[left], cost);
-        if (j < i + K) {
-          if (occs[A[j]].size() > 1) {
-            occs[A[j]].pop();
-            cost -= i + K - occs[A[j]].front();
-            cost += j - (i - 1);
-            left++;
-          }
+
+        i64 cost = 0;
+        vector<int> deltas;
+        for (int j = 0; j < K; j++) {
+          if (seen[j]) continue;
+          auto it1 = upper_bound(I[j].begin(), I[j].end(), i + K - 1),
+               it2 = lower_bound(I[j].begin(), I[j].end(), i);
+          int cost1 = it1 == I[j].end() ? INF : *it1 - (i + K - 1),
+              cost2 = it2 == I[j].begin() ? INF : i - *prev(it2);
+          cost += cost1;
+          deltas.push_back(cost2 - cost1);
         }
+        sort(deltas.begin(), deltas.end());
+
+        for (auto e : deltas) {
+          costs1.push_back(cost);
+          cost += e;
+        }
+        costs1.push_back(cost);
       }
 
-      vector<int> deltas;
-      left = 0;
-      cost = 0;
-      for (int j = 0; j < K; j++) {
-        if (occs[j].size() > 0) continue;
-        auto it = indices[j].lower_bound(i);
-        int l = it == indices[j].begin() ? -1 : *prev(it),
-            r = it == indices[j].end() ? -1 : *it;
-        if (r == -1) {
-          cost += i - 1 - l;
-          left++;
-        } else if (l == -1) {
-          cost += r - (i + K);
-        } else {
-          cost += r - (i + K);
-          deltas.push_back({i - 1 - l - (r - (i + K))});
+      vector<i64> costs2;
+      {
+        vector<vector<int>> I2(K);
+        for (int j = i; j < i + K; j++) {
+          I2[A[j]].push_back(j);
         }
+
+        i64 cost = 0;
+        vector<int> deltas;
+        for (int j = 0; j < K; j++) {
+          if (I2[j].empty()) continue;
+          for (int k = 1; k < I2[j].size(); k++) {
+            int cost1 = (i + K - 1) - I2[j][k], cost2 = I2[j][k - 1] - i;
+            cost += cost1;
+            deltas.push_back(cost2 - cost1);
+          }
+        }
+        sort(deltas.begin(), deltas.end());
+
+        for (auto e : deltas) {
+          costs2.push_back(cost);
+          cost += e;
+        }
+        costs2.push_back(cost);
       }
-      sort(deltas.begin(), deltas.end());
-      for (int j = 0; j <= deltas.size(); j++) {
-        chmin(ans, cost + costs[left]);
-        if (j < deltas.size()) {
-          cost += deltas[j];
-          left++;
-        }
+
+      assert(costs1.size() == costs2.size());
+      for (int i = 0; i < costs1.size(); i++) {
+        ans = min(ans, costs1[i] + costs2[i]);
       }
     }
     cout << ans << '\n';
