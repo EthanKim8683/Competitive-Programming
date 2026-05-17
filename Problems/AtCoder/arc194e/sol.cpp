@@ -1,9 +1,47 @@
+#ifndef U
+#pragma GCC optimize("Ofast,unroll-loops")
+#endif
 #include <bits/stdc++.h>
-
 using namespace std;
 
-int main() {
+#define int long long
+#define rep(i, a, b) for (int i = a; i < (b); ++i)
+#define all(x) begin(x), end(x)
+#define sz(x) (int) (x).size()
+#define eb emplace_back
+#define pb push_back
+#define vc vector
+#define fs first
+#define sd second
+typedef pair<int, int> pii;
+typedef vc<int> vi;
+
+int chmin(auto &u, auto v) { return u > v ? u = v, 1 : 0; }
+int chmax(auto &u, auto v) { return u < v ? u = v, 1 : 0; }
+
+signed main() {
   cin.tie(0)->sync_with_stdio(0);
+  cin.exceptions(cin.failbit);
+
+  // 000111001
+  // 000110011
+  // 000100111
+  // 000001111
+  //
+  // if Y = 1, the 1's would just have to match deltas modulo X
+  //
+  // if Y > 1, groups of Y 1's would have to match deltas modulo X in
+  // 1-delimited ranges
+  //
+  // 7 2 2
+  // 0011100
+  // 0010011
+  // 1100100
+  //
+  // 1's modulo X are the same
+  // 0's modulo Y are the same
+  //
+  //
 
   int N, X, Y;
   cin >> N >> X >> Y;
@@ -14,26 +52,8 @@ int main() {
   string T;
   cin >> T;
 
-  // proof by AC?
+  auto key = [&](string S) -> string {
 
-  auto get_occs = [&](string S) -> array<vector<int>, 2> {
-    array<vector<int>, 2> rv;
-    for (int i = 0; i < S.size(); i++) {
-      rv[S[i] - '0'].push_back(i);
-    }
-    return rv;
   };
-  auto occs1 = get_occs(S), occs2 = get_occs(T);
-  bool ok = true;
-  for (int i = 0; i < 2; i++) {
-    if (occs1[i].size() != occs2[i].size()) {
-      ok = false;
-      break;
-    }
-    int Z = (int[]) {Y, X}[i];
-    for (int j = 0; j < occs1[i].size(); j++) {
-      ok = ok and occs1[i][j] % Z == occs2[i][j] % Z;
-    }
-  }
-  cout << (ok ? "Yes" : "No");
+  cout << (key(S) == key(T) ? "Yes" : "No") << '\n';
 }

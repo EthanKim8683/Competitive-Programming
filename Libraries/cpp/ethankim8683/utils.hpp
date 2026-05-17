@@ -6,6 +6,8 @@
 
 #include <functional>
 
+namespace ethankim8683 {
+
 void viz(const std::function<void()> &draw) {
   static bool init = true;
   if (init) {
@@ -24,7 +26,9 @@ void viz(const std::function<void()> &draw) {
   CloseWindow();
 }
 
-#define viz(...) viz(__VA_ARGS__)
+}  // namespace ethankim8683
+
+#define viz(...) ethankim8683::viz(__VA_ARGS__)
 #else
 #define viz(...)
 #endif

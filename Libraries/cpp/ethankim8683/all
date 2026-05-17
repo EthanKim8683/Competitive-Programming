@@ -5,6 +5,7 @@
 #include "ethankim8683/geometry"
 #include "ethankim8683/graph"
 #include "ethankim8683/int"
-// #include "ethankim8683/matrix"
+#include "ethankim8683/matrix"
 #include "ethankim8683/tree"
 #include "ethankim8683/type_traits"
+#include "ethankim8683/utils"

@@ -1,17 +1,20 @@
 #ifndef ETHANKIM8683_TREE
 #define ETHANKIM8683_TREE 1
 
-#include <assert.h>
-
 #include <algorithm>
+#include <cassert>
+#include <ctime>
 #include <functional>
 #include <random>
 #include <vector>
 
-#include "ethankim8683/data_structures"
-#include "ethankim8683/type_traits"
+namespace ethankim8683 {
 
 // Euler tour and binary lifting-based tree utils
+// TODO:
+// - O(1) RMQ LCA (or see https://codeforces.com/blog/entry/153134)
+// - O(1) kth ancestor (ladder)
+// - Built-in HLD
 struct tree_utils {
  private:
   const std::vector<std::vector<int>> &adj;
@@ -109,14 +112,12 @@ struct tree_utils {
   bool is_in_subtree(int a, int b) const { return is_in_subtree(a, b, r); }
 
   // https://www.youtube.com/watch?v=czySm7bUHgY
-  // Returns the edges of a virtual tree corresponding to the given vertices
-  // O(V\log{V})
-  std::vector<std::pair<int, int>> virtual_tree(std::vector<int> v) const {
-    for (auto a : v) {
-      assert(0 <= a and a < n);
-    }
-
+  // Returns the root and edges of a virtual tree containing the given vertices
+  // O(V\log(V))
+  std::pair<int, std::vector<std::pair<int, int>>> virtual_tree(
+      std::vector<int> v) const {
     int k = v.size();
+    assert(k > 0);
 
     auto cmp = [&](int a, int b) -> bool { return in[a] < in[b]; };
     sort(v.begin(), v.end(), cmp);
@@ -139,7 +140,7 @@ struct tree_utils {
       rv.push_back({stack.end()[-2], stack.back()});
       stack.pop_back();
     }
-    return rv;
+    return {stack[0], rv};
   }
 
   std::vector<int> subtree(int r) {
@@ -160,12 +161,12 @@ struct tree_utils {
 // https://atcoder.jp/contests/abc351/editorial/9899
 // pajenegod's re-root template, with AtCoder/Static Top Tree-inspired structure
 // O(N)
-template <typename T, typename S>
+template <class T, class S>
 std::pair<std::vector<T>, std::vector<std::vector<T>>> rrdp(
-    const std::vector<std::vector<int>> &adj, S nil,
     const std::function<S(T, int, int)> &transition,
     const std::function<S(S, S)> &combine,
-    const std::function<T(S, int)> &finalize) {
+    const std::function<T(S, int)> &finalize, S nil,
+    const std::vector<std::vector<int>> &adj) {
   int n = adj.size();
 
   std::vector<S> draft_dp(n);
@@ -215,41 +216,6 @@ std::pair<std::vector<T>, std::vector<std::vector<T>>> rrdp(
   return {dp, adj_dp};
 }
 
-// Returns a rooted tree corresponding to the Cartesian tree
-// O(N)
-template <typename T>
-std::pair<int, std::vector<std::vector<int>>> cartesian_tree(
-    const std::vector<T> &v,
-    const std::function<bool(T, T)> &cmp = std::less<T>()) {
-  int n = v.size();
-
-  std::vector<int> domain(n);
-  iota(domain.begin(), domain.end(), 0);
-
-  using S = int;
-  auto op = [&](S a, S b) -> S {
-    if (a == -1) return b;
-    if (b == -1) return a;
-    return v[a] == v[b] ? std::min(a, b) : cmp(v[a], v[b]) ? a : b;
-  };
-  auto e = [&]() -> int { return -1; };
-  sparse_table<S, op, e> st(domain);
-
-  std::vector<std::vector<int>> adj(n);
-  auto dfs = [&](auto self, int l, int r) -> int {
-    auto m = st.query(l, r);
-    if (l < m) {
-      adj[m].push_back(self(self, l, m));
-    }
-    if (m + 1 < r) {
-      adj[m].push_back(self(self, m + 1, r));
-    }
-    return m;
-  };
-  int r = dfs(dfs, 0, n);
-  return {r, adj};
-}
-
 // Returns all (one or two) centroids of the tree
 // O(N)
 std::vector<int> find_centroids(const std::vector<std::vector<int>> &adj) {
@@ -283,7 +249,7 @@ std::vector<int> find_centroids(const std::vector<std::vector<int>> &adj) {
 }
 
 // Returns a rooted tree corresponding to the centroid decomposition
-// O(N\log{N})
+// O(N\log(N))
 std::pair<int, std::vector<std::vector<int>>> centroid_decomp(
     const std::vector<std::vector<int>> &adj) {
   int n = adj.size();
@@ -326,11 +292,8 @@ std::pair<int, std::vector<std::vector<int>>> centroid_decomp(
 // https://rng-58.blogspot.com/2017/02/hashing-and-probability-of-collision.html
 // Returns a hash of the unlabeled rooted tree
 // O(N)
-template <typename T = long long, T MOD = (1ll << 61) - 1,
-          std::enable_if<std::is_integral<T>::value>::type * = nullptr>
-T tree_hash(const std::vector<std::vector<int>> &adj, int r) {
-  using T2 = double_width<T>::type;
-
+template <long long MOD = (1ll << 61) - 1>
+long long tree_hash(const std::vector<std::vector<int>> &adj, int r) {
   int n = adj.size();
 
   std::vector<int> depth(n);
@@ -345,16 +308,16 @@ T tree_hash(const std::vector<std::vector<int>> &adj, int r) {
   dfs_depth(dfs_depth, r, -1);
 
   static std::mt19937_64 rng(time(nullptr));
-  static std::vector<T> vars = {1};
-  while (vars.size() < depth[r] + 1) {
+  static std::vector<long long> vars = {1};
+  while ((int) vars.size() < depth[r] + 1) {
     vars.push_back(rng() % MOD);
   }
 
-  auto dfs_hash = [&](auto self, int a, int p) -> T {
-    T hash = 1;
+  auto dfs_hash = [&](auto self, int a, int p) -> long long {
+    long long hash = 1;
     for (auto b : adj[a]) {
       if (b == p) continue;
-      hash = (T2) hash * (vars[depth[a]] + self(self, b, a)) % MOD;
+      hash = (__int128) hash * (vars[depth[a]] + self(self, b, a)) % MOD;
     }
     return hash;
   };
@@ -363,26 +326,138 @@ T tree_hash(const std::vector<std::vector<int>> &adj, int r) {
 
 // Returns a hash of the unlabeled unrooted tree
 // O(N)
-template <typename T = long long, T MOD = (1ll << 61) - 1,
-          std::enable_if<std::is_integral<T>::value>::type * = nullptr>
-T tree_hash(const std::vector<std::vector<int>> &adj) {
-  using T2 = double_width<T>::type;
-
+template <long long MOD = (1ll << 61) - 1>
+long long tree_hash(const std::vector<std::vector<int>> &adj) {
   int n = adj.size();
 
   auto roots = find_centroids(adj);
-  std::vector<T> hashes;
+  std::vector<long long> hashes;
   for (auto r : roots) {
-    hashes.push_back(tree_hash<T, MOD>(adj, r));
+    hashes.push_back(tree_hash<long long, MOD>(adj, r));
   }
   sort(hashes.begin(), hashes.end());
 
-  static T base = std::mt19937_64(time(nullptr))() % MOD;
-  T rv = 0;
+  static long long base = std::mt19937_64(time(nullptr))() % MOD;
+  long long rv = 0;
   for (auto e : hashes) {
-    rv = ((T2) rv * base + e) % MOD;
+    rv = ((__int128) rv * base + e) % MOD;
   }
   return rv;
 }
+
+// https://cp-algorithms.com/graph/pruefer_code.html
+// Returns the Prüfer code of a labelled tree
+std::vector<int> prufer_code(const std::vector<std::vector<int>> &adj) {
+  int n = adj.size();
+
+  std::vector<int> parent(n, -1);
+  auto dfs = [&](auto self, int a) -> void {
+    for (auto b : adj[a]) {
+      if (b == parent[a]) continue;
+      self(self, b);
+    }
+  };
+  dfs(dfs, n - 1);
+
+  std::vector<int> degree(n, 0);
+  for (int i = 0; i < n; i++) {
+    degree[i] = adj[i].size();
+  }
+
+  int j = -1;
+  for (int i = 0; i < n; i++) {
+    if (degree[i] != 1) continue;
+    j = i;
+    break;
+  }
+
+  std::vector<int> rv;
+  int a = j;
+  for (int i = 0; i < n - 2; i++) {
+    int p = parent[a];
+    rv.push_back(p);
+
+    degree[p]--;
+    if (degree[p] == 1 and p < j) {
+      a = p;
+    } else {
+      do {
+        j++;
+      } while (degree[j] != 1);
+      a = j;
+    }
+  }
+  return rv;
+}
+
+// Rearranges adjacency lists in-place such that for each node:
+// - First element is heavy child if there are children
+// - Last element is parent if included in adjacency list
+void sort_hld(std::vector<std::vector<int>> &adj, int r = 0) {
+  auto dfs = [&](auto self, int a, int p) -> int {
+    int rv = 1, nmax = 0;
+    for (int i = 0; i < (int) adj[a].size(); i++) {
+      if (adj[a][i] == p) {
+        std::swap(adj[a][i], adj[a].back());
+      }
+
+      if (adj[a][i] == p) continue;
+      int n = self(self, adj[a][i], a);
+      rv += n;
+
+      if (i == 0) {
+        nmax = n;
+      } else {
+        if (n > nmax) {
+          std::swap(adj[a][0], adj[a][i]);
+          nmax = n;
+        }
+      }
+    }
+    return rv;
+  };
+  dfs(dfs, r, -1);
+}
+
+// https://atcoder.jp/contests/abc454/editorial/19133
+// Small-to-large merging using global data structure; relaxes data structure
+// sparseness condition
+// O(N\log(N))
+void sack(const std::function<void(int)> &insert,
+          const std::function<void()> &clear,
+          const std::function<void(int)> &callback,
+          std::vector<std::vector<int>> &adj, int r = 0) {
+  int n = adj.size();
+
+  sort_hld(adj, r);
+
+  std::vector<int> order(n);
+  int t = 0;
+  auto dfs = [&](auto self, int a, int p) -> void {
+    order[t] = a;
+    t++;
+
+    int l = t;
+    for (int i = 1; i < (int) adj[a].size(); i++) {
+      if (adj[a][i] == p) continue;
+      self(self, adj[a][i], a);
+      clear();
+    }
+    int r = t;
+
+    if ((int) adj[a].size() > 0 and adj[a][0] != p) {
+      self(self, adj[a][0], a);
+      for (int i = l; i < r; i++) {
+        insert(order[i]);
+      }
+    }
+    insert(a);
+
+    callback(a);
+  };
+  dfs(dfs, r, -1);
+}
+
+}  // namespace ethankim8683
 
 #endif  // ETHANKIM8683_TREE

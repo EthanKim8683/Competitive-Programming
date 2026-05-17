@@ -1,10 +1,9 @@
 #ifndef ETHANKIM8683_DATA_STRUCTURES
 #define ETHANKIM8683_DATA_STRUCTURES 1
 
-#include <assert.h>
-#include <time.h>
-
 #include <algorithm>
+#include <cassert>
+#include <ctime>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 #include <functional>
@@ -13,6 +12,8 @@
 #include <vector>
 
 #include "ethankim8683/type_traits"
+
+namespace ethankim8683 {
 
 template <class S, auto op, auto e>
 struct sparse_table {
@@ -30,7 +31,7 @@ struct sparse_table {
   sparse_table(const std::vector<S> &v)
       : n(v.size()), table(std::__lg(n) + 1, std::vector<S>(n, e())) {
     std::copy(v.begin(), v.end(), table[0].begin());
-    for (int i = 1; i < table.size(); i++) {
+    for (int i = 1; i < (int) table.size(); i++) {
       for (int j = 0; j + (1 << i) <= n; j++) {
         table[i][j] = op(table[i - 1][j], table[i - 1][j + (1 << (i - 1))]);
       }
@@ -96,10 +97,10 @@ struct dsu_with_potentials {
 
 // https://usaco.guide/plat/RURQ#implementation
 // Fenwick tree with range updates
-template <typename T>
+template <class T>
 struct range_add_fenwick_tree {
  private:
-  using T2 = double_width<T>::type;
+  using T2 = double_width_t<T>;
 
   int n;
   std::vector<T> m;
@@ -136,7 +137,7 @@ struct range_add_fenwick_tree {
 
 // https://usaco.guide/adv/persistent#path-copying
 // Persistent array with insertion and deletion
-template <typename T>
+template <class T>
 struct persistent_vector {
  private:
   struct node {
@@ -206,7 +207,7 @@ struct persistent_vector {
     }
   }
 
-  // O(\log{N})
+  // O(\log(N))
   persistent_vector<T> push_back(T v) {
     auto dfs = [&](auto self, node *a, int l, int r) -> node * {
       if (l > r) return new node(v);
@@ -219,7 +220,7 @@ struct persistent_vector {
     return {n + 1, dfs(dfs, root, 0, n - 1)};
   }
 
-  // O(\log{N})
+  // O(\log(N))
   persistent_vector<T> pop_back() {
     auto dfs = [&](auto self, node *a, int l, int r) -> node * {
       int m = middle(l, r);
@@ -230,7 +231,7 @@ struct persistent_vector {
     return {n - 1, dfs(dfs, root, 0, n - 1)};
   }
 
-  // O(\log{N+K})
+  // O(\log(N+K))
   persistent_vector<T> insert(int i, T v) {
     auto dfs = [&](auto self, node *a, int l, int r, bool check) -> node * {
       if (check) {
@@ -264,7 +265,7 @@ struct persistent_vector {
     return {n + 1, dfs(dfs, root, 0, n - 1, true)};
   }
 
-  // O(\log{N+K})
+  // O(\log(N+K))
   persistent_vector<T> erase(int i) {
     T v;
     auto dfs = [&](auto self, node *a, int l, int r) -> node * {
@@ -434,7 +435,7 @@ struct dsu_with_rollbacks {
   dsu_with_rollbacks(int n) : root(n, -1), saves({0}) {}
 
   // https://codeforces.com/blog/entry/90340?#comment-787571
-  // O(\log{N})
+  // O(\log(N))
   int leader(int a) {
     if (root[a] < 0) return a;
     return leader(root[a]);
@@ -458,7 +459,7 @@ struct dsu_with_rollbacks {
   void save() { saves.push_back(history.size()); }
 
   void rollback() {
-    while (history.size() > saves.back()) {
+    while ((int) history.size() > saves.back()) {
       auto [a, b, size] = history.back();
       history.pop_back();
       root[a] -= size;
@@ -469,7 +470,7 @@ struct dsu_with_rollbacks {
 };
 
 // https://jilljenn.github.io/tryalgo/_modules/tryalgo/union_rectangles.html#union_rectangles
-template <typename S, typename T>
+template <class S, class T>
 struct cover_query {
  private:
   struct seg {
@@ -522,7 +523,7 @@ struct cover_query {
 // https://cp-algorithms.com/data_structures/treap.html#implicit-treaps
 // https://github.com/ShahjalalShohag/code-library/blob/main/Data%20Structures/Implicit%20Treap.cpp
 // TODO: Generalize to support custom operations
-template <typename T>
+template <class T>
 struct implicit_treap {
  private:
   static std::mt19937 rng;
@@ -672,10 +673,10 @@ struct implicit_treap {
 
   T get(int i) { return get_node(i)->v; }
 };
-template <typename T>
+template <class T>
 std::mt19937 implicit_treap<T>::rng(time(nullptr));
 
-template <typename T>
+template <class T>
 struct xor_basis {
  private:
   int n, m;
@@ -747,14 +748,90 @@ struct xor_basis {
 // https://eolymp.com/en/posts/7u074ngkv127l3fl0m33bf5gck
 // TODO: XOR basis with deletions
 
+// https://usaco.guide/adv/line-container?lang=cpp#example-problem
+template <class T, class Compare = std::less<T>,
+          std::enable_if_t<std::is_arithmetic_v<T>> * = nullptr>
+struct line_container {
+ private:
+  static constexpr Compare comp{};
+  static constexpr T inf = std::is_integral_v<T>
+                               ? std::numeric_limits<T>::max()
+                               : std::numeric_limits<T>::infinity();
+
+  struct line {
+    T m, b;
+    mutable T x;
+    bool operator<(const line &rhs) const { return comp(rhs.m, m); };
+    bool operator<(T rhs) const { return x < rhs; };
+  };
+
+  std::set<line, std::less<>> lines;
+
+  static T divide(T x, T y) {
+    if constexpr (std::is_integral_v<T>) {
+      T rv = x / y;
+      if (x % y != 0 and (x > 0) != (y > 0)) {
+        rv -= 1;
+      }
+      return rv;
+    } else {
+      return x / y;
+    }
+  }
+
+  static T intersect(std::set<line>::iterator it1,
+                     std::set<line>::iterator it2) {
+    return divide(it1->b - it2->b, it2->m - it1->m);
+  }
+
+  bool should_erase(std::set<line>::iterator it) {
+    if (it == lines.begin()) return false;
+    if (next(it) == lines.end()) return false;
+    return intersect(it, next(it)) <= intersect(prev(it), it);
+  }
+
+ public:
+  void insert(T m, T b) {
+    auto it = lines.find({m});
+    if (it != lines.end()) {
+      if (!comp(b, it->b)) return;
+      lines.erase(it);
+    }
+    it = lines.emplace(m, b, inf).first;
+    if (should_erase(it)) {
+      lines.erase(it);
+    } else {
+      while (it != lines.begin() and should_erase(prev(it))) {
+        lines.erase(prev(it));
+      }
+      while (next(it) != lines.end() and should_erase(next(it))) {
+        lines.erase(next(it));
+      }
+      if (it != lines.begin()) {
+        prev(it)->x = intersect(prev(it), it);
+      }
+      if (next(it) != lines.end()) {
+        it->x = intersect(it, next(it));
+      }
+    }
+  }
+
+  T get(T x) {
+    auto it = lines.lower_bound(x);
+    return it->m * x + it->b;
+  }
+};
+
 // https://codeforces.com/blog/entry/11080
-template <typename T, typename Compare = std::less<T>>
+template <class T, class Compare = std::less<T>>
 using ordered_set =
     __gnu_pbds::tree<T, __gnu_pbds::null_type, Compare, __gnu_pbds::rb_tree_tag,
                      __gnu_pbds::tree_order_statistics_node_update>;
-template <typename T, typename S, typename Compare = std::less<T>>
+template <class T, class S, class Compare = std::less<T>>
 using ordered_map =
     __gnu_pbds::tree<T, S, Compare, __gnu_pbds::rb_tree_tag,
                      __gnu_pbds::tree_order_statistics_node_update>;
+
+}  // namespace ethankim8683
 
 #endif  // ETHANKIM8683_DATA_STRUCTURES

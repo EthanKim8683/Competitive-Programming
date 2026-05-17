@@ -1,6 +1,8 @@
 **/.DS_Store
 **/.idea
 **/.vscode
-.env
-compile_flags.txt
 **/sol
+**/sol.dSYM
+**/.env
+compile_flags.txt
+macros.hpp

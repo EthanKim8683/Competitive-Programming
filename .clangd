@@ -2,6 +2,3 @@ InlayHints:
   ParameterNames: false
   DeducedTypes: false
   Designators: false
-Diagnostics:
-  Suppress:
-    - block_on_nonlocal

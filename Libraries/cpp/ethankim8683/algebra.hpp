@@ -1,10 +1,9 @@
 #ifndef ETHANKIM8683_ALGEBRA
 #define ETHANKIM8683_ALGEBRA 1
 
-#include <assert.h>
-
 #include <algorithm>
 #include <bit>
+#include <cassert>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -12,16 +11,20 @@
 #include "atcoder/modint"
 #include "ethankim8683/type_traits"
 
+// TODO: Refactor for simplicity
+
+namespace ethankim8683 {
+
 // https://en.algorithmica.org/hpc/number-theory/montgomery/
 // https://cp-algorithms.com/algebra/montgomery_multiplication.html
 // Fast modular multiplication using Montgomery space
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T> and
+                                    std::is_unsigned_v<T>> * = nullptr>
 struct montgomery {
  private:
-  using T2 = double_width<T>::type;
-  using TS = std::make_signed<T>::type;
+  using T2 = double_width_t<T>;
+  using TS = std::make_signed_t<T>;
+
   static constexpr size_t TW = 8 * sizeof(T);
 
   T n, nr, r2;
@@ -32,12 +35,10 @@ struct montgomery {
     for (int i = 1; i < TW; i *= 2) {
       nr *= 2 - n * nr;
     }
-
     r2 = ((T2) 1 << (TW + TW / 2)) % n;
     r2 = mul(r2, r2);
   }
 
-  // Divide by r
   T reduce(T2 x) const {
     T q = (T) x * nr;
     TS rv = (x >> TW) - ((T2) q * n >> TW);
@@ -47,15 +48,15 @@ struct montgomery {
     return rv;
   }
 
-  // Multiply by r
   T transform(T x) const { return mul(x, r2); }
 
   T mul(T x, T y) const { return reduce((T2) x * y); }
 };
 
-template <typename T>
+template <class T, std::enable_if_t<std::is_integral_v<T> and
+                                    std::is_unsigned_v<T>> * = nullptr>
 T mod_pow(T x, T y, T m) {
-  using T2 = double_width<T>::type;
+  using T2 = double_width_t<T>;
 
   T rv = 1;
   for (x %= m; y; y >>= 1, x = (T2) x * x % m) {
@@ -69,12 +70,12 @@ T mod_pow(T x, T y, T m) {
 // https://cp-algorithms.com/algebra/primality_tests.html
 // Primality checking using Miller-Rabin primality test
 // O(\ln^2 N)
-template <typename T, std::enable_if<std::is_integral<T>::value and
-                                     std::is_unsigned<T>::value and
-                                     (sizeof(T) <= 64)>::type * = nullptr>
+template <class T,
+          std::enable_if_t<std::is_integral_v<T> and std::is_unsigned_v<T> and
+                           (sizeof(T) <= 64)> * = nullptr>
 bool miller_rabin(T n) {
-  using T2 = double_width<T>::type;
-  using UT = std::make_unsigned<T>::type;
+  using T2 = double_width_t<T>;
+  using UT = std::make_unsigned_t<T>;
 
   if (n < 2) return false;
 
@@ -103,104 +104,65 @@ bool miller_rabin(T n) {
   return true;
 }
 
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
 bool is_prime(T n) {
-  return miller_rabin(n);
+  if constexpr (std::is_signed_v<T>) {
+    if (!(n > 1)) return false;
+    return is_prime<std::make_unsigned_t<T>>(n);
+  } else {
+    return miller_rabin(n);
+  }
 }
 
 // https://en.algorithmica.org/hpc/algorithms/factorization/#lookup-table
-// Constexpr factorization table
-struct __prime_sieve_precalc {
-  unsigned char sieve[1 << 16];
-
-  constexpr __prime_sieve_precalc() : sieve(0) {
-    for (int i = 2; i < (1 << 8); i++) {
-      if (sieve[i]) continue;
-      for (int j = i * i; j < (1 << 16); j += i) {
-        if (!sieve[j]) {
-          sieve[j] = i;
-        }
-      }
-    }
-  }
-};
-unsigned short prime_sieve(unsigned short n) {
-  static constexpr __prime_sieve_precalc pc;
-  unsigned short rv = pc.sieve[n];
-  return rv ? rv : n;
-}
-
 // https://en.algorithmica.org/hpc/algorithms/factorization/#precomputed-primes
-// Constexpr trial division
-struct __trial_division_precalc {
+// Factorization table and magic primes
+/* constexpr */ struct __factorization_precalc {
+  unsigned short sieve[1 << 16];
   unsigned long long magic_primes[6542];
 
-  constexpr __trial_division_precalc() {
-    bool comp[1 << 16] = {false};
-    for (int i = 2, t = 0; i < (1 << 16); i++) {
-      if (comp[i]) continue;
-      magic_primes[t++] = (unsigned long long) -1 / i + 1;
-      for (int j = 2 * i; j < (1 << 16); j += i) {
-        comp[j] = true;
+  constexpr __factorization_precalc() : sieve(0) {
+    int k = 0;
+    for (unsigned int i = 2; i < (1 << 16); i++) {
+      if (sieve[i] != 0) continue;
+      sieve[i] = i;
+      magic_primes[k] = (unsigned long long) -1 / i + 1;
+      k++;
+      for (unsigned int j = i * i; j < (1 << 16); j += i) {
+        if (sieve[j] != 0) continue;
+        sieve[j] = i;
       }
     }
   }
-};
-unsigned trial_division(unsigned n, int &i) {
-  static constexpr __trial_division_precalc pc;
-  for (; i < 6542; i++) {
-    auto p = pc.magic_primes[i];
+} fp;
+unsigned short prime_sieve(unsigned short n) { return fp.sieve[n]; }
+unsigned int trial_division(unsigned int n, int &i) {
+  for (auto p : fp.magic_primes) {
     if (p * n < p) return (unsigned long long) -1 / p + 1;
   }
-  return n;
+  return 1;
 }
-unsigned short trial_division(unsigned n) {
+unsigned int trial_division(unsigned int n) {
   int i;
   return trial_division(n, i);
 }
 
-// https://cp-algorithms.com/algebra/factorization.html#brents-algorithm
 // https://en.algorithmica.org/hpc/algorithms/factorization/#pollard-brent-algorithm
-// Finds factors using Pollard's rho algorithm (with Brent's optimization)
-// O(\sqrt{N}) (O(N^{1/4}) according to Brent)
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+// Finds factors using Pollard's rho algorithm with Brent's optimization
+// O(N^{1/4})
+template <class T, std::enable_if_t<std::is_integral_v<T> and
+                                    std::is_unsigned_v<T>> * = nullptr>
 T pollard_rho(T n, T x = 2, T c = 1, int block_size = 1024) {
-  using T2 = double_width<T>::type;
-
-  if (n % 2 == 0) return 2;
-
   montgomery<T> m(n);
-  x = m.transform(x);
 
-  auto f = [&](T x) -> T { return m.mul(x, x) + c; };
-  auto abs_diff = [&](T x, T y) -> T { return x < y ? y - x : x - y; };
-
-  for (int l = 1;; l *= 2) {
-    T y = x;
-    for (int i = 1; i < l; i++) {
-      x = f(x);
-    }
-
+  for (int l = block_size;; l *= 2) {
+    T y = x, p = 1;
     for (int i = 0; i < l; i += block_size) {
-      T x0 = x, accum = 1;
-      for (int j = 0; j < block_size and i + j < l; j++) {
-        x = f(x);
-        accum = m.mul(accum, abs_diff(x, y));
+      for (int j = 0; j < block_size; j++) {
+        x = m.mul(x, x) + c;
+        p = m.mul(p, (x < y ? y - x : x - y));
       }
-
-      T g = std::gcd(accum, n);
-      if (g != 1) {
-        if (g == n) {
-          x = x0;
-          do {
-            x = f(x);
-            g = std::gcd(abs_diff(x, y), n);
-          } while (g == 1);
-        }
+      if (T g = std::gcd(p, n); g != 1) {
         return g;
       }
     }
@@ -209,65 +171,81 @@ T pollard_rho(T n, T x = 2, T c = 1, int block_size = 1024) {
 
 // https://en.algorithmica.org/hpc/algorithms/factorization/#further-improvements
 // Factorization approach based on size of number
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
 T find_factor(T n) {
-  if (n < (1 << 16)) {
-    return prime_sieve(n);
-  } else if (n < (1ll << 32)) {
-    return trial_division(n);
+  if constexpr (std::is_signed_v<T>) {
+    if (n < 0) return -1;
+    return find_factor<std::make_unsigned_t<T>>(n);
   } else {
-    T x0 = 2, c = 1, f;
-    do f = pollard_rho(n, x0, c++);
-    while (f == n);
-    return f;
-  }
-}
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
-std::vector<T> factorize(T n) {
-  std::vector<T> stack, primes;
-  stack.push_back(n);
-  while (stack.size() > 0) {
-    T k = stack.back();
-    stack.pop_back();
-
-    if (k < (1 << 16)) {
-      while (k > 1) {
-        auto p = prime_sieve(k);
-        primes.push_back(p);
-        k /= p;
-      }
-    } else if (k < (1ll << 32)) {
-      int i = 0;
-      while (k > 1) {
-        auto p = trial_division(k, i);
-        primes.push_back(p);
-        k /= p;
-      }
+    if (n < (1 << 16)) {
+      return prime_sieve(n);
+    } else if (n < (1ll << 32)) {
+      return trial_division(n);
     } else {
-      if (is_prime(k)) {
-        primes.push_back(k);
-        continue;
-      }
-
       T x0 = 524287, c = 2147483647, f;
-      do f = pollard_rho(k, x0, c++);
-      while (f == k);
-      stack.push_back(f);
-      stack.push_back(k / f);
+      do f = pollard_rho(n, x0, c++);
+      while (f == n);
+      return f;
     }
   }
-  return primes;
+}
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
+std::vector<T> factorize(T n) {
+  if constexpr (std::is_signed_v<T>) {
+    auto rv = factorize<std::make_unsigned_t<T>>(std::abs(n));
+    if (n < 0) {
+      rv.push_back(-1);
+    }
+    return reinterpret_cast<std::vector<T> &>(rv);
+  } else {
+    static T buffer[2 * 64];
+    int l = 0, r = 0;
+    buffer[r] = n;
+    r++;
+    std::vector<T> rv;
+    while (l < r) {
+      T k = buffer[l];
+      l++;
+      if (k < (1 << 16)) {
+        while (k > 1) {
+          auto p = prime_sieve(k);
+          rv.push_back(p);
+          k /= p;
+        }
+      } else if (k < (1ll << 32)) {
+        int i = 0;
+        while (k >= (1 << 16)) {
+          auto p = trial_division(k, i);
+          rv.push_back(p);
+          k /= p;
+        }
+        while (k > 1) {
+          auto p = prime_sieve(k);
+          rv.push_back(p);
+          k /= p;
+        }
+      } else {
+        if (is_prime(k)) {
+          rv.push_back(k);
+          continue;
+        }
+        T x0 = 524287, c = 2147483647, f;
+        do f = pollard_rho(k, x0, c++);
+        while (f == k);
+        buffer[r] = f;
+        r++;
+        buffer[r] = k / f;
+        r++;
+      }
+    }
+    return rv;
+  }
 }
 
 // https://cp-algorithms.com/algebra/extended-euclid-algorithm.html
 // Finds solutions to ax + by = gcd(a, b) for non-negative a, b
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T> and
+                                    std::is_unsigned_v<T>> * = nullptr>
 std::tuple<T, T, T> eegcd(T a, T b) {
   T x = 1, y = 0, z = 0, w = 1;
   while (b) {
@@ -281,8 +259,7 @@ std::tuple<T, T, T> eegcd(T a, T b) {
 
 // https://cp-algorithms.com/algebra/linear-diophantine-equation.html#algorithmic-solution
 // Finds solutions to ax + by = c
-template <typename T,
-          std::enable_if<std::is_integral<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
 struct diop_linear_sol {
  private:
   T xi, yi, a, b;
@@ -313,10 +290,9 @@ struct diop_linear_sol {
     return kth_succ(k);
   }
 };
-template <typename T,
-          std::enable_if<std::is_integral<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
 diop_linear_sol<T> diop_linear(T a, T b, T c) {
-  using U = std::make_unsigned<T>::type;
+  using U = std::make_unsigned_t<T>;
 
   T g, x0, y0;
   std::tie(g, x0, y0) = eegcd((U) abs(a), (U) abs(b));
@@ -333,9 +309,8 @@ diop_linear_sol<T> diop_linear(T a, T b, T c) {
   return diop_linear_sol<T>(x0, y0, a, b);
 }
 
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T> and
+                                    std::is_unsigned_v<T>> * = nullptr>
 T mod_inv(T n, T m) {
   auto [g, x, y] = eegcd(n, m);
   assert(g == 1);
@@ -348,47 +323,51 @@ T mod_inv(T n, T m) {
 
 // https://cp-algorithms.com/algebra/primitive-root.html
 // Finds a primitive root modulo n
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
 bool primitive_root_exists(T n) {
-  if (n == 1 or n == 2 or n == 4) return true;
+  if constexpr (std::is_signed_v<T>) {
+    assert(n > 0);
+    return primitive_root_exists<std::make_unsigned_t<T>>(n);
+  } else {
+    if (n == 1 or n == 2 or n == 4) return true;
 
-  auto primes = factorize(n % 2 == 0 ? n / 2 : n);
-  for (int i = 1; i < primes.size(); i++) {
-    if (primes[i] != primes[0]) return false;
-  }
-  return true;
-}
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
-T find_primitive_root(T n) {
-  using T2 = double_width<T>::type;
-
-  if (n == 1) return 0;
-  if (n == 2) return 1;
-
-  auto primes = factorize(n - 1);
-  std::sort(primes.begin(), primes.end());
-  primes.erase(std::unique(primes.begin(), primes.end()), primes.end());
-  for (T i = 2; i <= n; i++) {
-    bool ok = true;
-    for (auto p : primes) {
-      if (mod_pow(i, (n - 1) / p, n) == 1) {
-        ok = false;
-        break;
-      }
+    auto primes = factorize(n % 2 == 0 ? n / 2 : n);
+    for (int i = 1; i < primes.size(); i++) {
+      if (primes[i] != primes[0]) return false;
     }
-    if (ok) return i;
+    return true;
   }
-  return -1;
+}
+template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
+T find_primitive_root(T n) {
+  if constexpr (std::is_signed_v<T>) {
+    assert(n > 0);
+    return find_primitive_root<std::make_unsigned_t<T>>(n);
+  } else {
+    if (n == 1) return 0;
+    if (n == 2) return 1;
+
+    auto primes = factorize(n - 1);
+    std::sort(primes.begin(), primes.end());
+    primes.erase(std::unique(primes.begin(), primes.end()), primes.end());
+    for (T i = 2; i <= n; i++) {
+      bool ok = true;
+      for (auto p : primes) {
+        if (mod_pow(i, (n - 1) / p, n) == 1) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) return i;
+    }
+    return -1;
+  }
 }
 
 // https://csacademy.com/blog/fast-fourier-transform-and-variations-of-it
 // Fast Walsh-Hadamard transform
-// O(N\log{N})
-template <typename T, atcoder::internal::is_modint<T>::type * = nullptr>
+// O(N\log(N))
+template <class T, atcoder::internal::is_modint_t<T> * = nullptr>
 void fwht(std::vector<T> &v) {
   assert(std::popcount(v.size()) == 1);
   int n = v.size();
@@ -404,7 +383,7 @@ void fwht(std::vector<T> &v) {
   }
 }
 // TODO: Support for long long
-template <typename T, atcoder::internal::is_modint<T>::type * = nullptr>
+template <class T, atcoder::internal::is_modint_t<T> * = nullptr>
 std::vector<T> xor_convolution(std::vector<T> a, std::vector<T> b) {
   assert(a.size() == b.size());
   assert(std::popcount(a.size()) == 1);
@@ -428,7 +407,7 @@ std::vector<T> xor_convolution(std::vector<T> a, std::vector<T> b) {
 // with the maximum number of divisors
 std::pair<unsigned long long, unsigned long long> max_num_divisors(
     unsigned long long n) {
-  using T2 = double_width<unsigned long long>::type;
+  using T2 = double_width_t<unsigned long long>;
 
   int primes[] = {2,  3,  5,  7,  11, 13, 17, 19, 23, 29, 31,
                   37, 41, 43, 47, 51, 53, 59, 61, 67, 71};
@@ -437,7 +416,7 @@ std::pair<unsigned long long, unsigned long long> max_num_divisors(
   auto dfs = [&](auto self, int i, int jmax, unsigned long long x,
                  unsigned long long count) -> void {
     rv = max(rv, {count, x});
-    if (i == std::size(primes)) return;
+    if (i == (int) std::size(primes)) return;
 
     for (int j = 1; j <= jmax; j++) {
       T2 x2 = (T2) x * primes[i];
@@ -449,5 +428,11 @@ std::pair<unsigned long long, unsigned long long> max_num_divisors(
   dfs(dfs, 0, 64, 1, 1);
   return rv;
 }
+template <class T>
+std::pair<T, T> max_num_divisors(T x) {
+  return max_num_divisors((unsigned long long) x);
+}
+
+}  // namespace ethankim8683
 
 #endif  // ETHANKIM8683_ALGEBRA

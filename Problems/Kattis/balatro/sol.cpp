@@ -16,6 +16,8 @@ using namespace std;
 typedef pair<int, int> pii;
 typedef vc<int> vi;
 
+const int INF = 1e9;
+
 int chmin(auto &u, auto v) { return u > v ? u = v, 1 : 0; }
 int chmax(auto &u, auto v) { return u < v ? u = v, 1 : 0; }
 
@@ -31,79 +33,20 @@ signed main() {
     cin >> s >> v;
   }
 
-  vi indices;
-  rep(i, 0, N) {
-    auto [s, v] = cards[i];
-    if (s != 'm') continue;
-    indices.pb(i);
-  }
-
-  auto from_ps = [&](vi ps) -> vi {
-    vi rv(sz(ps) - 1);
-    rep(i, 0, sz(ps) - 1) { rv[i] = ps[i + 1] - ps[i]; }
-    return rv;
-  };
-
-  auto to_ps = [&](vi v) -> vi {
-    vi rv(sz(v) + 1);
-    rv[0] = 0;
-    rep(i, 0, sz(v)) { rv[i + 1] = rv[i] + v[i]; }
-    return rv;
-  };
-
-  vc<vi> dp;
-  dp.push_back({0});
-  int l = 0;
-  for (auto r : indices) {
-    for (auto &ps : dp) {
-      auto v = from_ps(ps);
-      rep(i, l, r) { v.pb(cards[i].sd); }
-      sort(v.rbegin(), v.rend());
-      ps = to_ps(v);
-    }
-
-    for (int i = sz(dp) - 1; i >= 0; i--) {
-      auto ps = dp[i];
-      for (auto &e : ps) {
-        e *= cards[r].sd;
-      }
-
-      if (i + 1 < sz(dp)) {
-        rep(j, 0, sz(ps)) { chmax(dp[i + 1][j], ps[j]); }
+  vc dp(N + 1, vi(N + 1, -INF));
+  dp[0][0] = 0;
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j <= i; j++) {
+      auto [s, v] = cards[i];
+      chmax(dp[i + 1][j], dp[i][j]);
+      if (s == 'a') {
+        chmax(dp[i + 1][j + 1], dp[i][j] + v);
       } else {
-        dp.pb(ps);
+        chmax(dp[i + 1][j + 1], dp[i][j] * v);
       }
     }
-
-    for (auto r : dp) {
-      for (auto e : r) {
-        cerr << e << ' ';
-      }
-      cerr << '\n';
-    }
-    cerr << '\n';
-
-    l = r + 1;
   }
-  for (auto &ps : dp) {
-    auto v = from_ps(ps);
-    rep(i, l, N) { v.pb(cards[i].sd); }
-    sort(v.rbegin(), v.rend());
-    ps = to_ps(v);
-  }
-
-  for (auto r : dp) {
-    for (auto e : r) {
-      cerr << e << ' ';
-    }
-    cerr << '\n';
-  }
-
-  int ans = 0;
-  rep(i, 1, N + 1) {
-    rep(j, 0, min(i + 1, min(K + 1, sz(dp)))) {
-      chmax(ans, dp[j][min(i - j, sz(dp[j]) - 1)]);
-    }
-    cout << ans << '\n';
+  for (int i = 0; i + 1 <= N; i++) {
+    cerr << dp[N][i + 1] - dp[N][i] << ' ';
   }
 }

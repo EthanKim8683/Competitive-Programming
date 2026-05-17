@@ -1,0 +1,9 @@
+services:
+  nats:
+    image: dhi.io/nats:2.12
+    ports:
+      - "4222:4222"
+    command: ["-js"]
+    volumes:
+      - ./volumes/nats:/data
+    restart: unless-stopped

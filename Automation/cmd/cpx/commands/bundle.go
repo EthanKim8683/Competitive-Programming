@@ -45,7 +45,7 @@ var bundleCmd = &cobra.Command{
 			bundler := bundlers.NewCBundler(includeDirs)
 			amalgamation, err = bundler.Bundle(args[0])
 		case "c++":
-			cppIncludeDirs := append(includeDirs, "/Users/ethankim8683/Desktop/Competitive-Programming/Libraries/cpp")
+			cppIncludeDirs := append(includeDirs, "/Users/ethankim8683/Competitive Programming/Libraries/cpp")
 			bundler := bundlers.NewCBundler(cppIncludeDirs)
 			amalgamation, err = bundler.Bundle(args[0])
 		default:

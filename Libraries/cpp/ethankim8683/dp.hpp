@@ -6,6 +6,8 @@
 #include <tr2/dynamic_bitset>
 #include <vector>
 
+namespace ethankim8683 {
+
 // TODO: Implement https://codeforces.com/blog/entry/98663
 // Subset sum speedup 1 verification:
 // https://codeforces.com/problemset/problem/1856/E2
@@ -13,7 +15,7 @@
 // https://codeforces.com/blog/entry/98663
 // Finds all subset sums of w, where \sum_{i=1}^N w_i = C
 // O(C\sqrt{C})
-template <typename T>
+template <class T>
 std::tr2::dynamic_bitset<T> subset_sum_speedup_1(const std::vector<int> &w) {
   int n = std::accumulate(w.begin(), w.end(), 0);
   std::map<int, int> counts;
@@ -42,5 +44,7 @@ std::tr2::dynamic_bitset<T> subset_sum_speedup_1(const std::vector<int> &w) {
 
 // TODO: Implement https://atcoder.jp/contests/abc348/editorial/9775
 // Monotone maxima
+
+}  // namespace ethankim8683
 
 #endif  // ETHANKIM8683_DP

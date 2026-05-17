@@ -1,10 +1,11 @@
 #ifndef ETHANKIM8683_INT
 #define ETHANKIM8683_INT 1
 
-#include <assert.h>
-
+#include <cassert>
 #include <iostream>
 #include <type_traits>
+
+namespace ethankim8683 {
 
 // https://gist.github.com/mdickinson/e087001d213725a93eeb8d8f447a2f40
 // Branchless integer square root without division
@@ -98,9 +99,8 @@ constexpr unsigned long long isqrt(unsigned __int128 n) {
   return y;
 }
 
-template <typename T,
-          std::enable_if<std::is_integral<T>::value and
-                         std::is_unsigned<T>::value>::type * = nullptr>
+template <class T, std::enable_if_t<std::is_integral_v<T> and
+                                    std::is_unsigned_v<T>> * = nullptr>
 constexpr unsigned char ilog(T n) {
   assert(n > 0);
   return bit_width(n) - 1;
@@ -150,5 +150,7 @@ std::ostream &operator<<(std::ostream &out, __int128 n) {
   }
   return out;
 }
+
+}  // namespace ethankim8683
 
 #endif  // ETHANKIM8683_INT
