@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package cp.automate;
+
+message ScrapeProblemRequest {
+	string url = 1;
+}
+
+message ScrapeProblemResult {
+	repeated string inputs = 1;
+}
