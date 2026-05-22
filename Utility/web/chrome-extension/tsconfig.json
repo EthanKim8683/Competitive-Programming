@@ -2,7 +2,10 @@
   "compilerOptions": {
     "sourceMap": true,
     "module": "nodenext",
-    "moduleResolution": "nodenext"
+    "moduleResolution": "nodenext",
+    "paths": {
+      "@gen/*": ["../../gen/ts/*.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@bufbuild/protobuf':
+        specifier: ^2.12.0
+        version: 2.12.0
+      codegenv2:
+        specifier: link:@bufbuild/protobuf/codegenv2
+        version: link:@bufbuild/protobuf/codegenv2
     devDependencies:
       '@types/chrome':
         specifier: ^0.1.14
@@ -52,6 +59,9 @@ importers:
         version: 5.10.0
 
 packages:
+
+  '@bufbuild/protobuf@2.12.0':
+    resolution: {integrity: sha512-B/XlCaFIP8LOwzo+bz5uFzATYokcwCKQcghqnlfwSmM5eX/qTkvDBnDPs+gXtX/RyjxJ4DRikECcPJbyALA8FA==}
 
   '@discoveryjs/json-ext@0.5.7':
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
@@ -908,6 +918,8 @@ packages:
     resolution: {integrity: sha512-CC1bOL87PIWSBhDcTrdeLo6eGT7mCFtrg0uIJtqJUFyK+eJnzl8A1niH56uu7KMa5XFrtiV+AQuHO3n7DsHnLQ==}
 
 snapshots:
+
+  '@bufbuild/protobuf@2.12.0': {}
 
   '@discoveryjs/json-ext@0.5.7': {}
 
