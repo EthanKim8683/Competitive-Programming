@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package cp.automate;
+package cp.automate.v1;
 
 message ScrapeProblemRequest {
 	string url = 1;
