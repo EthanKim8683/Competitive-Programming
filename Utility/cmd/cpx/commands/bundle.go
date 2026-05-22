@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/bundle/bundlers"
+	"github.com/EthanKim8683/Competitive-Programming/Utility/bundle/bundlers"
 )
 
 var (

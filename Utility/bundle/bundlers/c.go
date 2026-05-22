@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"slices"
 
-	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/bundle"
+	"github.com/EthanKim8683/Competitive-Programming/Utility/bundle"
 	"go.uber.org/multierr"
 )
 
