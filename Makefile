@@ -8,5 +8,5 @@ compile_flags.txt:
 		| xargs -n1 -I{} echo "-isystem{}" \
 		>> compile_flags.txt
 	echo "-DETHANKIM8683" >> compile_flags.txt
-	echo "-I./Libraries/cpp" >> compile_flags.txt
+	echo "-I./include" >> compile_flags.txt
 	echo "-std=c++23" >> compile_flags.txt
