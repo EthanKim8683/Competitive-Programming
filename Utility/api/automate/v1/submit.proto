@@ -2,26 +2,26 @@ syntax = "proto3";
 
 package cp.automate.v1;
 
-enum Language {
-	CPP20 = 0;
-	CPP23 = 1;
-}
-
 message SubmitRequest {
+	enum Language {
+		CPP20 = 0;
+		CPP23 = 1;
+	}
+
 	string url = 1;
 	string source = 2;
 	optional Language language = 3;
 }
 
-enum Verdict {
-	ACCEPTED = 0;
-	WRONG_ANSWER = 1;
-	RUNTIME_ERROR = 2;
-	TIME_LIMIT_EXCEEDED = 3;
-	MEMORY_LIMIT_EXCEEDED = 4;
-}
-
 message SubmitResult {
+	enum Verdict {
+		ACCEPTED = 0;
+		WRONG_ANSWER = 1;
+		RUNTIME_ERROR = 2;
+		TIME_LIMIT_EXCEEDED = 3;
+		MEMORY_LIMIT_EXCEEDED = 4;
+	}
+
 	Verdict verdict = 1;
 	int32 time = 2;
 	int32 memory = 3;
