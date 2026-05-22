@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package automate.v1;
+package automation.v1;
 
 message ScrapeContestRequest {
 	string url = 1;
 }
 
-message ScrapeContestResult {
+message ScrapeContestResponse {
 	message Problem {
 		string url = 1;
 		repeated string inputs = 2;

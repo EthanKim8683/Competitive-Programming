@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package automate.v1;
+package automation.v1;
 
 message ScrapeProblemRequest {
 	string url = 1;
 }
 
-message ScrapeProblemResult {
+message ScrapeProblemResponse {
 	repeated string inputs = 1;
 }

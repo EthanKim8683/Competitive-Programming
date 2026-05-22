@@ -1,21 +1,11 @@
 const glob = require("glob");
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const DotenvWebpackPlugin = require("dotenv-webpack");
-
-const src = path.join(__dirname, "src");
 
 module.exports = {
-  entry: Object.fromEntries(
-    glob
-      .sync("**/*.ts", {
-        cwd: src,
-      })
-      .map((file) => {
-        const { dir, name } = path.parse(file);
-        return [path.join(dir, name), path.join(src, file)];
-      })
-  ),
+  entry: glob.sync("src/**/*.ts", {
+    dotRelative: true,
+  }),
   devtool: "source-map",
   output: {
     path: path.resolve(__dirname, "build"),
@@ -41,9 +31,6 @@ module.exports = {
           context: "public",
         },
       ],
-    }),
-    new DotenvWebpackPlugin({
-      path: ".env",
     }),
   ],
 };

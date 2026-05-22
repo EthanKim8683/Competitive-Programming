@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package automate.v1;
+package automation.v1;
 
 message SubmitRequest {
 	enum Language {
@@ -10,11 +10,11 @@ message SubmitRequest {
 	}
 
 	string url = 1;
-	string source = 2;
+	string body = 2;
 	optional Language language = 3;
 }
 
-message SubmitResult {
+message SubmitResponse {
 	enum Verdict {
 		VERDICT_UNSPECIFIED = 0;
 		VERDICT_ACCEPTED = 1;
