@@ -2,8 +2,8 @@ package scaffolds
 
 import "embed"
 
-//go:embed contest
+//go:embed Contest
 var Contest embed.FS
 
-//go:embed problem
+//go:embed Problem
 var Problem embed.FS

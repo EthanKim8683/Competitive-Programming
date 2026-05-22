@@ -9,7 +9,8 @@
   "action": {
     "default_title": "Competitive Programming Browser Interface"
   },
-  "host_permissions": ["ws://127.0.0.1:8684/*"],
+  "host_permissions": ["ws://127.0.0.1:9222/*"],
+  "permissions": ["tabs", "tabGroups"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
