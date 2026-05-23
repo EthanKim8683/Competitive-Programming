@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package automation.submit.v1;
+
+import "language/v1/language.proto";
+import "submission/v1/submission.proto";
+
+option go_package = "github.com/EthanKim8683/Competitive-Programming/Utility/gen/automation/submit/v1;submitv1";
+
+message SubmitRequest {
+  string url = 1;
+  string source = 2;
+  optional language.v1.Language language = 3;
+}
+
+message SubmitResponse {
+  submission.v1.Submission submission = 1;
+  optional string error = 2;
+}
+
+service SubmitService {
+  rpc Submit(SubmitRequest) returns (SubmitResponse) {}
+}

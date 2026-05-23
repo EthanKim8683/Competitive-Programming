@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package automation.scrape_problem.v1;
+
+import "problem/v1/problem.proto";
+
+option go_package = "github.com/EthanKim8683/Competitive-Programming/Utility/gen/automation/scrape_problem/v1;scrapeproblemv1";
+
+message ScrapeProblemRequest {
+  string url = 1;
+}
+
+message ScrapeProblemResponse {
+  problem.v1.Problem problem = 1;
+  optional string error = 2;
+}
+
+service ScrapeProblemService {
+  rpc ScrapeProblem(ScrapeProblemRequest) returns (ScrapeProblemResponse) {}
+}

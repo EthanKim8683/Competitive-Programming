@@ -11,33 +11,35 @@ var (
 	LanguageCPP23 = "c++23"
 )
 
-type SubmitOptions struct {
-	Language *string
+func toLanguageEnum(language *string) (automationv1.SubmitRequest_Language, error) {
+	languageEnum := automationv1.SubmitRequest_LANGUAGE_UNSPECIFIED
+	var err error
+	if language != nil {
+		switch *language {
+		case LanguageCPP20:
+			languageEnum = automationv1.SubmitRequest_LANGUAGE_CPP20
+		case LanguageCPP23:
+			languageEnum = automationv1.SubmitRequest_LANGUAGE_CPP23
+		default:
+			err = fmt.Errorf("unsupported language: %s", *language)
+		}
+	}
+	return languageEnum, err
 }
 
-func toLanguage(language *string) automationv1.SubmitRequest_Language {
-	if language == nil {
-		return automationv1.SubmitRequest_LANGUAGE_UNSPECIFIED
+func Submit(url string, body string, language *string) error {
+	languageEnum, err := toLanguageEnum(language)
+	if err != nil {
+		return err
 	}
-	switch *language {
-	case LanguageCPP20:
-		return automationv1.SubmitRequest_LANGUAGE_CPP20
-	case LanguageCPP23:
-		return automationv1.SubmitRequest_LANGUAGE_CPP23
-	default:
-		panic(fmt.Errorf("unsupported language: %s", *language))
-	}
-}
 
-func Submit(url string, body string, options SubmitOptions) error {
-	language := toLanguage(options.Language)
 	response := &automationv1.SubmitResponse{}
 	if err := rpc(
 		"automation.v1.submit",
 		&automationv1.SubmitRequest{
 			Url:      url,
 			Body:     body,
-			Language: &language,
+			Language: &languageEnum,
 		},
 		response,
 	); err != nil {
