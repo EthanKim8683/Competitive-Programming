@@ -1,10 +1,6 @@
 package commands
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/EthanKim8683/Competitive-Programming/Utility/automation"
 	"github.com/spf13/cobra"
 )
 
@@ -16,12 +12,19 @@ var debugSubmitCmd = &cobra.Command{
 	Long:  "Submit a solution and output the verdict",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		url, body := args[0], args[1]
-		err := automation.Submit(url, body, language2)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
+		// url, body := args[0], args[1]
+
+		// request := &submitv1.SubmitRequest{
+		// 	Url:      url,
+		// 	Source:   body,
+		// 	Language: language2,
+		// }
+		// response := &submitv1.SubmitResponse{}
+		// if err := automation.Submit(request, response); err != nil {
+		// 	fmt.Fprintln(os.Stderr, err)
+		// 	os.Exit(1)
+		// }
+		// fmt.Println(response.Submission)
 	},
 }
 

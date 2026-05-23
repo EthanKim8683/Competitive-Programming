@@ -14,7 +14,3 @@ message ScrapeProblemResponse {
   problem.v1.Problem problem = 1;
   optional string error = 2;
 }
-
-service ScrapeProblemService {
-  rpc ScrapeProblem(ScrapeProblemRequest) returns (ScrapeProblemResponse) {}
-}

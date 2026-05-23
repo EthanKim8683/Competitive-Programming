@@ -14,7 +14,3 @@ message ScrapeContestResponse {
   contest.v1.Contest contest = 1;
   optional string error = 2;
 }
-
-service ScrapeContestService {
-  rpc ScrapeContest(ScrapeContestRequest) returns (ScrapeContestResponse) {}
-}

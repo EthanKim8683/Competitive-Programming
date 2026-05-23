@@ -17,7 +17,3 @@ message SubmitResponse {
   submission.v1.Submission submission = 1;
   optional string error = 2;
 }
-
-service SubmitService {
-  rpc Submit(SubmitRequest) returns (SubmitResponse) {}
-}
