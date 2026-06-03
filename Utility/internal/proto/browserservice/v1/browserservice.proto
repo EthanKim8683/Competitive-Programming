@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package browserservice.v1;
+
+service BrowserService {
+  rpc Acquire(AcquireRequest) returns (AcquireResponse);
+  rpc ControlURL(ControlURLRequest) returns (ControlURLResponse);
+}
+
+message AcquireRequest {
+	uint32 ttl_ms = 1;
+}
+
+message AcquireResponse {}
+
+message ControlURLRequest {}
+
+message ControlURLResponse {
+	string control_url = 1;
+}

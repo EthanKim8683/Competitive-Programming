@@ -1,100 +1,82 @@
+#ifndef U
+#pragma GCC optimize("Ofast,unroll-loops")
+#endif
 #include <bits/stdc++.h>
-
 using namespace std;
 
-int main(int argc, char **argv) {
-  cin.tie(0)->sync_with_stdio(0);
+#define int long long
+#define rep(i, a, b) for (int i = a; i < (b); ++i)
+#define all(x) begin(x), end(x)
+#define sz(x) (int) (x).size()
+#define eb emplace_back
+#define pb push_back
+#define vc vector
+#define fs first
+#define sd second
+typedef pair<int, int> pii;
+typedef vc<int> vi;
 
-  mt19937 rng(time(nullptr)), rng2;
+int chmin(auto &u, auto v) { return u > v ? u = v, 1 : 0; }
+int chmax(auto &u, auto v) { return u < v ? u = v, 1 : 0; }
+
+signed main(signed argc, char **argv) {
+  cin.tie(0)->sync_with_stdio(0);
+  cin.exceptions(cin.failbit);
+
+  mt19937 rng;
   if (argc > 1) {
-    rng2 = mt19937(atoi(argv[1]));
+    rng = mt19937(atoi(argv[1]));
   }
+
+  // try to split
 
   int T;
-  if (argc > 1) {
-    T = 400000 / (12 * 12);
-  } else {
-    cin >> T;
-  }
+  cin >> T;
 
   while (T--) {
     int N;
-    if (argc > 1) {
-      N = 12;
-    } else {
-      cin >> N;
-      if (N == -1) exit(0);
+    cin >> N;
+    if (N == -1) {
+      exit(0);
     }
 
-    vector<int> A;
+    vi A;
     if (argc > 1) {
-      for (int i = 1; i <= N; i++) {
-        A.push_back(i);
-        A.push_back(i);
+      rep(i, 0, N) {
+        A.pb(i);
+        A.pb(i);
       }
-      shuffle(A.begin(), A.end(), rng2);
+      shuffle(all(A), rng);
       A.pop_back();
     }
 
-    int Q = 0;
-    auto ask = [&](vector<int> S, int x) -> bool {
+    auto query = [&](int x, vi S) -> int {
       if (argc > 1) {
-        Q++;
-        assert(Q <= 4 * N + 2 * __lg(2 * N - 1));
-
         for (auto e : S) {
           if (A[e] == x) return true;
         }
         return false;
       } else {
-        cout << "? " << x << ' ' << S.size();
+        cout << "? " << x << ' ' << sz(S);
         for (auto e : S) {
           cout << ' ' << e + 1;
         }
         cout << endl;
-        int res;
-        cin >> res;
-        if (res == -1) exit(0);
-        return res == 1;
+        int rv;
+        cin >> rv;
+        if (rv == -1) {
+          exit(0);
+        }
+        return rv;
       }
     };
 
     auto answer = [&](int y) -> void {
       if (argc > 1) {
-        assert(count(A.begin(), A.end(), y) == 1);
+        assert(count(all(A), y) == 1);
       } else {
         cout << "! " << y << endl;
       }
     };
-
-    vector<int> X(N);
-    iota(X.begin(), X.end(), 1);
-    shuffle(X.begin(), X.end(), rng);
-    int ans = X[N - 1];
-    for (int i = 0; i < N - 1; i++) {
-      vector<int> S(2 * N - 1);
-      iota(S.begin(), S.end(), 0);
-
-      bool found = false;
-      while (S.size() > 1) {
-        shuffle(S.begin(), S.end(), rng);
-        auto it = S.begin() + S.size() / 2;
-        vector<int> S1(S.begin(), it), S2(it, S.end());
-
-        if (!ask(S1, X[i])) {
-          S = S2;
-        } else if (!ask(S2, X[i])) {
-          S = S1;
-        } else {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        ans = X[i];
-        break;
-      }
-    }
-    answer(ans);
   }
 }

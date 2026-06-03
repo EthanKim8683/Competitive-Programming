@@ -1,5 +1,6 @@
-install: automation bundle cmd gen scaffold snippet
+install: cmd internal
 	go install ./cmd/cpx
+	go install ./cmd/cpbrowserd
 
-generate: proto
+generate: internal/proto
 	buf generate
