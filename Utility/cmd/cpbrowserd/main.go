@@ -12,6 +12,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Keep this running in the background
+// TODO: Encourage users to use this as a daemon somehow
 func main() {
 	_ = godotenv.Load()
 
@@ -25,7 +27,7 @@ func main() {
 	defer cancel()
 
 	srv := server.NewServer(cfg.Browser)
-	if err := srv.Run(ctx); err != nil && ctx.Err() == nil {
+	if err := srv.Serve(ctx); err != nil && ctx.Err() == nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

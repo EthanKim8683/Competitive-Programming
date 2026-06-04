@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/config"
 	browserservicev1 "github.com/EthanKim8683/Competitive-Programming/Utility/internal/gen/browserservice/v1"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,110 +16,97 @@ import (
 type Server struct {
 	browserservicev1.UnimplementedBrowserServiceServer
 
-	ctx context.Context
 	cfg config.BrowserConfig
 
+	acquire chan error
+	release chan struct{}
+
 	browser *browser
-
-	mu    sync.Mutex
-	holds int
-}
-
-func (s *Server) hold(ctx context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.holds == 0 {
-		if err := s.browser.launch(ctx); err != nil {
-			return err
-		}
-	}
-	s.holds++
-
-	context.AfterFunc(ctx, func() {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-
-		if s.holds == 1 {
-			s.browser.kill()
-		}
-		s.holds--
-	})
-
-	return nil
 }
 
 func (s *Server) Session(req *browserservicev1.SessionRequest, stream browserservicev1.BrowserService_SessionServer) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	if err := s.hold(ctx); err != nil {
-		return status.Errorf(codes.Internal, "failed to launch browser: %v", err)
+	if err := <-s.acquire; err != nil {
+		return status.Errorf(codes.Internal, "session: %v", err)
 	}
+	defer func() {
+		s.release <- struct{}{}
+	}()
 
 	controlURL, err := s.browser.controlURL()
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get browser control URL: %v", err)
+		return status.Errorf(codes.Internal, "session: %v", err)
 	}
 
 	if err := stream.Send(&browserservicev1.SessionResponse{
 		ControlUrl: controlURL,
 	}); err != nil {
-		return status.Errorf(codes.Internal, "failed to send response: %v", err)
+		return status.Errorf(codes.Internal, "session: %v", err)
 	}
 
-	select {
-	case <-stream.Context().Done():
-	case <-s.ctx.Done():
-		return nil
-	}
-
+	<-stream.Context().Done()
 	if keepAlive := req.GetKeepAlive(); keepAlive != nil {
-		select {
-		case <-time.After(time.Duration(keepAlive.GetTimeoutMs()) * time.Millisecond):
-		case <-s.ctx.Done():
-			return nil
-		}
+		<-time.After(time.Duration(keepAlive.GetTimeoutMs()) * time.Millisecond)
 	}
 
-	return nil
+	return status.FromContextError(stream.Context().Err()).Err()
 }
 
-func (s *Server) Run(ctx context.Context) error {
-	s.ctx = ctx
+func (s *Server) Serve(ctx context.Context) error {
+	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", s.cfg.GRPCPort))
+	if err != nil {
+		return fmt.Errorf("could not listen on port %d: %w", s.cfg.GRPCPort, err)
+	}
+	defer lis.Close()
 
 	grpcServer := grpc.NewServer()
 	browserservicev1.RegisterBrowserServiceServer(grpcServer, s)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", s.cfg.GRPCPort))
-	if err != nil {
-		return err
-	}
-	defer lis.Close()
-
-	g, ctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		err := grpcServer.Serve(lis)
-		if ctx.Err() != nil {
-			return nil
-		}
-		return err
-	})
-	g.Go(func() error {
+	go func() {
 		<-ctx.Done()
 		grpcServer.GracefulStop()
-		return nil
-	})
-	return g.Wait()
+	}()
+
+	stop := make(chan struct{})
+	defer close(stop)
+	go func() {
+		count := 0
+		for {
+			select {
+			case s.acquire <- func() error {
+				if count == 0 {
+					if err := s.browser.launch(ctx); err != nil {
+						return err
+					}
+				}
+				count++
+				return nil
+			}():
+			case <-s.release:
+				count--
+				if count == 0 {
+					s.browser.kill()
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	if err := grpcServer.Serve(lis); ctx.Err() == nil {
+		return fmt.Errorf("could not serve gRPC server: %w", err)
+	}
+	return nil
 }
 
 func NewServer(cfg config.BrowserConfig) *Server {
-	s := &Server{
+	return &Server{
 		cfg: cfg,
+
+		acquire: make(chan error),
+		release: make(chan struct{}),
 
 		browser: newBrowser(cfg),
 	}
-	return s
 }
 
 var _ browserservicev1.BrowserServiceServer = &Server{}

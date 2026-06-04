@@ -2,12 +2,14 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/config"
 	browserservicev1 "github.com/EthanKim8683/Competitive-Programming/Utility/internal/gen/browserservice/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -17,14 +19,23 @@ type Client struct {
 }
 
 func Dial(ctx context.Context, cfg config.BrowserConfig, opts ...grpc.DialOption) (*Client, error) {
-	if err := ensureDaemon(ctx, cfg); err != nil {
-		return nil, err
-	}
-
-	opts = append([]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}, opts...)
+	opts = append([]grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}, opts...)
 	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", cfg.GRPCPort), opts...)
 	if err != nil {
 		return nil, err
+	}
+
+	conn.Connect()
+	for state := conn.GetState(); state != connectivity.Ready; state = conn.GetState() {
+		if state == connectivity.Shutdown {
+			return nil, errors.New("server shutdown")
+		}
+
+		if !conn.WaitForStateChange(ctx, state) {
+			return nil, ctx.Err()
+		}
 	}
 
 	return &Client{
@@ -56,13 +67,26 @@ func WithKeepAlive(timeout time.Duration) SessionOption {
 	}
 }
 
-func (c *Client) Session(ctx context.Context, opts ...SessionOption) (controlURL string, err error) {
+type Session struct {
+	controlURL string
+	cancel     context.CancelFunc
+}
+
+func (s *Session) ControlURL() string {
+	return s.controlURL
+}
+
+func (s *Session) Close() {
+	s.cancel()
+}
+
+func (c *Client) Session(opts ...SessionOption) (session *Session, err error) {
 	req := &browserservicev1.SessionRequest{}
 	for _, opt := range opts {
 		opt(req)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		if err != nil {
 			cancel()
@@ -71,13 +95,16 @@ func (c *Client) Session(ctx context.Context, opts ...SessionOption) (controlURL
 
 	stream, err := c.svc.Session(ctx, req)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("could not open session stream: %w", err)
 	}
 
 	resp, err := stream.Recv()
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("could not receive session response: %w", err)
 	}
 
-	return resp.GetControlUrl(), nil
+	return &Session{
+		controlURL: resp.GetControlUrl(),
+		cancel:     cancel,
+	}, nil
 }
