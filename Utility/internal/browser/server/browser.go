@@ -31,7 +31,11 @@ func copyFile(src string, dst string) error {
 	defer out.Close()
 
 	_, err = io.Copy(out, in)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func copySQLiteFile(src string, dst string) error {
@@ -41,19 +45,17 @@ func copySQLiteFile(src string, dst string) error {
 type browser struct {
 	cfg config.BrowserConfig
 
-	mu sync.RWMutex
-
+	mu          sync.RWMutex
 	userDataDir string
 	launcher    *launcher.Launcher
 	wsURL       string
-	isLaunched  bool
 }
 
-func (b *browser) launch() error {
+func (b *browser) launch() (err error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if b.isLaunched {
+	if b.launcher != nil {
 		return nil
 	}
 
@@ -62,7 +64,7 @@ func (b *browser) launch() error {
 		return err
 	}
 	defer func() {
-		if !b.isLaunched {
+		if err != nil {
 			os.RemoveAll(userDataDir)
 		}
 	}()
@@ -85,7 +87,7 @@ func (b *browser) launch() error {
 		return err
 	}
 
-	ln := launcher.New().
+	l := launcher.New().
 		Bin(b.cfg.Bin).
 		RemoteDebuggingPort(b.cfg.RemoteDebuggingPort).
 		UserDataDir(userDataDir).
@@ -96,15 +98,14 @@ func (b *browser) launch() error {
 		Delete("enable-automation").
 		Set("password-store", "keychain")
 
-	wsURL, err := ln.Launch()
+	wsURL, err := l.Launch()
 	if err != nil {
 		return err
 	}
 
 	b.userDataDir = userDataDir
-	b.launcher = ln
+	b.launcher = l
 	b.wsURL = wsURL
-	b.isLaunched = true
 
 	return nil
 }
@@ -113,7 +114,7 @@ func (b *browser) controlURL() (string, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	if !b.isLaunched {
+	if b.launcher == nil {
 		return "", errors.New("browser not running")
 	}
 
@@ -124,7 +125,7 @@ func (b *browser) kill() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if !b.isLaunched {
+	if b.launcher == nil {
 		return
 	}
 
@@ -135,7 +136,6 @@ func (b *browser) kill() {
 	b.userDataDir = ""
 	b.launcher = nil
 	b.wsURL = ""
-	b.isLaunched = false
 }
 
 func newBrowser(cfg config.BrowserConfig) *browser {

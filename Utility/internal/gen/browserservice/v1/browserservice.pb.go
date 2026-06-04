@@ -21,27 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type AcquireRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TtlMs         uint32                 `protobuf:"varint,1,opt,name=ttl_ms,json=ttlMs,proto3" json:"ttl_ms,omitempty"`
+type SessionRequest struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	KeepAlive     *SessionRequest_KeepAlive `protobuf:"bytes,1,opt,name=keep_alive,json=keepAlive,proto3,oneof" json:"keep_alive,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AcquireRequest) Reset() {
-	*x = AcquireRequest{}
+func (x *SessionRequest) Reset() {
+	*x = SessionRequest{}
 	mi := &file_browserservice_v1_browserservice_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AcquireRequest) String() string {
+func (x *SessionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AcquireRequest) ProtoMessage() {}
+func (*SessionRequest) ProtoMessage() {}
 
-func (x *AcquireRequest) ProtoReflect() protoreflect.Message {
+func (x *SessionRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_browserservice_v1_browserservice_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,112 +53,40 @@ func (x *AcquireRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AcquireRequest.ProtoReflect.Descriptor instead.
-func (*AcquireRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SessionRequest.ProtoReflect.Descriptor instead.
+func (*SessionRequest) Descriptor() ([]byte, []int) {
 	return file_browserservice_v1_browserservice_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *AcquireRequest) GetTtlMs() uint32 {
+func (x *SessionRequest) GetKeepAlive() *SessionRequest_KeepAlive {
 	if x != nil {
-		return x.TtlMs
+		return x.KeepAlive
 	}
-	return 0
+	return nil
 }
 
-type AcquireResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AcquireResponse) Reset() {
-	*x = AcquireResponse{}
-	mi := &file_browserservice_v1_browserservice_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AcquireResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AcquireResponse) ProtoMessage() {}
-
-func (x *AcquireResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_browserservice_v1_browserservice_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AcquireResponse.ProtoReflect.Descriptor instead.
-func (*AcquireResponse) Descriptor() ([]byte, []int) {
-	return file_browserservice_v1_browserservice_proto_rawDescGZIP(), []int{1}
-}
-
-type ControlURLRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ControlURLRequest) Reset() {
-	*x = ControlURLRequest{}
-	mi := &file_browserservice_v1_browserservice_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ControlURLRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ControlURLRequest) ProtoMessage() {}
-
-func (x *ControlURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_browserservice_v1_browserservice_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ControlURLRequest.ProtoReflect.Descriptor instead.
-func (*ControlURLRequest) Descriptor() ([]byte, []int) {
-	return file_browserservice_v1_browserservice_proto_rawDescGZIP(), []int{2}
-}
-
-type ControlURLResponse struct {
+type SessionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ControlUrl    string                 `protobuf:"bytes,1,opt,name=control_url,json=controlUrl,proto3" json:"control_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ControlURLResponse) Reset() {
-	*x = ControlURLResponse{}
-	mi := &file_browserservice_v1_browserservice_proto_msgTypes[3]
+func (x *SessionResponse) Reset() {
+	*x = SessionResponse{}
+	mi := &file_browserservice_v1_browserservice_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ControlURLResponse) String() string {
+func (x *SessionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ControlURLResponse) ProtoMessage() {}
+func (*SessionResponse) ProtoMessage() {}
 
-func (x *ControlURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_browserservice_v1_browserservice_proto_msgTypes[3]
+func (x *SessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_browserservice_v1_browserservice_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,34 +97,79 @@ func (x *ControlURLResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ControlURLResponse.ProtoReflect.Descriptor instead.
-func (*ControlURLResponse) Descriptor() ([]byte, []int) {
-	return file_browserservice_v1_browserservice_proto_rawDescGZIP(), []int{3}
+// Deprecated: Use SessionResponse.ProtoReflect.Descriptor instead.
+func (*SessionResponse) Descriptor() ([]byte, []int) {
+	return file_browserservice_v1_browserservice_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ControlURLResponse) GetControlUrl() string {
+func (x *SessionResponse) GetControlUrl() string {
 	if x != nil {
 		return x.ControlUrl
 	}
 	return ""
 }
 
+type SessionRequest_KeepAlive struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TimeoutMs     uint32                 `protobuf:"varint,1,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SessionRequest_KeepAlive) Reset() {
+	*x = SessionRequest_KeepAlive{}
+	mi := &file_browserservice_v1_browserservice_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SessionRequest_KeepAlive) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionRequest_KeepAlive) ProtoMessage() {}
+
+func (x *SessionRequest_KeepAlive) ProtoReflect() protoreflect.Message {
+	mi := &file_browserservice_v1_browserservice_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionRequest_KeepAlive.ProtoReflect.Descriptor instead.
+func (*SessionRequest_KeepAlive) Descriptor() ([]byte, []int) {
+	return file_browserservice_v1_browserservice_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *SessionRequest_KeepAlive) GetTimeoutMs() uint32 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
 var File_browserservice_v1_browserservice_proto protoreflect.FileDescriptor
 
 const file_browserservice_v1_browserservice_proto_rawDesc = "" +
 	"\n" +
-	"&browserservice/v1/browserservice.proto\x12\x11browserservice.v1\"'\n" +
-	"\x0eAcquireRequest\x12\x15\n" +
-	"\x06ttl_ms\x18\x01 \x01(\rR\x05ttlMs\"\x11\n" +
-	"\x0fAcquireResponse\"\x13\n" +
-	"\x11ControlURLRequest\"5\n" +
-	"\x12ControlURLResponse\x12\x1f\n" +
-	"\vcontrol_url\x18\x01 \x01(\tR\n" +
-	"controlUrl2\xbd\x01\n" +
-	"\x0eBrowserService\x12P\n" +
-	"\aAcquire\x12!.browserservice.v1.AcquireRequest\x1a\".browserservice.v1.AcquireResponse\x12Y\n" +
+	"&browserservice/v1/browserservice.proto\x12\x11browserservice.v1\"\x9c\x01\n" +
+	"\x0eSessionRequest\x12O\n" +
 	"\n" +
-	"ControlURL\x12$.browserservice.v1.ControlURLRequest\x1a%.browserservice.v1.ControlURLResponseB\xfa\x01\n" +
+	"keep_alive\x18\x01 \x01(\v2+.browserservice.v1.SessionRequest.KeepAliveH\x00R\tkeepAlive\x88\x01\x01\x1a*\n" +
+	"\tKeepAlive\x12\x1d\n" +
+	"\n" +
+	"timeout_ms\x18\x01 \x01(\rR\ttimeoutMsB\r\n" +
+	"\v_keep_alive\"2\n" +
+	"\x0fSessionResponse\x12\x1f\n" +
+	"\vcontrol_url\x18\x01 \x01(\tR\n" +
+	"controlUrl2d\n" +
+	"\x0eBrowserService\x12R\n" +
+	"\aSession\x12!.browserservice.v1.SessionRequest\x1a\".browserservice.v1.SessionResponse0\x01B\xfa\x01\n" +
 	"\x15com.browserservice.v1B\x13BrowserserviceProtoP\x01Zggithub.com/EthanKim8683/Competitive-Programming/Utility/internal/gen/browserservice/v1;browserservicev1\xa2\x02\x03BXX\xaa\x02\x11Browserservice.V1\xca\x02\x11Browserservice\\V1\xe2\x02\x1dBrowserservice\\V1\\GPBMetadata\xea\x02\x12Browserservice::V1b\x06proto3"
 
 var (
@@ -211,23 +184,21 @@ func file_browserservice_v1_browserservice_proto_rawDescGZIP() []byte {
 	return file_browserservice_v1_browserservice_proto_rawDescData
 }
 
-var file_browserservice_v1_browserservice_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_browserservice_v1_browserservice_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_browserservice_v1_browserservice_proto_goTypes = []any{
-	(*AcquireRequest)(nil),     // 0: browserservice.v1.AcquireRequest
-	(*AcquireResponse)(nil),    // 1: browserservice.v1.AcquireResponse
-	(*ControlURLRequest)(nil),  // 2: browserservice.v1.ControlURLRequest
-	(*ControlURLResponse)(nil), // 3: browserservice.v1.ControlURLResponse
+	(*SessionRequest)(nil),           // 0: browserservice.v1.SessionRequest
+	(*SessionResponse)(nil),          // 1: browserservice.v1.SessionResponse
+	(*SessionRequest_KeepAlive)(nil), // 2: browserservice.v1.SessionRequest.KeepAlive
 }
 var file_browserservice_v1_browserservice_proto_depIdxs = []int32{
-	0, // 0: browserservice.v1.BrowserService.Acquire:input_type -> browserservice.v1.AcquireRequest
-	2, // 1: browserservice.v1.BrowserService.ControlURL:input_type -> browserservice.v1.ControlURLRequest
-	1, // 2: browserservice.v1.BrowserService.Acquire:output_type -> browserservice.v1.AcquireResponse
-	3, // 3: browserservice.v1.BrowserService.ControlURL:output_type -> browserservice.v1.ControlURLResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: browserservice.v1.SessionRequest.keep_alive:type_name -> browserservice.v1.SessionRequest.KeepAlive
+	0, // 1: browserservice.v1.BrowserService.Session:input_type -> browserservice.v1.SessionRequest
+	1, // 2: browserservice.v1.BrowserService.Session:output_type -> browserservice.v1.SessionResponse
+	2, // [2:3] is the sub-list for method output_type
+	1, // [1:2] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_browserservice_v1_browserservice_proto_init() }
@@ -235,13 +206,14 @@ func file_browserservice_v1_browserservice_proto_init() {
 	if File_browserservice_v1_browserservice_proto != nil {
 		return
 	}
+	file_browserservice_v1_browserservice_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_browserservice_v1_browserservice_proto_rawDesc), len(file_browserservice_v1_browserservice_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

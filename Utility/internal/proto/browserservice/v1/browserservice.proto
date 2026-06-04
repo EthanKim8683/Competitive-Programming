@@ -3,18 +3,17 @@ syntax = "proto3";
 package browserservice.v1;
 
 service BrowserService {
-  rpc Acquire(AcquireRequest) returns (AcquireResponse);
-  rpc ControlURL(ControlURLRequest) returns (ControlURLResponse);
+  rpc Session(SessionRequest) returns (stream SessionResponse);
 }
 
-message AcquireRequest {
-	uint32 ttl_ms = 1;
+message SessionRequest {
+	message KeepAlive {
+		uint32 timeout_ms = 1;
+	}
+
+	optional KeepAlive keep_alive = 1;
 }
 
-message AcquireResponse {}
-
-message ControlURLRequest {}
-
-message ControlURLResponse {
+message SessionResponse {
 	string control_url = 1;
 }

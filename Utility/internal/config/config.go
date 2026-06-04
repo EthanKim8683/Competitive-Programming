@@ -1,7 +1,8 @@
 package config
 
 type BrowserConfig struct {
-	GRPCPort int `env:"BROWSER_GRPC_PORT"`
+	DaemonCommand string `env:"BROWSER_DAEMON_COMMAND"`
+	GRPCPort      int    `env:"BROWSER_GRPC_PORT"`
 
 	Bin                 string `env:"CHROME_EXECUTABLE_PATH"`
 	RemoteDebuggingPort int    `env:"CHROME_REMOTE_DEBUGGING_PORT"`

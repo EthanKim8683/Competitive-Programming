@@ -19,16 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BrowserService_Acquire_FullMethodName    = "/browserservice.v1.BrowserService/Acquire"
-	BrowserService_ControlURL_FullMethodName = "/browserservice.v1.BrowserService/ControlURL"
+	BrowserService_Session_FullMethodName = "/browserservice.v1.BrowserService/Session"
 )
 
 // BrowserServiceClient is the client API for BrowserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BrowserServiceClient interface {
-	Acquire(ctx context.Context, in *AcquireRequest, opts ...grpc.CallOption) (*AcquireResponse, error)
-	ControlURL(ctx context.Context, in *ControlURLRequest, opts ...grpc.CallOption) (*ControlURLResponse, error)
+	Session(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionResponse], error)
 }
 
 type browserServiceClient struct {
@@ -39,32 +37,30 @@ func NewBrowserServiceClient(cc grpc.ClientConnInterface) BrowserServiceClient {
 	return &browserServiceClient{cc}
 }
 
-func (c *browserServiceClient) Acquire(ctx context.Context, in *AcquireRequest, opts ...grpc.CallOption) (*AcquireResponse, error) {
+func (c *browserServiceClient) Session(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AcquireResponse)
-	err := c.cc.Invoke(ctx, BrowserService_Acquire_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &BrowserService_ServiceDesc.Streams[0], BrowserService_Session_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &grpc.GenericClientStream[SessionRequest, SessionResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
 }
 
-func (c *browserServiceClient) ControlURL(ctx context.Context, in *ControlURLRequest, opts ...grpc.CallOption) (*ControlURLResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ControlURLResponse)
-	err := c.cc.Invoke(ctx, BrowserService_ControlURL_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type BrowserService_SessionClient = grpc.ServerStreamingClient[SessionResponse]
 
 // BrowserServiceServer is the server API for BrowserService service.
 // All implementations must embed UnimplementedBrowserServiceServer
 // for forward compatibility.
 type BrowserServiceServer interface {
-	Acquire(context.Context, *AcquireRequest) (*AcquireResponse, error)
-	ControlURL(context.Context, *ControlURLRequest) (*ControlURLResponse, error)
+	Session(*SessionRequest, grpc.ServerStreamingServer[SessionResponse]) error
 	mustEmbedUnimplementedBrowserServiceServer()
 }
 
@@ -75,11 +71,8 @@ type BrowserServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedBrowserServiceServer struct{}
 
-func (UnimplementedBrowserServiceServer) Acquire(context.Context, *AcquireRequest) (*AcquireResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Acquire not implemented")
-}
-func (UnimplementedBrowserServiceServer) ControlURL(context.Context, *ControlURLRequest) (*ControlURLResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ControlURL not implemented")
+func (UnimplementedBrowserServiceServer) Session(*SessionRequest, grpc.ServerStreamingServer[SessionResponse]) error {
+	return status.Error(codes.Unimplemented, "method Session not implemented")
 }
 func (UnimplementedBrowserServiceServer) mustEmbedUnimplementedBrowserServiceServer() {}
 func (UnimplementedBrowserServiceServer) testEmbeddedByValue()                        {}
@@ -102,41 +95,16 @@ func RegisterBrowserServiceServer(s grpc.ServiceRegistrar, srv BrowserServiceSer
 	s.RegisterService(&BrowserService_ServiceDesc, srv)
 }
 
-func _BrowserService_Acquire_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AcquireRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _BrowserService_Session_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SessionRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(BrowserServiceServer).Acquire(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BrowserService_Acquire_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrowserServiceServer).Acquire(ctx, req.(*AcquireRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(BrowserServiceServer).Session(m, &grpc.GenericServerStream[SessionRequest, SessionResponse]{ServerStream: stream})
 }
 
-func _BrowserService_ControlURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ControlURLRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrowserServiceServer).ControlURL(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BrowserService_ControlURL_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrowserServiceServer).ControlURL(ctx, req.(*ControlURLRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type BrowserService_SessionServer = grpc.ServerStreamingServer[SessionResponse]
 
 // BrowserService_ServiceDesc is the grpc.ServiceDesc for BrowserService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -144,16 +112,13 @@ func _BrowserService_ControlURL_Handler(srv interface{}, ctx context.Context, de
 var BrowserService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "browserservice.v1.BrowserService",
 	HandlerType: (*BrowserServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "Acquire",
-			Handler:    _BrowserService_Acquire_Handler,
-		},
-		{
-			MethodName: "ControlURL",
-			Handler:    _BrowserService_ControlURL_Handler,
+			StreamName:    "Session",
+			Handler:       _BrowserService_Session_Handler,
+			ServerStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "browserservice/v1/browserservice.proto",
 }

@@ -21,36 +21,66 @@ type Server struct {
 	ctx context.Context
 	cfg config.BrowserConfig
 
-	browser    *browser
-	refCounter *refCounter
+	browser *browser
+
+	mu    sync.Mutex
+	holds int
 }
 
-func (s *Server) Acquire(_ context.Context, req *browserservicev1.AcquireRequest) (*browserservicev1.AcquireResponse, error) {
-	release, err := s.refCounter.acquire()
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+func (s *Server) hold(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.holds == 0 {
+		if err := s.browser.launch(); err != nil {
+			return err
+		}
 	}
+	s.holds++
 
-	var once sync.Once
-	releaseOnce := func() { once.Do(release) }
-	time.AfterFunc(time.Duration(req.TtlMs)*time.Millisecond, releaseOnce)
-	context.AfterFunc(s.ctx, releaseOnce)
+	context.AfterFunc(ctx, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 
-	return &browserservicev1.AcquireResponse{}, nil
+		if s.holds == 1 {
+			s.browser.kill()
+		}
+		s.holds--
+	})
+
+	return nil
 }
 
-func (s *Server) ControlURL(_ context.Context, _ *browserservicev1.ControlURLRequest) (*browserservicev1.ControlURLResponse, error) {
-	release, err := s.refCounter.acquire()
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	defer release()
+func (s *Server) Session(req *browserservicev1.SessionRequest, stream browserservicev1.BrowserService_SessionServer) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	wsURL, err := s.browser.controlURL()
-	if err != nil {
-		return nil, status.Error(codes.FailedPrecondition, err.Error())
+	if err := s.hold(ctx); err != nil {
+		return status.Errorf(codes.Internal, "failed to launch browser: %v", err)
 	}
-	return &browserservicev1.ControlURLResponse{ControlUrl: wsURL}, nil
+
+	controlURL, err := s.browser.controlURL()
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to get browser control URL: %v", err)
+	}
+
+	if err := stream.Send(&browserservicev1.SessionResponse{
+		ControlUrl: controlURL,
+	}); err != nil {
+		return status.Errorf(codes.Internal, "failed to send response: %v", err)
+	}
+
+	select {
+	case <-stream.Context().Done():
+	case <-s.ctx.Done():
+		return nil
+	}
+
+	if keepAlive := req.GetKeepAlive(); keepAlive != nil {
+		<-time.After(time.Duration(keepAlive.GetTimeoutMs()) * time.Millisecond)
+	}
+
+	return nil
 }
 
 func (s *Server) Run() error {
@@ -65,10 +95,11 @@ func (s *Server) Run() error {
 
 	g, ctx := errgroup.WithContext(s.ctx)
 	g.Go(func() error {
-		if err := grpcServer.Serve(lis); err != nil && ctx.Err() == nil {
-			return err
+		err := grpcServer.Serve(lis)
+		if ctx.Err() != nil {
+			return nil
 		}
-		return nil
+		return err
 	})
 	g.Go(func() error {
 		<-ctx.Done()
@@ -82,9 +113,9 @@ func NewServer(ctx context.Context, cfg config.BrowserConfig) *Server {
 	s := &Server{
 		ctx: ctx,
 		cfg: cfg,
+
+		browser: newBrowser(cfg),
 	}
-	s.browser = newBrowser(cfg)
-	s.refCounter = newRefCounter(s.browser)
 	return s
 }
 
