@@ -32,7 +32,7 @@ func (s *Server) hold(ctx context.Context) error {
 	defer s.mu.Unlock()
 
 	if s.holds == 0 {
-		if err := s.browser.launch(); err != nil {
+		if err := s.browser.launch(ctx); err != nil {
 			return err
 		}
 	}
@@ -77,13 +77,19 @@ func (s *Server) Session(req *browserservicev1.SessionRequest, stream browserser
 	}
 
 	if keepAlive := req.GetKeepAlive(); keepAlive != nil {
-		<-time.After(time.Duration(keepAlive.GetTimeoutMs()) * time.Millisecond)
+		select {
+		case <-time.After(time.Duration(keepAlive.GetTimeoutMs()) * time.Millisecond):
+		case <-s.ctx.Done():
+			return nil
+		}
 	}
 
 	return nil
 }
 
-func (s *Server) Run() error {
+func (s *Server) Run(ctx context.Context) error {
+	s.ctx = ctx
+
 	grpcServer := grpc.NewServer()
 	browserservicev1.RegisterBrowserServiceServer(grpcServer, s)
 
@@ -93,7 +99,7 @@ func (s *Server) Run() error {
 	}
 	defer lis.Close()
 
-	g, ctx := errgroup.WithContext(s.ctx)
+	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		err := grpcServer.Serve(lis)
 		if ctx.Err() != nil {
@@ -109,9 +115,8 @@ func (s *Server) Run() error {
 	return g.Wait()
 }
 
-func NewServer(ctx context.Context, cfg config.BrowserConfig) *Server {
+func NewServer(cfg config.BrowserConfig) *Server {
 	s := &Server{
-		ctx: ctx,
 		cfg: cfg,
 
 		browser: newBrowser(cfg),

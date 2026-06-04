@@ -4,9 +4,7 @@ import (
 	"fmt"
 	neturl "net/url"
 
-	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/onlinejudge/atcoder"
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/onlinejudge/codeforces"
-	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/onlinejudge/vjudge"
 	portonlinejudge "github.com/EthanKim8683/Competitive-Programming/Utility/internal/port/onlinejudge"
 )
 
@@ -17,12 +15,8 @@ func Resolve(url string) (*portonlinejudge.OnlineJudge, error) {
 	}
 	host := u.Hostname()
 	switch host {
-	case "atcoder.jp":
-		return &atcoder.OnlineJudge, nil
 	case "codeforces.com":
-		return &codeforces.OnlineJudge, nil
-	case "vjudge.net":
-		return &vjudge.OnlineJudge, nil
+		return codeforces.New(cfg), nil
 	default:
 		return nil, fmt.Errorf("unknown host: %s", host)
 	}

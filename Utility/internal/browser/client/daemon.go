@@ -23,8 +23,9 @@ func tryTCPDial(ctx context.Context, cfg config.BrowserConfig) error {
 	return conn.Close()
 }
 
-func startDaemon(ctx context.Context, cfg config.BrowserConfig) error {
-	cmd := exec.CommandContext(ctx, cfg.DaemonCommand)
+// TODO: lock
+func startDaemon(cfg config.BrowserConfig) error {
+	cmd := exec.CommandContext(context.Background(), cfg.DaemonCommand)
 	cmd.Stdout = io.Discard
 	cmd.Stderr = io.Discard
 	cmd.SysProcAttr = &syscall.SysProcAttr{
@@ -59,7 +60,7 @@ func ensureDaemon(ctx context.Context, cfg config.BrowserConfig) error {
 	if err := tryTCPDial(ctx, cfg); err == nil {
 		return nil
 	}
-	if err := startDaemon(ctx, cfg); err != nil {
+	if err := startDaemon(cfg); err != nil {
 		return err
 	}
 	if err := waitForTCPConn(ctx, cfg); err != nil {

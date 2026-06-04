@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -38,8 +39,8 @@ func copyFile(src string, dst string) error {
 	return nil
 }
 
-func copySQLiteFile(src string, dst string) error {
-	return exec.Command("sqlite3", src, fmt.Sprintf(`.backup '%s'`, dst)).Run()
+func copySQLiteFile(ctx context.Context, src string, dst string) error {
+	return exec.CommandContext(ctx, "sqlite3", src, fmt.Sprintf(`.backup '%s'`, dst)).Run()
 }
 
 type browser struct {
@@ -51,7 +52,7 @@ type browser struct {
 	wsURL       string
 }
 
-func (b *browser) launch() (err error) {
+func (b *browser) launch(ctx context.Context) (err error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -81,6 +82,7 @@ func (b *browser) launch() (err error) {
 	}
 
 	if err := copySQLiteFile(
+		ctx,
 		filepath.Join(b.cfg.UserDataDir, b.cfg.ProfileDir, "Cookies"),
 		filepath.Join(userDataDir, b.cfg.ProfileDir, "Cookies"),
 	); err != nil {
@@ -88,6 +90,7 @@ func (b *browser) launch() (err error) {
 	}
 
 	l := launcher.New().
+		Context(ctx).
 		Bin(b.cfg.Bin).
 		RemoteDebuggingPort(b.cfg.RemoteDebuggingPort).
 		UserDataDir(userDataDir).
