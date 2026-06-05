@@ -5,7 +5,12 @@ import (
 
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/domain"
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/port"
+	"github.com/go-rod/rod"
 )
+
+type ScrapeContestFunc func(ctx context.Context, b *rod.Browser, url string) (domain.Contest, error)
+
+type ScrapeProblemFunc func(ctx context.Context, b *rod.Browser, url string) (domain.Problem, error)
 
 type SubmitConfig struct {
 	Language domain.Language
@@ -26,8 +31,4 @@ func WithBundler(bundler port.Bundler) SubmitOption {
 	}
 }
 
-type OnlineJudge interface {
-	ScrapeContest(ctx context.Context, url string) (domain.Contest, error)
-	ScrapeProblem(ctx context.Context, url string) (domain.Problem, error)
-	Submit(ctx context.Context, url string, source string, options ...SubmitOption) (domain.Submission, error)
-}
+type SubmitFunc func(ctx context.Context, b *rod.Browser, url string, source string, opts ...SubmitOption) (domain.Submission, error)

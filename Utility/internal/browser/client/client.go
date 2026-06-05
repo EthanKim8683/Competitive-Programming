@@ -24,7 +24,7 @@ func Dial(ctx context.Context, cfg config.BrowserConfig, opts ...grpc.DialOption
 	}, opts...)
 	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", cfg.GRPCPort), opts...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not dial browser service: %w", err)
 	}
 
 	conn.Connect()
@@ -36,7 +36,7 @@ func Dial(ctx context.Context, cfg config.BrowserConfig, opts ...grpc.DialOption
 
 	for state := conn.GetState(); state != connectivity.Ready; state = conn.GetState() {
 		if state == connectivity.Shutdown {
-			return nil, errors.New("connection shut down")
+			return nil, errors.New("browser service connection shut down")
 		}
 
 		if !conn.WaitForStateChange(ctx, state) {
@@ -115,12 +115,12 @@ func (c *Client) Acquire(opts ...AcquireOption) (handle *Handle, err error) {
 
 	stream, err := c.svc.Session(ctx, cfg.req)
 	if err != nil {
-		return nil, fmt.Errorf("could not open session stream: %w", err)
+		return nil, fmt.Errorf("could not open browser session: %w", err)
 	}
 
 	resp, err := stream.Recv()
 	if err != nil {
-		return nil, fmt.Errorf("could not receive session response: %w", err)
+		return nil, fmt.Errorf("could not receive browser session response: %w", err)
 	}
 
 	return &Handle{
