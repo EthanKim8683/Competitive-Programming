@@ -1,4 +1,4 @@
-package scrapeproblem
+package onlinejudge
 
 import (
 	"context"

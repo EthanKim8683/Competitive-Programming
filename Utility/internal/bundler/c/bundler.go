@@ -13,7 +13,9 @@ import (
 	"go.uber.org/multierr"
 )
 
-var includeRegex = regexp.MustCompile(`[\t ]*#[\t ]*include[\t ]*"(.*?)"`)
+var (
+	includeRegex = regexp.MustCompile(`[\t ]*#[\t ]*include[\t ]*"(.*?)"`)
+)
 
 type CBundler struct {
 	includeDirs []string

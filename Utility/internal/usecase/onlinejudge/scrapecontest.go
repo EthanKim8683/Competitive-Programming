@@ -1,4 +1,4 @@
-package scrapeproblem
+package onlinejudge
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/go-rod/rod"
 )
 
-func ScrapeCodeforcesProblem(ctx context.Context, b *rod.Browser, url string) (domain.Problem, error) {
-	return domain.Problem{}, nil
+func ScrapeContest(ctx context.Context, b *rod.Browser, url string) (domain.Contest, error) {
+	return domain.Contest{}, nil
 }
 
-var _ portonlinejudge.ScrapeProblemFunc = ScrapeCodeforcesProblem
+var _ portonlinejudge.ScrapeContestFunc = ScrapeContest

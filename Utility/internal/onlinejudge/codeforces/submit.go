@@ -1,4 +1,4 @@
-package scrapecontest
+package codeforces
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"github.com/go-rod/rod"
 )
 
-func ScrapeCodeforcesContest(ctx context.Context, b *rod.Browser, url string) (domain.Contest, error) {
-	return domain.Contest{}, nil
+func Submit(ctx context.Context, b *rod.Browser, url string, source string, opts ...portonlinejudge.SubmitOption) (domain.Submission, error) {
+	return domain.Submission{}, nil
 }
-
-var _ portonlinejudge.ScrapeContestFunc = ScrapeCodeforcesContest
