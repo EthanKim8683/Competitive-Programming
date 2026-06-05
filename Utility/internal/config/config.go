@@ -2,15 +2,13 @@ package config
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/caarlos0/env/v11"
 	"go.uber.org/multierr"
 )
 
 type BrowserConfig struct {
-	DaemonCommand string `env:"BROWSER_DAEMON_COMMAND"`
-	GRPCPort      int    `env:"BROWSER_GRPC_PORT"`
+	GRPCPort int `env:"BROWSER_GRPC_PORT"`
 
 	Bin                 string `env:"CHROME_EXECUTABLE_PATH"`
 	RemoteDebuggingPort int    `env:"CHROME_REMOTE_DEBUGGING_PORT"`
@@ -19,14 +17,6 @@ type BrowserConfig struct {
 }
 
 func (c *BrowserConfig) Validate() (err error) {
-	if c.DaemonCommand == "" {
-		lookPath, err := exec.LookPath("cpbrowserd")
-		if err != nil {
-			return fmt.Errorf("failed to look up cpbrowserd executable path: %w", err)
-		}
-		c.DaemonCommand = lookPath
-	}
-
 	if c.GRPCPort == c.RemoteDebuggingPort && c.GRPCPort != 0 {
 		err = multierr.Append(err, fmt.Errorf("GRPCPort and RemoteDebuggingPort must be different"))
 	}

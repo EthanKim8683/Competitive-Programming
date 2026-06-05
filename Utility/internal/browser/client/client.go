@@ -18,7 +18,7 @@ type Client struct {
 	svc  browserservicev1.BrowserServiceClient
 }
 
-func Dial(ctx context.Context, cfg config.BrowserConfig, opts ...grpc.DialOption) (*Client, error) {
+func Dial(ctx context.Context, cfg config.BrowserConfig, opts ...grpc.DialOption) (client *Client, err error) {
 	opts = append([]grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}, opts...)
@@ -28,9 +28,15 @@ func Dial(ctx context.Context, cfg config.BrowserConfig, opts ...grpc.DialOption
 	}
 
 	conn.Connect()
+	defer func() {
+		if err != nil {
+			conn.Close()
+		}
+	}()
+
 	for state := conn.GetState(); state != connectivity.Ready; state = conn.GetState() {
 		if state == connectivity.Shutdown {
-			return nil, errors.New("server shutdown")
+			return nil, errors.New("connection shut down")
 		}
 
 		if !conn.WaitForStateChange(ctx, state) {
@@ -57,43 +63,57 @@ func (c *Client) Close() error {
 	return c.conn.Close()
 }
 
-type SessionOption func(*browserservicev1.SessionRequest)
+type acquireConfig struct {
+	ctx context.Context
+	req *browserservicev1.SessionRequest
+}
 
-func WithKeepAlive(timeout time.Duration) SessionOption {
-	return func(req *browserservicev1.SessionRequest) {
-		req.KeepAlive = &browserservicev1.SessionRequest_KeepAlive{
+type AcquireOption func(*acquireConfig)
+
+func WithContext(ctx context.Context) AcquireOption {
+	return func(cfg *acquireConfig) {
+		cfg.ctx = ctx
+	}
+}
+
+func WithKeepAlive(timeout time.Duration) AcquireOption {
+	return func(cfg *acquireConfig) {
+		cfg.req.KeepAlive = &browserservicev1.SessionRequest_KeepAlive{
 			TimeoutMs: uint32(timeout.Milliseconds()),
 		}
 	}
 }
 
-type Session struct {
+type Handle struct {
 	controlURL string
 	cancel     context.CancelFunc
 }
 
-func (s *Session) ControlURL() string {
-	return s.controlURL
+func (h *Handle) ControlURL() string {
+	return h.controlURL
 }
 
-func (s *Session) Close() {
-	s.cancel()
+func (h *Handle) Release() {
+	h.cancel()
 }
 
-func (c *Client) Session(opts ...SessionOption) (session *Session, err error) {
-	req := &browserservicev1.SessionRequest{}
+func (c *Client) Acquire(opts ...AcquireOption) (handle *Handle, err error) {
+	cfg := &acquireConfig{
+		ctx: context.Background(),
+		req: &browserservicev1.SessionRequest{},
+	}
 	for _, opt := range opts {
-		opt(req)
+		opt(cfg)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(cfg.ctx)
 	defer func() {
 		if err != nil {
 			cancel()
 		}
 	}()
 
-	stream, err := c.svc.Session(ctx, req)
+	stream, err := c.svc.Session(ctx, cfg.req)
 	if err != nil {
 		return nil, fmt.Errorf("could not open session stream: %w", err)
 	}
@@ -103,7 +123,7 @@ func (c *Client) Session(opts ...SessionOption) (session *Session, err error) {
 		return nil, fmt.Errorf("could not receive session response: %w", err)
 	}
 
-	return &Session{
+	return &Handle{
 		controlURL: resp.GetControlUrl(),
 		cancel:     cancel,
 	}, nil
