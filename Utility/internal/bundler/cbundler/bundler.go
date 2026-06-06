@@ -1,4 +1,4 @@
-package c
+package cbundler
 
 import (
 	"errors"

@@ -8,6 +8,6 @@ import (
 	"github.com/go-rod/rod"
 )
 
-func Submit(ctx context.Context, b *rod.Browser, url string, source string, opts ...portonlinejudge.SubmitOption) (domain.Submission, error) {
+func Submit(ctx context.Context, b *rod.Browser, url string, source string, cfg portonlinejudge.SubmitConfig) (domain.Submission, error) {
 	return domain.Submission{}, nil
 }
