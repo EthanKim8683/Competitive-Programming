@@ -152,7 +152,7 @@ func (b *CBundler) Bundle(source string) (string, error) {
 
 var _ port.Bundler = (*CBundler)(nil)
 
-func NewCBundler(includeDirs []string) port.Bundler {
+func New(includeDirs []string) port.Bundler {
 	return &CBundler{
 		includeDirs: includeDirs,
 	}
