@@ -17,10 +17,6 @@ var (
 	includeRegex = regexp.MustCompile(`[\t ]*#[\t ]*include[\t ]*"(.*?)"`)
 )
 
-type CBundler struct {
-	includeDirs []string
-}
-
 func (b *CBundler) Bundle(source string) (string, error) {
 	type node struct {
 		path string
