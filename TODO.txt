@@ -1,0 +1,15 @@
+i have kind of an interesting idea:
+
+we store build commands in make variables, kind of like:
+
+X := g++ -O2 -o sol sol.cpp
+
+now, we can do stuff like:
+
+cpx bundle $(X)
+cpx compile $(X)
+cpx run $(X)
+cpx submit $(X)
+
+this makes things speedy and as "single source of truth" as
+possible
