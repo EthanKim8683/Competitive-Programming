@@ -13,3 +13,12 @@ cpx submit -- $(X)
 
 this makes things speedy and as "single source of truth" as
 possible
+
+
+
+
+now i want to figure out a good way to scaffold stuff based on
+type. i think i'll leave this up to Jinja2? like each scaffold
+template is a single Jinja2 template which contains logic to
+construct directory structures. this way, templates can be as
+expressive and cut-corner-y as possible

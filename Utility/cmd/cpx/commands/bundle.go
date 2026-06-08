@@ -14,7 +14,6 @@ type BundleCmd struct {
 var bundleCmd = &cobra.Command{
 	Use:   "bundle",
 	Short: "Bundle a submission",
-	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var cli BundleCmd
 		parser, err := kong.New(&cli)
