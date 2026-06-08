@@ -6,10 +6,10 @@ X := g++ -O2 -o sol sol.cpp
 
 now, we can do stuff like:
 
-cpx bundle $(X)
-cpx compile $(X)
-cpx run $(X)
-cpx submit $(X)
+cpx bundle -- $(X)
+cpx compile -- $(X)
+cpx run -- $(X)
+cpx submit -- $(X)
 
 this makes things speedy and as "single source of truth" as
 possible
