@@ -8,7 +8,13 @@ import (
 )
 
 type BundleCmd struct {
-	Source string `arg:"" type:"path"`
+	Gxx struct {
+		Flag string
+	} `cmd:"" name:"g++"`
+
+	Python3 struct {
+		Flag string
+	} `cmd:"" name:"python3"`
 }
 
 var bundleCmd = &cobra.Command{
@@ -16,13 +22,13 @@ var bundleCmd = &cobra.Command{
 	Short: "Bundle a submission",
 	Run: func(cmd *cobra.Command, args []string) {
 		var cli BundleCmd
-		parser, err := kong.New(&cli)
+		k, err := kong.New(&cli)
 		if err != nil {
-			panic(err)
+			panic("error creating kong parser: " + err.Error())
 		}
-		ctx, err := parser.Parse(args)
+		ctx, err := k.Parse(args)
 		if err != nil {
-			panic(err)
+			panic("error parsing arguments: " + err.Error())
 		}
 		fmt.Println(ctx.Command())
 	},
