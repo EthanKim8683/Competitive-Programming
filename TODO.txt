@@ -3,23 +3,27 @@ i have kind of an interesting idea:
 we store compile/run commands in make variables, kind of like:
 
 define x/c++20
-cpx config compile -- g++ -O2 -std=c++20 -o $(1) $(1).cpp | \
-cpx config run -- ./$(1)
+$(shell \
+	cpx config compile -- g++ -O2 -std=c++20 -o $(1) $(1).cpp | \
+	cpx config run -- ./$(1) \
+)
 endef
 
 define x/python3
-cpx config run -- python3 $(1).py
+$(shell \
+	cpx config run -- python3 $(1).py \
+)
 endef
 
-X := $(call x/c++20,sol)
-Y := $(call x/python3,sol)
+X = $(call x/c++20,sol)
+Y = $(call x/python3,sol)
 
 now, we can do stuff like:
 
-$(X) | cpx bundle
-$(X) | cpx compile
-$(X) | cpx run
-$(X) | cpx submit [url]
+cpx bundle $(X)
+cpx compile $(X)
+cpx run $(X)
+cpx submit [url] $(X)
 
 this makes things speedy and as "single source of truth" as
 possible
