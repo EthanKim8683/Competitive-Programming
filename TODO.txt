@@ -1,29 +1,24 @@
-i have kind of an interesting idea:
+cpx.yaml looks like:
 
-we store compile/run commands in make variables, kind of like:
+presets:
+	cf/c++20:
+		c: g++ -O2 -std=c++20 -o % %.cpp
+		r: ./%
+	cf/c++23:
+		c: g++ -O2 -std=c++23 -o % %.cpp
+		r: ./%
+	c++: cf/c++23
+targets:
+	sol.cpp:
+		e: cf/c++20
+		+c: -U=U
 
-define x/c++20
-$(shell \
-	cpx config compile -- g++ -O2 -std=c++20 -o $(1) $(1).cpp | \
-	cpx config run -- ./$(1) \
-)
-endef
+then commands look like:
 
-define x/python3
-$(shell \
-	cpx config run -- python3 $(1).py \
-)
-endef
-
-X = $(call x/c++20,sol)
-Y = $(call x/python3,sol)
-
-now, we can do stuff like:
-
-cpx bundle $(X)
-cpx compile $(X)
-cpx run $(X)
-cpx submit [url] $(X)
+cpx bundle sol.cpp
+cpx compile sol.cpp
+cpx run sol.cpp
+cpx submit [url] sol.cpp
 
 this makes things speedy and as "single source of truth" as
 possible
