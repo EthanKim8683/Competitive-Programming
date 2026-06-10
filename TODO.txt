@@ -1,33 +1,15 @@
-cpx.yaml looks like:
+new idea: we alias g++, python3, etc. to wrap around the
+original command that uses its flags and arguments to set
+configs for related source files
 
-presets:
-	cf/c++20:
-		c: g++ -O2 -std=c++20 -o % %.cpp
-		r: ./%
-	cf/c++23:
-		c: g++ -O2 -std=c++23 -o % %.cpp
-		r: ./%
-	c++: cf/c++23
-targets:
-	sol.cpp:
-		e: cf/c++20
-		+c: -U=U
+for context, we only need config for bundling and submitting
+and, typically, bundling happens during submitting. since it's
+always good practice to run on samples before submitting, we
+can kind of bet that g++, python3, etc. will be run before
+submission and our config would be present and up-to-date by
+the time we submit
 
-then commands look like:
-
-cpx bundle sol.cpp
-cpx compile sol.cpp
-cpx run sol.cpp
-cpx submit [url] sol.cpp
-
-this makes things speedy and as "single source of truth" as
-possible
-
-
-
-
-now i want to figure out a good way to scaffold stuff based on
-type. i think i'll leave this up to Jinja2? like each scaffold
-template is a single Jinja2 template which contains logic to
-construct directory structures. this way, templates can be as
-expressive and cut-corner-y as possible
+this is kind of the same idea i had with the browser, where we
+warm up the browser whenever samples are run. that way, the
+browser is typically already up by the time we submit, speeding
+things up a lot
