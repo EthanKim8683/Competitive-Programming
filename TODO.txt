@@ -13,3 +13,5 @@ this is kind of the same idea i had with the browser, where we
 warm up the browser whenever samples are run. that way, the
 browser is typically already up by the time we submit, speeding
 things up a lot
+
+as was before, scaffolds are still Jinja2 templates
