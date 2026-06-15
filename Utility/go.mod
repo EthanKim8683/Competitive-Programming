@@ -3,6 +3,7 @@ module github.com/EthanKim8683/Competitive-Programming/Utility
 go 1.26.3
 
 require (
+	github.com/alecthomas/kong v1.15.0
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/go-rod/rod v0.116.2
 	github.com/joho/godotenv v1.5.1
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/alecthomas/kong v1.15.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

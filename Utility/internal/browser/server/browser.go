@@ -33,10 +33,10 @@ type browser struct {
 
 func copyLocalState(src string, dst string) error {
 	in, err := os.Open(src)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("local state file not found: %w", err)
+	}
 	if err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("local state file not found: %w", err)
-		}
 		return fmt.Errorf("failed to open local state file: %w", err)
 	}
 	defer in.Close()
@@ -67,10 +67,11 @@ func cookiesDSN(src string) string {
 }
 
 func copyCookies(ctx context.Context, src string, dst string) error {
-	if _, err := os.Stat(src); err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
+	_, err := os.Stat(src)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
 		return fmt.Errorf("failed to stat cookies file: %w", err)
 	}
 

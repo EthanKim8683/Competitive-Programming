@@ -1,5 +1,5 @@
 package port
 
 type Bundler interface {
-	Bundle(source string) (string, error)
+	Bundle(sourcePath string) (string, error)
 }
