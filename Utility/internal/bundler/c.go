@@ -17,15 +17,11 @@ type cBundler struct {
 	includePaths []string
 }
 
-type cNode struct {
-	*cState
-	absPath string
-
-	commented    string
-	dependencies []*cNode
+func (b *cBundler) commentIncludes(source string) string {
+	return cIncludeRegex.ReplaceAllString(source, "// $0")
 }
 
-func (n *cNode) extractIncludes(source string) []string {
+func (b *cBundler) extractIncludes(source string) []string {
 	matches := cIncludeRegex.FindAllStringSubmatch(source, -1)
 	includes := make([]string, 0, len(matches))
 	for _, match := range matches {
@@ -34,26 +30,18 @@ func (n *cNode) extractIncludes(source string) []string {
 	return includes
 }
 
-func (n *cNode) commentIncludes(source string) string {
-	return cIncludeRegex.ReplaceAllString(source, "// $0")
-}
-
-func (n *cNode) resolveInclude(include string) (string, error) {
+func (b *cBundler) resolveInclude(include, from string) (absPath string, err error) {
 	if filepath.IsAbs(include) {
-		absPath := include
-		if _, err := os.Stat(absPath); err != nil {
-			return "", fmt.Errorf("could not stat include: %w", err)
-		}
-		return absPath, nil
+		return include, nil
 	}
 
-	absPath := filepath.Join(filepath.Dir(n.absPath), include)
+	absPath = filepath.Join(filepath.Dir(from), include)
 	if _, err := os.Stat(absPath); err == nil {
 		return absPath, nil
 	}
 
-	for _, includePath := range n.includePaths {
-		absPath := filepath.Join(includePath, include)
+	for _, path := range b.includePaths {
+		absPath = filepath.Join(path, include)
 		if _, err := os.Stat(absPath); err == nil {
 			return absPath, nil
 		}
@@ -62,98 +50,75 @@ func (n *cNode) resolveInclude(include string) (string, error) {
 	return "", fmt.Errorf("could not resolve include: %s", include)
 }
 
-func (n *cNode) process() ([]*cNode, error) {
-	data, err := os.ReadFile(n.absPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not read source: %w", err)
-	}
-	source := string(data)
-
-	includes := n.extractIncludes(source)
-	commented := n.commentIncludes(source)
-
+func (b *cBundler) resolveIncludes(includes []string, from string) ([]string, error) {
 	var errs error
-	dependencies := make([]*cNode, 0, len(includes))
+
+	deps := make([]string, 0, len(includes))
 	for _, include := range includes {
-		absPath, err := n.resolveInclude(include)
+		dep, err := b.resolveInclude(include, from)
 		if err != nil {
 			errs = errors.Join(errs, err)
 			continue
 		}
 
-		dependency := n.resolveNode(absPath)
-		dependencies = append(dependencies, dependency)
+		deps = append(deps, dep)
 	}
+
 	if errs != nil {
-		return nil, fmt.Errorf("could not process %s: %w", n.absPath, errs)
+		return nil, errs
 	}
-
-	n.commented = commented
-	n.dependencies = dependencies
-
-	return dependencies, nil
+	return deps, nil
 }
 
-func (n *cNode) incoming() []node {
-	incoming := make([]node, 0, len(n.dependencies))
-	for _, dependency := range n.dependencies {
-		incoming = append(incoming, dependency)
+func (b *cBundler) resolve(absPath string) (string, []string, error) {
+	data, err := os.ReadFile(absPath)
+	if err != nil {
+		return "", nil, err
 	}
-	return incoming
+	source := string(data)
+
+	deps, err := b.resolveIncludes(b.extractIncludes(source), absPath)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return b.commentIncludes(source), deps, nil
 }
 
-var _ node = (*cNode)(nil)
-
-type cState struct {
-	includePaths []string
-
-	node map[string]*cNode
-}
-
-func (s *cState) resolveNode(absPath string) *cNode {
-	absPath = filepath.Clean(absPath)
-
-	if n, ok := s.node[absPath]; ok {
-		return n
+func (b *cBundler) Bundle(absPath string) (string, error) {
+	if !filepath.IsAbs(absPath) {
+		return "", fmt.Errorf("source path is not absolute: %s", absPath)
 	}
 
-	n := &cNode{
-		cState:  s,
-		absPath: absPath,
-	}
-
-	s.node[absPath] = n
-
-	return n
-}
-
-func newCState(includePaths []string) *cState {
-	return &cState{
-		includePaths: includePaths,
-		node:         make(map[string]*cNode),
-	}
-}
-
-func (b *cBundler) Bundle(sourcePath string) (string, error) {
-	if !filepath.IsAbs(sourcePath) {
-		return "", fmt.Errorf("source path is not absolute: %s", sourcePath)
-	}
-
-	s := newCState(b.includePaths)
-
-	visited := make(map[*cNode]struct{})
 	var errs error
-	var nodes []node
-	var dfs func(a *cNode)
-	dfs = func(a *cNode) {
-		if _, ok := visited[a]; ok {
+	var sb strings.Builder
+
+	type visitState int
+	const (
+		unvisited visitState = iota
+		visiting
+		visited
+	)
+
+	state := make(map[string]visitState)
+	var dfs func(absPath string)
+	dfs = func(absPath string) {
+		absPath = filepath.Clean(absPath)
+
+		switch state[absPath] {
+		case unvisited:
+			state[absPath] = visiting
+		case visiting:
+			errs = errors.Join(errs, errors.New("cycle detected"))
+			return
+		case visited:
 			return
 		}
-		visited[a] = struct{}{}
+		defer func() {
+			state[absPath] = visited
+		}()
 
-		nodes = append(nodes, a)
-
-		dependencies, err := a.process()
+		fragment, dependencies, err := b.resolve(absPath)
 		if err != nil {
 			errs = errors.Join(errs, err)
 			return
@@ -162,28 +127,21 @@ func (b *cBundler) Bundle(sourcePath string) (string, error) {
 		for _, dependency := range dependencies {
 			dfs(dependency)
 		}
-	}
-	dfs(s.resolveNode(sourcePath))
-	if errs != nil {
-		return "", fmt.Errorf("could not resolve dependency graph: %w", errs)
-	}
 
-	order, err := toposort(nodes)
-	if err != nil {
-		return "", fmt.Errorf("could not flatten dependency graph: %w", err)
-	}
-
-	var sb strings.Builder
-	for _, node := range order {
-		sb.WriteString(strings.TrimSpace(node.(*cNode).commented))
+		sb.WriteString(strings.TrimSpace(fragment))
 		sb.WriteString("\n\n")
+	}
+	dfs(absPath)
+
+	if errs != nil {
+		return "", fmt.Errorf("failed to bundle: %w", errs)
 	}
 	return sb.String(), nil
 }
 
-var _ port.Bundler = &cBundler{}
+var _ port.Bundler = (*cBundler)(nil)
 
-func NewCBundler(includePaths []string) port.Bundler {
+func NewC(includePaths []string) port.Bundler {
 	return &cBundler{
 		includePaths: includePaths,
 	}
