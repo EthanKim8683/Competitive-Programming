@@ -9,24 +9,32 @@ import (
 type gxxStandard string
 
 const (
-	GXXStandardUnspecified gxxStandard = ""
-	GXXStandardCXX17       gxxStandard = "c++17"
-	GXXStandardCXX20       gxxStandard = "c++20"
-	GXXStandardCXX23       gxxStandard = "c++23"
+	GXXStandardDefault gxxStandard = ""
+	GXXStandardCXX17   gxxStandard = "c++17"
+	GXXStandardCXX20   gxxStandard = "c++20"
+	GXXStandardCXX23   gxxStandard = "c++23"
 )
+
+func (s gxxStandard) String() string {
+	if s == GXXStandardDefault {
+		return "(default)"
+	}
+
+	return string(s)
+}
 
 func NewGXXStandard(standard string) (gxxStandard, error) {
 	switch standard {
 	case "", "c++17", "c++20", "c++23":
 		return gxxStandard(standard), nil
 	default:
-		return "", fmt.Errorf("unknown standard: %s", standard)
+		return "", fmt.Errorf("unexpected standard: %s", standard)
 	}
 }
 
 type GXXMetadata struct {
-	Standard     gxxStandard
-	IncludePaths []string
+	Standard     gxxStandard `json:"standard"`
+	IncludePaths []string    `json:"include_paths"`
 }
 
 type gxxMetadataBuilder struct {
@@ -75,10 +83,10 @@ func (b *gxxMetadataBuilder) build() (*Metadata, error) {
 
 	var standard gxxStandard
 	switch {
-	case len(b.standards) > 1:
-		b.addErr(fmt.Errorf("multiple standards specified: %v", b.standards))
-	case len(b.standards) == 1:
-		standard = b.standards[0]
+	case len(b.standards) == 0:
+		standard = GXXStandardDefault
+	default:
+		standard = b.standards[len(b.standards)-1]
 	}
 
 	if b.errs != nil {
@@ -150,21 +158,14 @@ func gxxNew(args []string) (*Metadata, error) {
 	}
 
 	m, err := b.build()
-	if err != nil {
-		errs = errors.Join(errs, fmt.Errorf("failed to build metadata: %w", err))
-	}
+	errs = errors.Join(errs, err)
 
 	if errs != nil {
 		return nil, errs
 	}
-
 	return m, nil
 }
 
-func gxxJoin(lhs, rhs *Metadata) (*Metadata, error) {
-	if lhs.RelPath != rhs.RelPath {
-		return nil, fmt.Errorf("rel paths do not match: %s != %s", lhs.RelPath, rhs.RelPath)
-	}
-
+func gxxJoin(_, rhs *Metadata) (*Metadata, error) {
 	return rhs, nil
 }

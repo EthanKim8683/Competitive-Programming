@@ -12,15 +12,15 @@ func NewRelPath(path string) (relPath, error) {
 	path = filepath.Clean(path)
 
 	if filepath.IsAbs(path) {
-		return "", fmt.Errorf("relative path is absolute: %s", path)
+		return "", fmt.Errorf("path is absolute: %s", path)
 	}
 
 	if strings.HasPrefix(path, "..") {
-		return "", fmt.Errorf("relative path escapes root directory: %s", path)
+		return "", fmt.Errorf("path escapes root directory: %s", path)
 	}
 
 	if path == "." {
-		return "", fmt.Errorf("relative path is root directory: %s", path)
+		return "", fmt.Errorf("path is root directory: %s", path)
 	}
 
 	return relPath(path), nil
@@ -33,10 +33,18 @@ const (
 	MetadataTypeGXX         MetadataType = "g++"
 )
 
+func (t MetadataType) String() string {
+	if t == MetadataTypeUnspecified {
+		return "(unspecified)"
+	}
+
+	return string(t)
+}
+
 type Metadata struct {
-	RelPath relPath
-	Type    MetadataType
-	GXX     *GXXMetadata
+	RelPath relPath      `json:"path"`
+	Type    MetadataType `json:"type"`
+	GXX     *GXXMetadata `json:"g++"`
 }
 
 func New(args []string) (*Metadata, error) {
@@ -48,7 +56,7 @@ func New(args []string) (*Metadata, error) {
 	case "g++":
 		return gxxNew(args[1:])
 	default:
-		return nil, fmt.Errorf("unknown command: %s", args[0])
+		return nil, fmt.Errorf("unexpected command: %s", args[0])
 	}
 }
 
@@ -56,15 +64,22 @@ func Join(lhs, rhs *Metadata) (*Metadata, error) {
 	if lhs == nil {
 		return rhs, nil
 	}
+	if rhs == nil {
+		return lhs, nil
+	}
 
 	if lhs.RelPath != rhs.RelPath {
-		return nil, fmt.Errorf("relative paths do not match: %s != %s", lhs.RelPath, rhs.RelPath)
+		return nil, fmt.Errorf("paths do not match: %s != %s", lhs.RelPath, rhs.RelPath)
+	}
+
+	if lhs.Type != rhs.Type {
+		return nil, fmt.Errorf("metadata types do not match: %s != %s", lhs.Type, rhs.Type)
 	}
 
 	switch lhs.Type {
 	case MetadataTypeGXX:
 		return gxxJoin(lhs, rhs)
 	default:
-		return nil, fmt.Errorf("unknown metadata type: %s", lhs.Type)
+		return nil, fmt.Errorf("unexpected metadata type: %s", lhs.Type)
 	}
 }

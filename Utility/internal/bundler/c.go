@@ -11,18 +11,18 @@ import (
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/port"
 )
 
-var cIncludeRegex = regexp.MustCompile(`(?m)^\s*#\s*include\s*"((?:[^"]|\")+)"`)
+var cIncludeRegexp = regexp.MustCompile(`(?m)^\s*#\s*include\s*"((?:[^"]|\")+)"`)
 
 type cBundler struct {
 	includePaths []string
 }
 
 func (b *cBundler) commentIncludes(source string) string {
-	return cIncludeRegex.ReplaceAllString(source, "// $0")
+	return cIncludeRegexp.ReplaceAllString(source, "// $0")
 }
 
 func (b *cBundler) extractIncludes(source string) []string {
-	matches := cIncludeRegex.FindAllStringSubmatch(source, -1)
+	matches := cIncludeRegexp.FindAllStringSubmatch(source, -1)
 	includes := make([]string, 0, len(matches))
 	for _, match := range matches {
 		includes = append(includes, match[1])
@@ -118,14 +118,14 @@ func (b *cBundler) Bundle(absPath string) (string, error) {
 			state[absPath] = visited
 		}()
 
-		fragment, dependencies, err := b.resolve(absPath)
+		fragment, deps, err := b.resolve(absPath)
 		if err != nil {
 			errs = errors.Join(errs, err)
 			return
 		}
 
-		for _, dependency := range dependencies {
-			dfs(dependency)
+		for _, dep := range deps {
+			dfs(dep)
 		}
 
 		sb.WriteString(strings.TrimSpace(fragment))

@@ -1,0 +1,189 @@
+package metadata_test
+
+import (
+	"errors"
+	"path/filepath"
+	"testing"
+
+	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/metadata"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNewRelPath(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		path string
+		err  error
+	}{
+		"ok": {
+			path: "main.cpp",
+			err:  nil,
+		},
+		"absolute path": {
+			path: "/main.cpp",
+			err:  errors.New("path is absolute: /main.cpp"),
+		},
+		"relative path escapes root directory": {
+			path: "../main.cpp",
+			err:  errors.New("path escapes root directory: ../main.cpp"),
+		},
+		"root directory": {
+			path: ".",
+			// revive:disable-next-line:error-strings
+			err: errors.New("path is root directory: ."),
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			relPath, err := metadata.NewRelPath(test.path)
+			if test.err != nil {
+				require.EqualError(t, err, test.err.Error())
+				assert.Empty(t, relPath)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, filepath.Clean(test.path), string(relPath))
+			}
+		})
+	}
+}
+
+func TestNew(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		args     []string
+		metadata *metadata.Metadata
+		err      error
+	}{
+		"g++": {
+			args: []string{"g++", "main.cpp"},
+			metadata: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeGXX,
+				GXX:     &metadata.GXXMetadata{},
+			},
+		},
+		"no arguments": {
+			args: []string{},
+			err:  errors.New("no arguments provided: []"),
+		},
+		"bogus": {
+			args: []string{"bogus"},
+			err:  errors.New("unexpected command: bogus"),
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			metadata, err := metadata.New(test.args)
+			if test.err != nil {
+				require.EqualError(t, err, test.err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+			if test.metadata != nil {
+				assert.Equal(t, test.metadata, metadata)
+			} else {
+				assert.Nil(t, metadata)
+			}
+		})
+	}
+}
+
+func TestJoin(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		lhs, rhs *metadata.Metadata
+		metadata *metadata.Metadata
+		err      error
+	}{
+		"nil lhs": {
+			rhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			metadata: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+		},
+		"nil rhs": {
+			lhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			metadata: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+		},
+		"g++": {
+			lhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeGXX,
+				GXX:     &metadata.GXXMetadata{},
+			},
+			rhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeGXX,
+				GXX:     &metadata.GXXMetadata{},
+			},
+			metadata: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeGXX,
+				GXX:     &metadata.GXXMetadata{},
+			},
+		},
+		"different paths": {
+			lhs: &metadata.Metadata{
+				RelPath: "main1.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			rhs: &metadata.Metadata{
+				RelPath: "main2.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			err: errors.New("paths do not match: main1.cpp != main2.cpp"),
+		},
+		"different types": {
+			lhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeGXX,
+				GXX:     &metadata.GXXMetadata{},
+			},
+			rhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			err: errors.New("metadata types do not match: g++ != (unspecified)"),
+		},
+		"unexpected metadata type": {
+			lhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			rhs: &metadata.Metadata{
+				RelPath: "main.cpp",
+				Type:    metadata.MetadataTypeUnspecified,
+			},
+			err: errors.New("unexpected metadata type: (unspecified)"),
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			metadata, err := metadata.Join(test.lhs, test.rhs)
+			if test.err != nil {
+				require.EqualError(t, err, test.err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+			if test.metadata != nil {
+				assert.Equal(t, test.metadata, metadata)
+			} else {
+				assert.Nil(t, metadata)
+			}
+		})
+	}
+}
