@@ -100,24 +100,12 @@ func TestJoin(t *testing.T) {
 		err      error
 	}{
 		"nil lhs": {
-			rhs: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
-			},
-			metadata: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
-			},
+			rhs:      &metadata.Metadata{},
+			metadata: &metadata.Metadata{},
 		},
 		"nil rhs": {
-			lhs: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
-			},
-			metadata: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
-			},
+			lhs:      &metadata.Metadata{},
+			metadata: &metadata.Metadata{},
 		},
 		"g++": {
 			lhs: &metadata.Metadata{
@@ -139,35 +127,25 @@ func TestJoin(t *testing.T) {
 		"different paths": {
 			lhs: &metadata.Metadata{
 				RelPath: "main1.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
 			},
 			rhs: &metadata.Metadata{
 				RelPath: "main2.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
 			},
 			err: errors.New("paths do not match: main1.cpp != main2.cpp"),
 		},
 		"different types": {
 			lhs: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeGXX,
-				GXX:     &metadata.GXXMetadata{},
+				Type: metadata.MetadataTypeGXX,
+				GXX:  &metadata.GXXMetadata{},
 			},
 			rhs: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
+				Type: metadata.MetadataTypeUnspecified,
 			},
 			err: errors.New("metadata types do not match: g++ != (unspecified)"),
 		},
 		"unexpected metadata type": {
-			lhs: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
-			},
-			rhs: &metadata.Metadata{
-				RelPath: "main.cpp",
-				Type:    metadata.MetadataTypeUnspecified,
-			},
+			lhs: &metadata.Metadata{},
+			rhs: &metadata.Metadata{},
 			err: errors.New("unexpected metadata type: (unspecified)"),
 		},
 	}

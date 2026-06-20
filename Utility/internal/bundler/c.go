@@ -70,7 +70,7 @@ func (b *cBundler) resolveIncludes(includes []string, from string) ([]string, er
 	return deps, nil
 }
 
-func (b *cBundler) resolve(absPath string) (string, []string, error) {
+func (b *cBundler) resolveFile(absPath string) (string, []string, error) {
 	data, err := os.ReadFile(absPath)
 	if err != nil {
 		return "", nil, err
@@ -108,17 +108,17 @@ func (b *cBundler) Bundle(absPath string) (string, error) {
 		switch state[absPath] {
 		case unvisited:
 			state[absPath] = visiting
+			defer func() {
+				state[absPath] = visited
+			}()
 		case visiting:
 			errs = errors.Join(errs, errors.New("cycle detected"))
 			return
 		case visited:
 			return
 		}
-		defer func() {
-			state[absPath] = visited
-		}()
 
-		fragment, deps, err := b.resolve(absPath)
+		fragment, deps, err := b.resolveFile(absPath)
 		if err != nil {
 			errs = errors.Join(errs, err)
 			return
@@ -141,7 +141,7 @@ func (b *cBundler) Bundle(absPath string) (string, error) {
 
 var _ port.Bundler = (*cBundler)(nil)
 
-func NewC(includePaths []string) port.Bundler {
+func NewC(includePaths []string) *cBundler {
 	return &cBundler{
 		includePaths: includePaths,
 	}

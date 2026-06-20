@@ -3,34 +3,27 @@ package commands
 import (
 	"fmt"
 
-	"github.com/alecthomas/kong"
+	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/bundler"
 	"github.com/spf13/cobra"
 )
 
-type BundleCmd struct {
-	Gxx struct {
-		Flag string
-	} `cmd:"" name:"g++"`
-
-	Python3 struct {
-		Flag string
-	} `cmd:"" name:"python3"`
-}
-
 var bundleCmd = &cobra.Command{
-	Use:   "bundle",
-	Short: "Bundle a submission",
+	Use: "bundle",
 	Run: func(cmd *cobra.Command, args []string) {
-		var cli BundleCmd
-		k, err := kong.New(&cli)
+		sourcePath := args[0]
+
+		cBundler := bundler.NewC(
+			[]string{
+				"~/Competitive-Programming/include",
+			},
+		)
+
+		bundle, err := cBundler.Bundle(sourcePath)
 		if err != nil {
-			panic("error creating kong parser: " + err.Error())
+			fmt.Println("error bundling:", err)
+			return
 		}
-		ctx, err := k.Parse(args)
-		if err != nil {
-			panic("error parsing arguments: " + err.Error())
-		}
-		fmt.Println(ctx.Command())
+		fmt.Println(bundle)
 	},
 }
 

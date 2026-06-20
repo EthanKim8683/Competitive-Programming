@@ -3,25 +3,21 @@ package domain
 type ProblemType string
 
 const (
-	ProblemTypeUnspecified   ProblemType = ""
-	ProblemTypeBatch         ProblemType = "batch"
-	ProblemTypeInteractive   ProblemType = "interactive"
-	ProblemTypeCommunication ProblemType = "communication"
+	ProblemTypeUnspecified      ProblemType = ""
+	ProblemTypeStdioBatch       ProblemType = "stdio/batch"
+	ProblemTypeStdioInteractive ProblemType = "stdio/interactive"
+	ProblemTypeStdioRunTwice    ProblemType = "stdio/run-twice"
+	ProblemTypeFileBatch        ProblemType = "file/batch"
+	ProblemTypeFuncBatch        ProblemType = "function/batch"
 )
 
-type BatchProblem struct {
+type StdioBatchProblem struct {
 	Inputs  []string
 	Outputs []string
 }
 
-type InteractiveProblem struct{}
-
-type CommunicationProblem struct{}
-
 type Problem struct {
-	URL           string
-	Type          ProblemType
-	Batch         *BatchProblem
-	Interactive   *InteractiveProblem
-	Communication *CommunicationProblem
+	URL        string
+	Type       ProblemType
+	StdioBatch *StdioBatchProblem
 }
