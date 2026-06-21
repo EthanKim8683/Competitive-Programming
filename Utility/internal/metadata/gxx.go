@@ -44,14 +44,14 @@ type gxxMetadataBuilder struct {
 	includePaths []string
 }
 
-func (b *gxxMetadataBuilder) addErr(err error) {
+func (b *gxxMetadataBuilder) addError(err error) {
 	b.errs = errors.Join(b.errs, err)
 }
 
 func (b *gxxMetadataBuilder) addSourcePath(arg string) {
 	sourcePath, err := NewRelPath(arg)
 	if err != nil {
-		b.addErr(err)
+		b.addError(err)
 		return
 	}
 	b.sourcePaths = append(b.sourcePaths, sourcePath)
@@ -60,7 +60,7 @@ func (b *gxxMetadataBuilder) addSourcePath(arg string) {
 func (b *gxxMetadataBuilder) addStandard(arg string) {
 	standard, err := NewGXXStandard(arg)
 	if err != nil {
-		b.addErr(err)
+		b.addError(err)
 		return
 	}
 	b.standards = append(b.standards, standard)
@@ -74,9 +74,9 @@ func (b *gxxMetadataBuilder) build() (*Metadata, error) {
 	var sourcePath relPath
 	switch {
 	case len(b.sourcePaths) == 0:
-		b.addErr(errors.New("no source files specified"))
+		b.addError(errors.New("no source files specified"))
 	case len(b.sourcePaths) > 1:
-		b.addErr(fmt.Errorf("multiple source files specified: %v", b.sourcePaths))
+		b.addError(fmt.Errorf("multiple source files specified: %v", b.sourcePaths))
 	default:
 		sourcePath = b.sourcePaths[0]
 	}

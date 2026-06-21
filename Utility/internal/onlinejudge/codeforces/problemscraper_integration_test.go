@@ -72,18 +72,16 @@ func TestScrapeProblem(t *testing.T) {
 				Type: domain.ProblemTypeStdioRunTwice,
 			},
 		},
-		"error": {
+		"bogus": {
 			url: "https://codeforces.com/profile/EthanKim8683",
 			err: errors.New("could not determine problem type"),
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			scraper := New(b)
 			problem, err := scraper.ScrapeProblem(t.Context(), test.url)
-			if err != nil {
+			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
 				assert.Empty(t, problem)
 			} else {
