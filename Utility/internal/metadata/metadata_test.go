@@ -71,7 +71,7 @@ func TestNew(t *testing.T) {
 			args: []string{},
 			err:  errors.New("no arguments provided"),
 		},
-		"bogus": {
+		"unexpected command": {
 			args: []string{"bogus"},
 			err:  errors.New("unexpected command: bogus"),
 		},

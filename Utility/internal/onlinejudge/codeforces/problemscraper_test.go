@@ -49,8 +49,8 @@ func TestParseProblem(t *testing.T) {
 				Type: domain.ProblemTypeStdioRunTwice,
 			},
 		},
-		"bogus": {
-			path: filepath.Join("testdata", "problemscraper", "bogus.html"),
+		"profile": {
+			path: filepath.Join("testdata", "problemscraper", "profile.html"),
 			err:  errors.New("could not determine problem type"),
 		},
 	}

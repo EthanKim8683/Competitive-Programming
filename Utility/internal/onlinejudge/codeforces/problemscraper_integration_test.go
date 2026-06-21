@@ -72,7 +72,7 @@ func TestScrapeProblem(t *testing.T) {
 				Type: domain.ProblemTypeStdioRunTwice,
 			},
 		},
-		"bogus": {
+		"profile": {
 			url: "https://codeforces.com/profile/EthanKim8683",
 			err: errors.New("could not determine problem type"),
 		},
