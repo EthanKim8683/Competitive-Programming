@@ -13,10 +13,11 @@ type fileNode struct {
 }
 
 func buildGraph(absPath string, includePaths []string) ([]*fileNode, error) {
+	absPath = filepath.Clean(absPath)
+
 	var stack []string
 	pushed := make(map[string]struct{})
 	push := func(absPath string) {
-		absPath = filepath.Clean(absPath)
 		if _, ok := pushed[absPath]; ok {
 			return
 		}

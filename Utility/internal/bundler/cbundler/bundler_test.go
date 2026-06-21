@@ -19,12 +19,16 @@ func TestBundler(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		sourcePath string
-		bundled    string
-		err        error
+		sourcePath   string
+		includePaths []string
+		bundled      string
+		err          error
 	}{
 		"dag": {
 			sourcePath: filepath.Join(bundlerTestdataRoot(t), "dag", "foo.cpp"),
+			includePaths: []string{
+				filepath.Join(bundlerTestdataRoot(t), "dag", "include"),
+			},
 			bundled: `#include <iostream>
 
 void bar() { std::cout << "Hello, World!" << std::endl; }
@@ -50,7 +54,7 @@ int main() { bar(); }`,
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			bundler := New([]string{})
+			bundler := New(test.includePaths)
 			bundled, err := bundler.Bundle(test.sourcePath)
 			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
