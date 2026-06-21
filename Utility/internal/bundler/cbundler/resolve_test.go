@@ -78,12 +78,12 @@ func TestResolveInclude(t *testing.T) {
 			absPath: filepath.Join(includePaths[0], "foo.hpp"),
 			err:     nil,
 		},
-		"could not resolve absolute include": {
+		"missing absolute include": {
 			include: "/foo.hpp",
 			absPath: "",
-			err:     errors.New("could not resolve absolute include: /foo.hpp"),
+			err:     errors.New("could not resolve include: /foo.hpp"),
 		},
-		"could not resolve include": {
+		"missing include": {
 			include: "qux.hpp",
 			absPath: "",
 			err:     errors.New("could not resolve include: qux.hpp"),
@@ -132,13 +132,13 @@ func TestResolveIncludes(t *testing.T) {
 				filepath.Join(includePaths[0], "foo.hpp"),
 			},
 		},
-		"could not resolve some includes": {
+		"missing some includes": {
 			includes: []string{"foo.hpp", "/foo.hpp", "qux.hpp"},
 			absPaths: []string{
 				filepath.Join(includePaths[0], "foo.hpp"),
 			},
 			err: errors.Join(
-				errors.New("could not resolve absolute include: /foo.hpp"),
+				errors.New("could not resolve include: /foo.hpp"),
 				errors.New("could not resolve include: qux.hpp"),
 			),
 		},
@@ -196,17 +196,16 @@ func TestResolveFile(t *testing.T) {
 		}, dependencies)
 	})
 
-	t.Run("could not read file", func(t *testing.T) {
+	t.Run("missing file", func(t *testing.T) {
 		t.Parallel()
 
 		fragment, dependencies, err := resolveFile(missingPath, includePaths)
-		require.ErrorContains(t, err, "could not read file: "+missingPath)
 		require.ErrorIs(t, err, os.ErrNotExist)
 		assert.Empty(t, fragment)
 		assert.Empty(t, dependencies)
 	})
 
-	t.Run("could not resolve includes", func(t *testing.T) {
+	t.Run("missing some includes", func(t *testing.T) {
 		t.Parallel()
 
 		fragment, dependencies, err := resolveFile(sourcePath, []string{})

@@ -18,6 +18,8 @@ func bundlerTestdataRoot(t *testing.T) string {
 func TestBundler(t *testing.T) {
 	t.Parallel()
 
+	r := bundlerTestdataRoot(t)
+
 	tests := map[string]struct {
 		sourcePath   string
 		includePaths []string
@@ -25,9 +27,9 @@ func TestBundler(t *testing.T) {
 		err          error
 	}{
 		"valid": {
-			sourcePath: filepath.Join(bundlerTestdataRoot(t), "valid", "foo.cpp"),
+			sourcePath: filepath.Join(r, "valid", "foo.cpp"),
 			includePaths: []string{
-				filepath.Join(bundlerTestdataRoot(t), "valid", "include"),
+				filepath.Join(r, "valid", "include"),
 			},
 			bundled: `#include <iostream>
 
@@ -41,12 +43,12 @@ int main() { bar(); }`,
 			err:        errors.New("source path is not absolute: foo.cpp"),
 		},
 		"broken": {
-			sourcePath: filepath.Join(bundlerTestdataRoot(t), "broken", "foo.cpp"),
-			err:        errors.New("error building graph: could not resolve include: bar.hpp"),
+			sourcePath: filepath.Join(r, "broken", "foo.cpp"),
+			err:        errors.New("could not resolve include: bar.hpp"),
 		},
 		"cyclic": {
-			sourcePath: filepath.Join(bundlerTestdataRoot(t), "cyclic", "foo.cpp"),
-			err:        errors.New("error sorting files: cycle detected"),
+			sourcePath: filepath.Join(r, "cyclic", "foo.cpp"),
+			err:        errors.New("cycle detected"),
 		},
 	}
 	for name, test := range tests {

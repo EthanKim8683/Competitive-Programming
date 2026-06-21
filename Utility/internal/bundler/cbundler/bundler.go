@@ -19,12 +19,12 @@ func (b *Bundler) Bundle(sourcePath string) (string, error) {
 
 	nodes, err := buildGraph(sourcePath, b.includePaths)
 	if err != nil {
-		return "", fmt.Errorf("error building graph: %w", err)
+		return "", err
 	}
 
 	sortedNodes, err := topologicalSort(nodes)
 	if err != nil {
-		return "", fmt.Errorf("error sorting files: %w", err)
+		return "", err
 	}
 
 	var sb strings.Builder

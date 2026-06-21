@@ -69,7 +69,7 @@ func TestNew(t *testing.T) {
 		},
 		"no arguments": {
 			args: []string{},
-			err:  errors.New("no arguments provided: []"),
+			err:  errors.New("no arguments provided"),
 		},
 		"bogus": {
 			args: []string{"bogus"},

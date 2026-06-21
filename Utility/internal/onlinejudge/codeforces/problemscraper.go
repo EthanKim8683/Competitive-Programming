@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/browser"
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/domain"
 	"github.com/EthanKim8683/Competitive-Programming/Utility/internal/port"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-rod/rod/lib/proto"
 )
 
 func parseProblemType(d *goquery.Document) (domain.ProblemType, error) {
@@ -47,14 +47,28 @@ func parseProblemType(d *goquery.Document) (domain.ProblemType, error) {
 	}
 }
 
+func innerText(s *goquery.Selection) string {
+	divs := s.Find("div")
+	if divs.Length() == 0 {
+		return strings.TrimSpace(s.Text())
+	}
+
+	var sb strings.Builder
+	divs.Each(func(_ int, d *goquery.Selection) {
+		sb.WriteString(d.Text())
+		sb.WriteString("\n")
+	})
+	return strings.TrimSpace(sb.String())
+}
+
 func parseStdioBatch(d *goquery.Document) *domain.StdioBatch {
 	inputs := d.Find("div.input pre").
 		Map(func(_ int, s *goquery.Selection) string {
-			return browser.InnerText(s)
+			return innerText(s)
 		})
 	outputs := d.Find("div.output pre").
 		Map(func(_ int, s *goquery.Selection) string {
-			return browser.InnerText(s)
+			return innerText(s)
 		})
 	return &domain.StdioBatch{
 		Inputs:  inputs,
@@ -65,7 +79,7 @@ func parseStdioBatch(d *goquery.Document) *domain.StdioBatch {
 func parseProblem(d *goquery.Document) (*domain.Problem, error) {
 	problemType, err := parseProblemType(d)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse problem type: %w", err)
+		return nil, err
 	}
 
 	problem := &domain.Problem{
@@ -76,8 +90,6 @@ func parseProblem(d *goquery.Document) (*domain.Problem, error) {
 		problem.StdioBatch = parseStdioBatch(d)
 	case domain.ProblemTypeStdioInteractive:
 	case domain.ProblemTypeStdioRunTwice:
-	default:
-		return nil, fmt.Errorf("unexpected problem type: %s", problemType)
 	}
 	return problem, nil
 }
@@ -85,23 +97,31 @@ func parseProblem(d *goquery.Document) (*domain.Problem, error) {
 func (c *Codeforces) ScrapeProblem(ctx context.Context, url string) (*domain.Problem, error) {
 	b := c.browser.Context(ctx)
 
-	page, err := browser.Page(b, url)
+	page, err := b.Page(proto.TargetCreateTarget{
+		URL: url,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("could not open page: %w", err)
+		return nil, err
+	}
+	defer page.Close()
+
+	if err := page.WaitLoad(); err != nil {
+		return nil, err
 	}
 
-	if err = page.WaitLoad(); err != nil {
-		return nil, fmt.Errorf("could not wait for page to load: %w", err)
+	html, err := page.HTML()
+	if err != nil {
+		return nil, err
 	}
 
-	d, err := browser.Document(page)
+	d, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		return nil, fmt.Errorf("could not create document: %w", err)
+		return nil, err
 	}
 
 	problem, err := parseProblem(d)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse problem: %w", err)
+		return nil, err
 	}
 	problem.URL = url
 	return problem, nil

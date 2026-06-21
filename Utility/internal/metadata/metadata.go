@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -49,7 +50,7 @@ type Metadata struct {
 
 func New(args []string) (*Metadata, error) {
 	if len(args) == 0 {
-		return nil, fmt.Errorf("no arguments provided: %v", args)
+		return nil, errors.New("no arguments provided")
 	}
 
 	switch args[0] {

@@ -26,16 +26,15 @@ func findIncludes(source string) []string {
 func resolveInclude(include string, includePaths []string) (string, error) {
 	if filepath.IsAbs(include) {
 		absPath := filepath.Clean(include)
-		if _, err := os.Stat(absPath); err != nil {
-			return "", fmt.Errorf("could not resolve absolute include: %s", absPath)
-		}
-		return absPath, nil
-	}
-
-	for _, includePath := range includePaths {
-		absPath := filepath.Clean(filepath.Join(includePath, include))
 		if _, err := os.Stat(absPath); err == nil {
 			return absPath, nil
+		}
+	} else {
+		for _, includePath := range includePaths {
+			absPath := filepath.Clean(filepath.Join(includePath, include))
+			if _, err := os.Stat(absPath); err == nil {
+				return absPath, nil
+			}
 		}
 	}
 	return "", fmt.Errorf("could not resolve include: %s", include)
@@ -67,7 +66,7 @@ func buildIncludePaths(absPath string, includePaths []string) []string {
 func resolveFile(absPath string, includePaths []string) (string, []string, error) {
 	data, err := os.ReadFile(absPath)
 	if err != nil {
-		return "", nil, fmt.Errorf("could not read file: %s: %w", absPath, err)
+		return "", nil, err
 	}
 	source := string(data)
 
