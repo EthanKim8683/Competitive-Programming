@@ -7,5 +7,5 @@ import (
 )
 
 type Submitter interface {
-	Submit(ctx context.Context, url string, solution domain.Solution) (domain.Submission, error)
+	Submit(ctx context.Context, url string, solution *domain.Solution) (*domain.Submission, error)
 }

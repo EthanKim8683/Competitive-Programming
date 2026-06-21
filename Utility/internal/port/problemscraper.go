@@ -7,5 +7,5 @@ import (
 )
 
 type ProblemScraper interface {
-	ScrapeProblem(ctx context.Context, url string) (domain.Problem, error)
+	ScrapeProblem(ctx context.Context, url string) (*domain.Problem, error)
 }

@@ -30,7 +30,7 @@ func (b *Bundler) Bundle(sourcePath string) (string, error) {
 	var sb strings.Builder
 	for i, node := range sortedNodes {
 		if i > 0 {
-			sb.WriteString("\n\n")
+			sb.WriteString("\n")
 		}
 		sb.WriteString(node.fragment)
 	}

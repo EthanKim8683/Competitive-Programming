@@ -11,7 +11,7 @@ const (
 	ProblemTypeFuncBatch        ProblemType = "function/batch"
 )
 
-type StdioBatchProblem struct {
+type StdioBatch struct {
 	Inputs  []string
 	Outputs []string
 }
@@ -19,5 +19,5 @@ type StdioBatchProblem struct {
 type Problem struct {
 	URL        string
 	Type       ProblemType
-	StdioBatch *StdioBatchProblem
+	StdioBatch *StdioBatch
 }

@@ -6,7 +6,7 @@ type Codeforces struct {
 	browser *rod.Browser
 }
 
-func NewCodeforces(b *rod.Browser) *Codeforces {
+func New(b *rod.Browser) *Codeforces {
 	return &Codeforces{
 		browser: b,
 	}

@@ -24,15 +24,14 @@ func TestBundler(t *testing.T) {
 		bundled      string
 		err          error
 	}{
-		"dag": {
-			sourcePath: filepath.Join(bundlerTestdataRoot(t), "dag", "foo.cpp"),
+		"valid": {
+			sourcePath: filepath.Join(bundlerTestdataRoot(t), "valid", "foo.cpp"),
 			includePaths: []string{
-				filepath.Join(bundlerTestdataRoot(t), "dag", "include"),
+				filepath.Join(bundlerTestdataRoot(t), "valid", "include"),
 			},
 			bundled: `#include <iostream>
 
 void bar() { std::cout << "Hello, World!" << std::endl; }
-
 // #include "bar.hpp"
 
 int main() { bar(); }`,

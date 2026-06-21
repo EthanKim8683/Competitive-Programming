@@ -7,5 +7,5 @@ import (
 )
 
 type ContestScraper interface {
-	ScrapeContest(ctx context.Context, url string) (domain.Contest, error)
+	ScrapeContest(ctx context.Context, url string) (*domain.Contest, error)
 }

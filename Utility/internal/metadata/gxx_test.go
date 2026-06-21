@@ -67,7 +67,7 @@ func TestGXXNew(t *testing.T) {
 				},
 			},
 		},
-		"unknown standard": {
+		"unexpected standard": {
 			args: []string{"g++", "main.cpp", "-std=bogus"},
 			err:  errors.New("unexpected standard: bogus"),
 		},
