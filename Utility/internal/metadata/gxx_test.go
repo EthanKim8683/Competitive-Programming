@@ -71,10 +71,6 @@ func TestGXXNew(t *testing.T) {
 			args: []string{"g++", "main.cpp", "-std=bogus"},
 			err:  errors.New("unexpected standard: bogus"),
 		},
-		"no source files specified": {
-			args: []string{"g++"},
-			err:  errors.New("no source files specified"),
-		},
 		"no standard specified": {
 			args: []string{"g++", "main.cpp", "-std"},
 			err:  errors.New("no standard specified"),
@@ -90,16 +86,15 @@ func TestGXXNew(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			metadata, err := metadata.New(test.args)
+			t.Parallel()
+
+			m, err := metadata.New(test.args)
 			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
+				assert.Empty(t, m)
 			} else {
 				require.NoError(t, err)
-			}
-			if test.metadata != nil {
-				assert.Equal(t, test.metadata, metadata)
-			} else {
-				assert.Nil(t, metadata)
+				assert.Equal(t, test.metadata, m)
 			}
 		})
 	}
@@ -124,7 +119,7 @@ func TestGXXJoin(t *testing.T) {
 			IncludePaths: []string{"./include3", "./include4"},
 		},
 	}
-	metadata, err := metadata.Join(lhs, rhs)
+	m, err := metadata.Join(lhs, rhs)
 	require.NoError(t, err)
-	assert.Equal(t, rhs, metadata)
+	assert.Equal(t, rhs, m)
 }

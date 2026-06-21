@@ -37,6 +37,8 @@ func TestNewRelPath(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			relPath, err := metadata.NewRelPath(test.path)
 			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
@@ -76,16 +78,15 @@ func TestNew(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			metadata, err := metadata.New(test.args)
 			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
+				assert.Empty(t, metadata)
 			} else {
 				require.NoError(t, err)
-			}
-			if test.metadata != nil {
 				assert.Equal(t, test.metadata, metadata)
-			} else {
-				assert.Nil(t, metadata)
 			}
 		})
 	}
@@ -151,16 +152,15 @@ func TestJoin(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			metadata, err := metadata.Join(test.lhs, test.rhs)
 			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
+				assert.Empty(t, metadata)
 			} else {
 				require.NoError(t, err)
-			}
-			if test.metadata != nil {
 				assert.Equal(t, test.metadata, metadata)
-			} else {
-				assert.Nil(t, metadata)
 			}
 		})
 	}
