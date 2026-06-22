@@ -4,4 +4,7 @@
 **/sol
 **/sol.dSYM
 **/.env
+**/.cpx
 compile_flags.txt
+Snippets/*.json
+!Snippets/package.json

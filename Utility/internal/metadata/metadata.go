@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-type relPath string
+type RelPath string
 
-func NewRelPath(path string) (relPath, error) {
+func NewRelPath(path string) (RelPath, error) {
 	path = filepath.Clean(path)
 
 	if filepath.IsAbs(path) {
@@ -24,7 +24,7 @@ func NewRelPath(path string) (relPath, error) {
 		return "", fmt.Errorf("path is root directory: %s", path)
 	}
 
-	return relPath(path), nil
+	return RelPath(path), nil
 }
 
 type MetadataType string
@@ -43,7 +43,7 @@ func (t MetadataType) String() string {
 }
 
 type Metadata struct {
-	RelPath relPath      `json:"path"`
+	RelPath RelPath      `json:"path"`
 	Type    MetadataType `json:"type"`
 	GXX     *GXXMetadata `json:"g++"`
 }

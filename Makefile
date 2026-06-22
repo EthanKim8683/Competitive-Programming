@@ -10,3 +10,8 @@ compile_flags.txt:
 	echo "-DETHANKIM8683" >> compile_flags.txt
 	echo "-I./include" >> compile_flags.txt
 	echo "-std=c++23" >> compile_flags.txt
+
+clean:
+	rm -f compile_flags.txt
+
+.PHONY: clean

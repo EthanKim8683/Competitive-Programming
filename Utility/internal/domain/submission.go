@@ -15,8 +15,8 @@ const (
 )
 
 type Submission struct {
-	URL      string
-	Language Language
+	URL string
+	// Language Language
 	Verdict  Verdict
 	TimeMS   int
 	MemoryKB int

@@ -18,6 +18,7 @@ func TestScrapeProblem(t *testing.T) {
 
 	l := launcher.NewUserMode().
 		Context(t.Context()).
+		Headless(true).
 		UserDataDir(t.TempDir())
 	wsURL, err := l.Launch()
 	require.NoError(t, err)

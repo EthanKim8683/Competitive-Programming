@@ -1,6 +1,6 @@
 package domain
 
 type Solution struct {
-	Source   string
-	Language Language
+	Source string
+	// Language Language
 }

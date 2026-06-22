@@ -39,13 +39,13 @@ func TestNewRelPath(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			relPath, err := metadata.NewRelPath(test.path)
+			RelPath, err := metadata.NewRelPath(test.path)
 			if test.err != nil {
 				require.EqualError(t, err, test.err.Error())
-				assert.Empty(t, relPath)
+				assert.Empty(t, RelPath)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, filepath.Clean(test.path), string(relPath))
+				assert.Equal(t, filepath.Clean(test.path), string(RelPath))
 			}
 		})
 	}

@@ -15,3 +15,6 @@ browser is typically already up by the time we submit, speeding
 things up a lot
 
 as was before, scaffolds are still Jinja2 templates
+
+also snippets should just be configured outside cpx. if we did
+it with cpx, it'd just be a bunch of extra wiring

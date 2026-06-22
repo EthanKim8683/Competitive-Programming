@@ -6,16 +6,16 @@ import (
 	"strings"
 )
 
-type gxxStandard string
+type GXXStandard string
 
 const (
-	GXXStandardDefault gxxStandard = ""
-	GXXStandardCXX17   gxxStandard = "c++17"
-	GXXStandardCXX20   gxxStandard = "c++20"
-	GXXStandardCXX23   gxxStandard = "c++23"
+	GXXStandardDefault GXXStandard = ""
+	GXXStandardCXX17   GXXStandard = "c++17"
+	GXXStandardCXX20   GXXStandard = "c++20"
+	GXXStandardCXX23   GXXStandard = "c++23"
 )
 
-func (s gxxStandard) String() string {
+func (s GXXStandard) String() string {
 	if s == GXXStandardDefault {
 		return "(default)"
 	}
@@ -23,24 +23,24 @@ func (s gxxStandard) String() string {
 	return string(s)
 }
 
-func NewGXXStandard(standard string) (gxxStandard, error) {
+func NewGXXStandard(standard string) (GXXStandard, error) {
 	switch standard {
 	case "", "c++17", "c++20", "c++23":
-		return gxxStandard(standard), nil
+		return GXXStandard(standard), nil
 	default:
 		return "", fmt.Errorf("unexpected standard: %s", standard)
 	}
 }
 
 type GXXMetadata struct {
-	Standard     gxxStandard `json:"standard"`
+	Standard     GXXStandard `json:"standard"`
 	IncludePaths []string    `json:"include_paths"`
 }
 
 type gxxMetadataBuilder struct {
 	errs         error
-	sourcePaths  []relPath
-	standards    []gxxStandard
+	sourcePaths  []RelPath
+	standards    []GXXStandard
 	includePaths []string
 }
 
@@ -71,7 +71,7 @@ func (b *gxxMetadataBuilder) addIncludePath(arg string) {
 }
 
 func (b *gxxMetadataBuilder) build() (*Metadata, error) {
-	var sourcePath relPath
+	var sourcePath RelPath
 	switch {
 	case len(b.sourcePaths) == 0:
 		b.addError(errors.New("no source files specified"))
@@ -81,7 +81,7 @@ func (b *gxxMetadataBuilder) build() (*Metadata, error) {
 		sourcePath = b.sourcePaths[0]
 	}
 
-	var standard gxxStandard
+	var standard GXXStandard
 	switch {
 	case len(b.standards) == 0:
 		standard = GXXStandardDefault
