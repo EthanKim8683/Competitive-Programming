@@ -1,3 +1,6 @@
 [submodule "Utilities/cpx"]
 	path = Utilities/cpx
 	url = git@github.com:EthanKim8683/cpx.git
+[submodule "Team Reference Document"]
+	path = Team Reference Document
+	url = git@github.com:EthanKim8683/Team-Reference-Document.git
